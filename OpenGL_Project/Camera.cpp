@@ -74,3 +74,8 @@ const glm::vec3 Camera::get_position() const
 {
 	return this->position;
 }
+
+const glm::vec3 Camera::get_front() const
+{
+	return this->front;
+}

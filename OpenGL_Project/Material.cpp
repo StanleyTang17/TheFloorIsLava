@@ -13,9 +13,9 @@ Material::~Material() {}
 
 void Material::send_to_shader(Shader* program)
 {
-	program->set_vec_3f(this->ambient, "material.ambient");
-	program->set_vec_3f(this->diffuse, "material.diffuse");
-	program->set_vec_3f(this->specular, "material.specular");
-	program->set_1i(this->diffuse_texture, "material.diffuse_texture");
-	program->set_1i(this->specular_texture, "material.specular_texture");
+	program->set_vec_3f(this->ambient, "light.ambient");
+	program->set_vec_3f(this->diffuse, "light.diffuse");
+	program->set_vec_3f(this->specular, "light.specular");
+	program->set_1i(this->diffuse_texture, "material.diffuse_map");
+	program->set_1i(this->specular_texture, "material.specular_map");
 }

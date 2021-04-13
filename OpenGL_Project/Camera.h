@@ -35,4 +35,5 @@ public:
 
 	const glm::mat4 get_view_matrix();
 	const glm::vec3 get_position() const;
+	const glm::vec3 get_front() const;
 };

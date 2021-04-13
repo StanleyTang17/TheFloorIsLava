@@ -11,7 +11,7 @@ Game::Game(const char* title, const int width, const int height, const int versi
 	this->frame_buffer_height = height;
 
 	this->move_dir = -1;
-	this->camera = new Camera(glm::vec3(0.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	this->camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	this->FOV = 90.0f;
 	this->near_plane = 0.1f;
@@ -173,9 +173,9 @@ void Game::init_OpenGL_options()
 	// OPENGL OPTIONS
 	glEnable(GL_DEPTH_TEST);
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW); // SHAPES MADE UP OF CCW VERTICES WILL NOT DRAW!!
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
+	//glFrontFace(GL_CCW); // SHAPES MADE UP OF CCW VERTICES WILL NOT DRAW!!
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -197,6 +197,7 @@ void Game::init_matrices()
 void Game::init_shaders()
 {
 	this->shaders.push_back(new Shader("vertex_shader.glsl", "fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
+	this->shaders.push_back(new Shader("vertex_shader.glsl", "lamp_fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 }
 
 void Game::init_textures()
@@ -211,7 +212,7 @@ void Game::init_textures()
 
 void Game::init_materials()
 {
-	Material* material = new Material(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(10.0f), 1, 0);
+	Material* material = new Material(glm::vec3(0.5f), glm::vec3(6.0f), glm::vec3(15.0f), 1, 0);
 	this->materials.push_back(material);
 }
 
@@ -223,8 +224,10 @@ void Game::init_meshes()
 
 void Game::init_lights()
 {
-	glm::vec3* light_pos0 = new glm::vec3(0.0f, 2.0f, 0.0f);
+	glm::vec3* light_pos0 = new glm::vec3(1.2f, 1.0f, 2.0f);
 	this->lights.push_back(light_pos0);
+	this->meshes[0]->move(*light_pos0);
+	this->meshes[0]->_scale(glm::vec3(0.2f));
 }
 
 void Game::init_models()
@@ -240,14 +243,21 @@ void Game::init_uniforms()
 	this->shaders[0]->set_mat_4fv(this->camera->get_view_matrix(), "view_matrix", GL_FALSE);
 	this->shaders[0]->set_mat_4fv(this->projection_matrix, "projection_matrix", GL_FALSE);
 
-	this->shaders[0]->set_vec_3f(*this->lights[0], "light_pos0");
+	this->shaders[0]->set_vec_3f(*this->lights[0], "light.position");
+
+	this->shaders[0]->set_1f(64.0f, "material.shininess");
+	this->shaders[0]->set_1f(1.0f, "light.constant");
+	this->shaders[0]->set_1f(0.7f, "light.linear");
+	this->shaders[0]->set_1f(1.8f, "light.quadratic");
+	this->shaders[0]->set_1f(glm::cos(glm::radians(15.0f)), "light.cut_off");
+	this->shaders[0]->set_1f(glm::cos(glm::radians(25.0f)), "light.outer_cut_off");
 }
 
 void Game::update_uniforms()
 {
 	// MATERIALS
-	for (std::size_t i = 0; i < this->materials.size(); ++i)
-		this->materials[i]->send_to_shader(this->shaders[0]);
+	//for (std::size_t i = 0; i < this->materials.size(); ++i)
+	//	this->materials[i]->send_to_shader(this->shaders[0]);
 
 	// VIEW MATRIX (CAMERA)
 	this->shaders[0]->set_mat_4fv(this->camera->get_view_matrix(), "view_matrix", GL_FALSE);
@@ -262,6 +272,12 @@ void Game::update_uniforms()
 		this->far_plane
 	);
 	this->shaders[0]->set_mat_4fv(this->projection_matrix, "projection_matrix", GL_FALSE);
+
+	this->shaders[0]->set_vec_3f(this->camera->get_position(), "light.position");
+	this->shaders[0]->set_vec_3f(this->camera->get_front(), "light.direction");
+
+	this->shaders[1]->set_mat_4fv(this->camera->get_view_matrix(), "view_matrix", GL_FALSE);
+	this->shaders[1]->set_mat_4fv(this->projection_matrix, "projection_matrix", GL_FALSE);
 }
 
 void Game::update_dt()
@@ -333,6 +349,8 @@ void Game::render()
 	{
 		model->render(shaders[0]);
 	}
+
+	this->meshes[0]->rendor(shaders[1]);
 
 	this->shaders[0]->unuse();
 	//////////////////////////////END DRAW//////////////////////////////
