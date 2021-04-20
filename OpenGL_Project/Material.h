@@ -6,13 +6,11 @@
 class Material
 {
 private:
-	glm::vec3 ambient;
-	glm::vec3 diffuse;
-	glm::vec3 specular;
 	GLuint diffuse_texture;
 	GLuint specular_texture;
+	float shininess;
 public:
-	Material(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, GLuint diffuse_texture, GLuint specular_texture);
+	Material(GLuint diffuse_texture, GLuint specular_texture, float shininess);
 	~Material();
 	void send_to_shader(Shader* program);
 };

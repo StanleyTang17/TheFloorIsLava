@@ -45,11 +45,11 @@ private:
 
 	// VECTORS
 	std::vector<Shader*> shaders;
-	std::vector<Texture*> textures;
-	std::vector<Material*> materials;
-	std::vector<Mesh*> meshes;
-	std::vector<glm::vec3*> lights;
+	std::vector<glm::vec3*> light_positions;
 	std::vector<Model*> models;
+	std::vector<DirLight*> dir_lights;
+	std::vector<PointLight*> point_lights;
+	std::vector<SpotLight*> spot_lights;
 
 	// INITIALIZE
 	void init_GLFW();
@@ -58,11 +58,8 @@ private:
 	void init_OpenGL_options();
 	void init_matrices();
 	void init_shaders();
-	void init_textures();
-	void init_materials();
-	void init_meshes();
-	void init_lights();
 	void init_models();
+	void init_lights();
 	void init_uniforms();
 
 	// UPDATE

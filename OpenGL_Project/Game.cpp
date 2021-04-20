@@ -33,17 +33,31 @@ Game::Game(const char* title, const int width, const int height, const int versi
 	this->first_mouse = true;
 
 	this->init_GLFW();
+	std::cout << "Initialized GLFW" << std::endl;
+
 	this->init_window(title, resizable);
+	std::cout << "Initialized Window" << std::endl;
+
 	this->init_GLEW();
+	std::cout << "Initialized GLEW" << std::endl;
+
 	this->init_OpenGL_options();
+	std::cout << "Initialized OpenGL" << std::endl;
+
 	this->init_matrices();
+	std::cout << "Initialized Matrices" << std::endl;
+
 	this->init_shaders();
-	this->init_textures();
-	this->init_materials();
-	this->init_meshes();
+	std::cout << "Initialized Shaders" << std::endl;
+
 	this->init_models();
+	std::cout << "Initialized Models" << std::endl;
+
 	this->init_lights();
+	std::cout << "Initialized Lights" << std::endl;
+
 	this->init_uniforms();
+	std::cout << "Initialized Uniforms" << std::endl;
 }
 
 Game::~Game()
@@ -54,17 +68,17 @@ Game::~Game()
 	for (std::size_t i = 0; i < this->shaders.size(); ++i)
 		delete this->shaders[i];
 
-	for (std::size_t i = 0; i < this->textures.size(); ++i)
-		delete this->textures[i];
+	for (std::size_t i = 0; i < this->light_positions.size(); ++i)
+		delete this->light_positions[i];
 
-	for (std::size_t i = 0; i < this->materials.size(); ++i)
-		delete this->materials[i];
+	for (std::size_t i = 0; i < this->dir_lights.size(); ++i)
+		delete this->dir_lights[i];
 
-	for (std::size_t i = 0; i < this->meshes.size(); ++i)
-		delete this->meshes[i];
+	for (std::size_t i = 0; i < this->point_lights.size(); ++i)
+		delete this->point_lights[i];
 
-	for (std::size_t i = 0; i < this->lights.size(); ++i)
-		delete this->lights[i];
+	for (std::size_t i = 0; i < this->spot_lights.size(); ++i)
+		delete this->spot_lights[i];
 
 	delete this->camera;
 }
@@ -200,42 +214,22 @@ void Game::init_shaders()
 	this->shaders.push_back(new Shader("vertex_shader.glsl", "lamp_fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 }
 
-void Game::init_textures()
-{
-	Texture* texture_0 = new Texture("Images/container_specular.png", GL_TEXTURE_2D);
-	Texture* texture_1 = new Texture("Images/container.png", GL_TEXTURE_2D);
-	Texture* texture_2 = new Texture("Images/shovel.png", GL_TEXTURE_2D);
-	this->textures.push_back(texture_0);
-	this->textures.push_back(texture_1);
-	this->textures.push_back(texture_2);
-}
-
-void Game::init_materials()
-{
-	Material* material = new Material(glm::vec3(0.5f), glm::vec3(6.0f), glm::vec3(15.0f), 1, 0);
-	this->materials.push_back(material);
-}
-
-void Game::init_meshes()
-{
-	Mesh* mesh = new Mesh(new Cube());
-	this->meshes.push_back(mesh);
-}
-
 void Game::init_lights()
 {
-	glm::vec3* light_pos0 = new glm::vec3(1.2f, 1.0f, 2.0f);
-	this->lights.push_back(light_pos0);
-	this->meshes[0]->move(*light_pos0);
-	this->meshes[0]->_scale(glm::vec3(0.2f));
+	SpotLight* spot_light = new SpotLight(glm::vec3(0.0f), glm::vec3(6.0f), glm::vec3(10.0f), this->camera->get_position(), this->camera->get_front(), 1.0f, 0.7f, 1.8f, 15.0f, 30.0f);
+	this->spot_lights.push_back(spot_light);
+
+	//PointLight* point_light = new PointLight(glm::vec3(0.3f), glm::vec3(5.0f), glm::vec3(10.0f), glm::vec3(1.2f, 1.0f, -0.5f), 1.0f, 0.7f, 1.8f);
+	//this->point_lights.push_back(point_light);
+
+	DirLight* dir_light = new DirLight(glm::vec3(0.2f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
+	this->dir_lights.push_back(dir_light);
+
 }
 
 void Game::init_models()
 {
-	std::vector<Mesh*> containerMeshes;
-	containerMeshes.push_back(new Mesh(new Cube()));
-	Model* containerModel = new Model(glm::vec3(0.0f), this->materials[0], this->textures[1], this->textures[0], containerMeshes);
-	this->models.push_back(containerModel);
+	this->models.push_back(new Model("Models/backpack/backpack.obj"));
 }
 
 void Game::init_uniforms()
@@ -243,14 +237,7 @@ void Game::init_uniforms()
 	this->shaders[0]->set_mat_4fv(this->camera->get_view_matrix(), "view_matrix", GL_FALSE);
 	this->shaders[0]->set_mat_4fv(this->projection_matrix, "projection_matrix", GL_FALSE);
 
-	this->shaders[0]->set_vec_3f(*this->lights[0], "light.position");
-
 	this->shaders[0]->set_1f(64.0f, "material.shininess");
-	this->shaders[0]->set_1f(1.0f, "light.constant");
-	this->shaders[0]->set_1f(0.7f, "light.linear");
-	this->shaders[0]->set_1f(1.8f, "light.quadratic");
-	this->shaders[0]->set_1f(glm::cos(glm::radians(15.0f)), "light.cut_off");
-	this->shaders[0]->set_1f(glm::cos(glm::radians(25.0f)), "light.outer_cut_off");
 }
 
 void Game::update_uniforms()
@@ -273,11 +260,24 @@ void Game::update_uniforms()
 	);
 	this->shaders[0]->set_mat_4fv(this->projection_matrix, "projection_matrix", GL_FALSE);
 
-	this->shaders[0]->set_vec_3f(this->camera->get_position(), "light.position");
-	this->shaders[0]->set_vec_3f(this->camera->get_front(), "light.direction");
-
 	this->shaders[1]->set_mat_4fv(this->camera->get_view_matrix(), "view_matrix", GL_FALSE);
 	this->shaders[1]->set_mat_4fv(this->projection_matrix, "projection_matrix", GL_FALSE);
+
+	this->shaders[0]->set_1i(dir_lights.size(), "num_dir_lights");
+	this->shaders[0]->set_1i(point_lights.size(), "num_point_lights");
+	this->shaders[0]->set_1i(spot_lights.size(), "num_spot_lights");
+
+	this->spot_lights[0]->set_direction(this->camera->get_front());
+	this->spot_lights[0]->set_position(this->camera->get_position());
+
+	for (std::size_t i = 0; i < this->dir_lights.size(); ++i)
+		this->dir_lights[i]->send_to_shader(shaders[0], i);
+
+	for (std::size_t i = 0; i < this->point_lights.size(); ++i)
+		this->point_lights[i]->send_to_shader(shaders[0], i);
+
+	for (std::size_t i = 0; i < this->spot_lights.size(); ++i)
+		this->spot_lights[i]->send_to_shader(shaders[0], i);
 }
 
 void Game::update_dt()
@@ -322,6 +322,11 @@ void Game::update()
 	this->update_keyboard_input();
 
 	this->update_uniforms();
+
+	for (Model* model : this->models)
+	{
+		model->update();
+	}
 }
 
 void Game::render()
@@ -329,38 +334,21 @@ void Game::render()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	/////////////////////////////START DRAW/////////////////////////////
-	//this->shaders[0]->use();
-
-	//for (std::size_t i = 0; i < this->textures.size(); ++i)
-	//	this->textures[i]->bind((GLint)i);
-	//
-	//for (std::size_t i = 0; i < this->meshes.size(); ++i)
-	//	this->meshes[i]->rendor(this->shaders[0]);
-
-	//this->textures[0]->bind(0);
-	//this->textures[1]->bind(1);
-	//this->meshes[0]->rendor(this->shaders[0]);
-
-	//this->textures[1]->bind(2);
-	//this->meshes[1]->rendor(this->shaders[0]);
+	this->shaders[0]->use();
 
 	for (Model* model : this->models)
 	{
 		model->render(shaders[0]);
 	}
 
-	this->meshes[0]->rendor(shaders[1]);
-
 	this->shaders[0]->unuse();
 	//////////////////////////////END DRAW//////////////////////////////
-
-	//for (std::size_t i = 0; i < this->textures.size(); ++i)
-	//	this->textures[i]->unbind();
 
 	glfwSwapBuffers(this->window);
 	glFlush();
 
+	glActiveTexture(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
 }

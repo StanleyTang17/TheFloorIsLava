@@ -5,7 +5,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 direction, glm::vec3 world_up)
 	this->view_matrix = glm::mat4(1.0f);
 
 	this->movement_speed = 1.5f;
-	this->sensitivity = 50.0f;
+	this->sensitivity = 10.0f;
 	
 	this->position = position;
 	this->front = direction;

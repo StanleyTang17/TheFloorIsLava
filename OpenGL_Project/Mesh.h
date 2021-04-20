@@ -2,12 +2,14 @@
 
 #include"Shader.h"
 #include"Primitives.h"
+#include"Texture.h"
 
 class Mesh
 {
 private:
-	unsigned int num_vertices;
-	unsigned int num_indicies;
+	std::vector<Vertex> vertices;
+	std::vector<GLuint> indices;
+	std::vector<Texture*> textures;
 
 	GLuint VAO;
 	GLuint VBO;
@@ -18,16 +20,15 @@ private:
 	glm::vec3 scale;
 	glm::mat4 model_matrix;
 
-	void init_VAO(Vertex* vertices, const unsigned int& num_vertices, GLuint* indices, const unsigned int& num_indices);
+	
 	void update_uniform(Shader* shader);
 	void update_model_matrix();
 
 public:
-	Mesh(Vertex* vertices, const unsigned int& num_vertices, GLuint* indicies, const unsigned int& num_indices);
-	Mesh(Primitive* primitive);
+	Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture*> textures);
 	~Mesh();
-	void update();
 	void rendor(Shader* shader);
+	void init_mesh();
 	void set_position(glm::vec3 position);
 	void set_rotation(glm::vec3 rotation);
 	void set_scale(glm::vec3 scale);

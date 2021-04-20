@@ -7,21 +7,24 @@
 #include"OPENGL.h"
 
 // SOIL2
-#include<SOIL2.h>
-
+#include"SOIL2.h"
 
 class Texture
 {
 private:
 	GLuint id;
-	GLenum type;
+	std::string type;
+	std::string path;
+	GLenum gl_texture_type;
 	int width;
 	int height;
 
 public:
-	Texture(const char* image_file, GLenum type);
+	Texture(std::string type, std::string path, std::string directory, GLenum gl_texture_type);
 	~Texture();
-	void bind(GLint texture_unit);
+	void bind();
 	void unbind();
-	inline GLuint get_id() const { return this->id; }
+	GLuint get_id() const { return this->id; }
+	std::string get_type() const { return this->type; }
+	std::string get_path() const { return this->path; }
 };

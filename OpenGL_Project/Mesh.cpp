@@ -1,54 +1,45 @@
 #include"Mesh.h"
 
-Mesh::Mesh(Vertex* vertices, const unsigned int& num_vertices, GLuint* indicies, const unsigned int& num_indices)
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture*> textures)
 {
-	this->init_VAO(vertices, num_vertices, indicies, num_indices);
+	this->vertices = vertices;
+	this->indices = indices;
+	this->textures = textures;
 
 	this->position = glm::vec3(0.0f);
 	this->rotation = glm::vec3(0.0f);
 	this->scale = glm::vec3(1.0f);
-
 	this->update_model_matrix();
-}
 
-Mesh::Mesh(Primitive* primitive)
-{
-	this->init_VAO(primitive->get_vertices(), primitive->get_num_vertices(), primitive->get_indices(), primitive->get_num_indices());
-
-	this->position = glm::vec3(0.0f);
-	this->rotation = glm::vec3(0.0f);
-	this->scale = glm::vec3(1.0f);
-
-	this->update_model_matrix();
+	this->init_mesh();
 }
 
 Mesh::~Mesh()
 {
 	glDeleteVertexArrays(1, &this->VAO);
 	glDeleteBuffers(1, &this->VBO);
-	if(this->num_indicies > 0)
+	if(this->indices.size() > 0)
 		glDeleteBuffers(1, &this->EBO);
+	for (std::size_t i = 0; i < this->textures.size(); ++i)
+		delete textures[i];
 }
 
-void Mesh::init_VAO(Vertex* vertices, const unsigned int& num_vertices, GLuint* indices, const unsigned int& num_indices)
+void Mesh::init_mesh()
 {
-	this->num_vertices = num_vertices;
-	this->num_indicies = num_indices;
-
 	glCreateVertexArrays(1, &this->VAO);
-	glBindVertexArray(VAO);
+	glBindVertexArray(this->VAO);
 
 	glGenBuffers(1, &this->VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-	glBufferData(GL_ARRAY_BUFFER, num_vertices * sizeof(Vertex), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), this->vertices.data(), GL_STATIC_DRAW);
 
-	if (this->num_indicies > 0)
+	if (this->indices.size() > 0)
 	{
 		glGenBuffers(1, &this->EBO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->num_indicies * sizeof(GLuint), indices, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(GLuint), this->indices.data(), GL_STATIC_DRAW);
 	}
-	
+
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
 	glEnableVertexAttribArray(0);
 
@@ -57,6 +48,12 @@ void Mesh::init_VAO(Vertex* vertices, const unsigned int& num_vertices, GLuint* 
 
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, texcoord));
 	glEnableVertexAttribArray(2);
+
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, tangent));
+	glEnableVertexAttribArray(3);
+
+	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, bitangent));
+	glEnableVertexAttribArray(4);
 
 	glBindVertexArray(0);
 }
@@ -106,26 +103,47 @@ void Mesh::_scale(glm::vec3 scale)
 	this->scale *= scale;
 }
 
-void Mesh::update()
-{
-
-}
-
 void Mesh::rendor(Shader* shader)
 {
 	this->update_model_matrix();
 	this->update_uniform(shader);
 
-	shader->use();
+	unsigned int num_diffuse = 1;
+	unsigned int num_specular = 1;
+	unsigned int num_normal = 1;
+	unsigned int num_height = 1;
 
+	for (std::size_t i = 0; i < this->textures.size(); ++i)
+	{
+		Texture* tex = this->textures[i];
+		glActiveTexture(GL_TEXTURE0 + i);
+		
+		std::string name = tex->get_type();
+		unsigned int number = 0;
+
+		if (name == "texture_diffuse")
+			number = num_diffuse++;
+		else if (name == "texture_specular")
+			number = num_specular++;
+		else if (name == "texture_normal")
+			number = num_normal++;
+		else if (name == "texture_height")
+			number = num_height++;
+
+		std::string combined = name + std::to_string(number);
+		
+		shader->set_1i(i, combined.c_str());
+		glBindTexture(GL_TEXTURE_2D, tex->get_id());
+	}
+
+	shader->use();
 	glBindVertexArray(this->VAO);
 
-	if (this->num_indicies == 0)
-	{
-		glDrawArrays(GL_TRIANGLES, 0, this->num_vertices);
-	}
+	if (this->indices.size() == 0)
+		glDrawArrays(GL_TRIANGLES, 0, this->vertices.size());
 	else
-	{
-		glDrawElements(GL_TRIANGLES, this->num_indicies, GL_UNSIGNED_INT, 0);
-	}
+		glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
+
+	glBindVertexArray(0);
+	glActiveTexture(GL_TEXTURE0);
 }
