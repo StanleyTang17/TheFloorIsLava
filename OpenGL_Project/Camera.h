@@ -30,7 +30,7 @@ public:
 	Camera(glm::vec3 position, glm::vec3 direction, glm::vec3 world_up);
 	~Camera();
 
-	void update_keyboard_input(const float& dt, const int forward_movement, const int side_movement);
+	void update_keyboard_input(const float& dt, const int forward_movement, const int side_movement, const int vertical_movement);
 	void update_mouse_input(const float& dt, const double& offset_x, const double& offset_y);
 
 	const glm::mat4 get_view_matrix();

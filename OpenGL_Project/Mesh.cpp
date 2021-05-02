@@ -1,15 +1,10 @@
 #include"Mesh.h"
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture*> textures)
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture2D*> textures)
 {
 	this->vertices = vertices;
 	this->indices = indices;
 	this->textures = textures;
-
-	this->position = glm::vec3(0.0f);
-	this->rotation = glm::vec3(0.0f);
-	this->scale = glm::vec3(1.0f);
-	this->update_model_matrix();
 
 	this->init_mesh();
 }
@@ -60,52 +55,16 @@ void Mesh::init_mesh()
 
 void Mesh::update_uniform(Shader* shader)
 {
-	shader->set_mat_4fv(this->model_matrix, "model_matrix", GL_FALSE);
+	
 }
 
-void Mesh::update_model_matrix()
-{
-	this->model_matrix = glm::mat4(1.0f);
-	this->model_matrix = glm::translate(this->model_matrix, this->position);
-	this->model_matrix = glm::rotate(this->model_matrix, glm::radians(this->rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	this->model_matrix = glm::rotate(this->model_matrix, glm::radians(this->rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-	this->model_matrix = glm::rotate(this->model_matrix, glm::radians(this->rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	this->model_matrix = glm::scale(this->model_matrix, this->scale);
-}
-
-void Mesh::set_position(glm::vec3 position)
-{
-	this->position = position;
-}
-
-void Mesh::set_rotation(glm::vec3 rotation)
-{
-	this->rotation = rotation;
-}
-
-void Mesh::set_scale(glm::vec3 scale)
-{
-	this->scale = scale;
-}
-
-void Mesh::move(glm::vec3 translate)
-{
-	this->position += translate;
-}
-
-void Mesh::rotate(glm::vec3 rotate)
-{
-	this->rotation += rotate;
-}
-
-void Mesh::_scale(glm::vec3 scale)
-{
-	this->scale *= scale;
+void Mesh::update(float dt)
+{	
+	
 }
 
 void Mesh::rendor(Shader* shader)
 {
-	this->update_model_matrix();
 	this->update_uniform(shader);
 
 	unsigned int num_diffuse = 1;

@@ -3,6 +3,10 @@
 Model::Model(const char* path)
 {
 	this->load_model(path);
+	this->position = glm::vec3(0.0f);
+	this->rotation = glm::vec3(0.0f);
+	this->scale = glm::vec3(1.0f);
+	this->update_model_matrix();
 }
 
 Model::~Model()
@@ -13,7 +17,6 @@ Model::~Model()
 
 void Model::load_model(std::string path)
 {
-	std::cout << "LOADING MODEL" << std::endl;
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
     
@@ -26,10 +29,8 @@ void Model::load_model(std::string path)
     this->directory = path.substr(0, path.find_last_of('/'));
 	
     this->load_node(scene->mRootNode, scene);
-	std::cout << "MODEL LOADED" << std::endl;
-
-	std::cout << "Meshes: " << this->meshes.size() << std::endl;
-	std::cout << "Textures: " << this->textures_loaded.size() << std::endl;
+	
+	std::cout << "Model loaded from " << path << std::endl;
 }
 
 void Model::load_node(aiNode* node, const aiScene* scene)
@@ -45,7 +46,7 @@ void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 {
 	std::vector<Vertex> vertices;
 	std::vector<GLuint> indices;
-	std::vector<Texture*> textures;
+	std::vector<Texture2D*> textures;
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 	std::map<aiTextureType, std::string> texture_types;
 	texture_types.emplace(aiTextureType_DIFFUSE, "texture_diffuse");
@@ -95,7 +96,7 @@ void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 			aiString str;
 			material->GetTexture(aiType, i, &str);
 			bool loaded = false;
-			Texture* texture;
+			Texture2D* texture = nullptr;
 
 			for (std::size_t j = 0; j < this->textures_loaded.size(); ++j)
 				if (std::strcmp(this->textures_loaded[j]->get_path().c_str(), str.C_Str()) == 0)
@@ -106,7 +107,7 @@ void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 				}
 
 			if (!loaded) {
-				texture = new Texture(type, str.C_Str(), this->directory, GL_TEXTURE_2D);
+				texture = new Texture2D(type, str.C_Str(), this->directory);
 				this->textures_loaded.push_back(texture);
 			}
 
@@ -117,18 +118,63 @@ void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 	this->meshes.push_back(new Mesh(vertices, indices, textures));
 }
 
-void Model::update_uniforms()
+void Model::set_position(glm::vec3 position)
 {
-
+	this->position = position;
 }
 
-void Model::update()
+void Model::set_rotation(glm::vec3 rotation)
 {
+	this->rotation = rotation;
+}
 
+void Model::set_scale(glm::vec3 scale)
+{
+	this->scale = scale;
+}
+
+void Model::move(glm::vec3 translate)
+{
+	this->position += translate;
+}
+
+void Model::rotate(glm::vec3 rotate)
+{
+	this->rotation += rotate;
+}
+
+void Model::_scale(glm::vec3 scale)
+{
+	this->scale *= scale;
+}
+
+void Model::update_model_matrix()
+{
+	this->model_matrix = glm::mat4(1.0f);
+	this->model_matrix = glm::translate(this->model_matrix, this->position);
+	this->model_matrix = glm::rotate(this->model_matrix, glm::radians(this->rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	this->model_matrix = glm::rotate(this->model_matrix, glm::radians(this->rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	this->model_matrix = glm::rotate(this->model_matrix, glm::radians(this->rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	this->model_matrix = glm::scale(this->model_matrix, this->scale);
+}
+
+void Model::update_uniforms(Shader* shader)
+{
+	shader->set_mat_4fv(this->model_matrix, "model_matrix", GL_FALSE);
+}
+
+void Model::update(float dt)
+{
+	for (Mesh* mesh : this->meshes)
+	{
+		mesh->update(dt);
+	}
 }
 
 void Model::render(Shader* shader)
 {
+	this->update_model_matrix();
+	this->update_uniforms(shader);
 	for (std::size_t i = 0; i < this->meshes.size(); ++i)
 		meshes[i]->rendor(shader);
 }

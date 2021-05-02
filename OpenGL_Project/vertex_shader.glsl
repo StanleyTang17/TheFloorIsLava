@@ -16,8 +16,7 @@ void main()
 {
     vs_position = vec3(model_matrix * vec4(vertex_position, 1.0f));
     vs_normal = mat3(transpose(inverse(model_matrix))) * vertex_normal;
-    vs_texcoord = vec2(vertex_texcoord.x, -vertex_texcoord.y);
-    //vs_texcoord = vertex_texcoord;
+    vs_texcoord = vertex_texcoord;
 
     gl_Position = projection_matrix * view_matrix * vec4(vs_position, 1.0f);
 }

@@ -98,7 +98,6 @@ vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 view_dir, vec3 position)
 
 void main()
 {
-	/*
 	vec3 normal = normalize(vs_normal);
 	vec3 view_dir = normalize(camera_pos - vs_position);
 
@@ -116,10 +115,9 @@ void main()
 		result += calc_spot_light(spot_lights[i], normal, view_dir, vs_position);
 	}
 
-	fs_color = vec4(result, 1.0);
-	*/
+	fs_color = vec4(result, texture(texture_diffuse1, vs_texcoord).a);
 
-	fs_color = texture(texture_diffuse1, vs_texcoord);
+	//fs_color = texture(texture_diffuse1, vs_texcoord) * vec4(vec3(gl_FragCoord.z), 1.0);
 }
 
 

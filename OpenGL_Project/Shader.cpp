@@ -73,6 +73,7 @@ GLuint Shader::load_shader(GLenum type, const char* file_name)
 		glGetShaderInfoLog(shader, 512, NULL, info_log);
 		std::cout << "FAILED TO COMPILE SHADER!" << std::endl;
 		std::cout << info_log << std::endl;
+		std::cout << src << std::endl;
 	}
 
 	return shader;

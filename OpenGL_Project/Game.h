@@ -20,6 +20,7 @@ private:
 	// KEYBOARD INPUT
 	int forward_movement;
 	int side_movement;
+	int vertical_movement;
 
 	// MOUSE INPUT
 	double last_mouse_x;
@@ -47,9 +48,18 @@ private:
 	std::vector<Shader*> shaders;
 	std::vector<glm::vec3*> light_positions;
 	std::vector<Model*> models;
+	std::vector<Model*> transparent_models;
 	std::vector<DirLight*> dir_lights;
 	std::vector<PointLight*> point_lights;
 	std::vector<SpotLight*> spot_lights;
+
+	TextureCube* skybox_texture;
+	GLuint skybox_VAO;
+
+	GLuint FBO;
+	GLuint screen_texture;
+	GLuint RBO;
+	GLuint screen_VAO;
 
 	// INITIALIZE
 	void init_GLFW();

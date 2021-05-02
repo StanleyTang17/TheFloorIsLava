@@ -156,6 +156,7 @@
   <ItemGroup>
     <ClInclude Include="ASSIMP.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="FILTER.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GLM.h" />
     <ClInclude Include="libs.h" />
@@ -172,6 +173,10 @@
   <ItemGroup>
     <None Include="fragment_shader.glsl" />
     <None Include="lamp_fragment_shader.glsl" />
+    <None Include="screen_fragment_shader.glsl" />
+    <None Include="screen_vertex_shader.glsl" />
+    <None Include="skybox_fragment_shader.glsl" />
+    <None Include="skybox_vertex_shader.glsl" />
     <None Include="vertex_shader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -4,7 +4,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 direction, glm::vec3 world_up)
 {
 	this->view_matrix = glm::mat4(1.0f);
 
-	this->movement_speed = 1.5f;
+	this->movement_speed = 3.0f;
 	this->sensitivity = 10.0f;
 	
 	this->position = position;
@@ -37,15 +37,16 @@ void Camera::update_camera_vectors()
 	this->up = glm::normalize(glm::cross(this->right, this->front));
 }
 
-void Camera::update_keyboard_input(const float& dt, const int forward_movement, const int side_movement)
+void Camera::update_keyboard_input(const float& dt, const int forward_movement, const int side_movement, const int vertical_movement)
 {
-	if (forward_movement || side_movement) {
-		
+	if (forward_movement || side_movement || vertical_movement) {
 		glm::vec3 front_translate = this->front * static_cast<float>(forward_movement);
 		glm::vec3 side_translate = this->right * static_cast<float>(side_movement);
-		glm::vec3 translate = glm::vec3(front_translate.x + side_translate.x, 0.0f, front_translate.z + side_translate.z);
+		glm::vec3 vertical_translate = this->world_up * static_cast<float>(vertical_movement);
+		glm::vec3 translate = glm::vec3(front_translate.x + side_translate.x, vertical_translate.y, front_translate.z + side_translate.z);
 		translate = glm::normalize(translate) * this->movement_speed * dt;
 		this->position += translate;
+		//this->position.y += glm::normalize(vertical_translate).y * this->movement_speed * dt;
 	}
 }
 
