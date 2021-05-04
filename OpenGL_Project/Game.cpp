@@ -320,6 +320,14 @@ void Game::init_OpenGL_options()
 	glEnableVertexAttribArray(0);
 
 	glBindVertexArray(0);
+	
+	// UNIFORM BUFFER
+
+	glGenBuffers(1, &this->uniform_buffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, this->uniform_buffer);
+	glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->uniform_buffer);
 
 	// CULL FANCE
 	glEnable(GL_CULL_FACE);
@@ -409,19 +417,13 @@ void Game::init_uniforms()
 	this->shaders[2]->set_1i(0, "screen_texture");
 	this->shaders[2]->set_1i(NONE, "filter_mode");
 
-	this->shaders[0]->set_mat_4fv(this->camera->get_view_matrix(), "view_matrix", GL_FALSE);
-	this->shaders[0]->set_mat_4fv(this->projection_matrix, "projection_matrix", GL_FALSE);
-
 	this->shaders[0]->set_1f(64.0f, "material.shininess");
 }
 
 void Game::update_uniforms()
 {
-	// VIEW MATRIX (CAMERA)
-	this->shaders[0]->set_mat_4fv(this->camera->get_view_matrix(), "view_matrix", GL_FALSE);
-	this->shaders[0]->set_vec_3f(this->camera->get_position(), "camera_pos");
+	// MATRICES
 
-	// PROJECTION MATRIX
 	glfwGetFramebufferSize(this->window, &this->frame_buffer_width, &this->frame_buffer_height);
 	this->projection_matrix = glm::perspective(
 		glm::radians(this->FOV),
@@ -430,11 +432,20 @@ void Game::update_uniforms()
 		this->far_plane
 	);
 
+	glm::mat4 view_matrix_no_translate = glm::mat4(glm::mat3(this->camera->get_view_matrix()));
+	glBindBuffer(GL_UNIFORM_BUFFER, this->uniform_buffer);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(this->projection_matrix));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(this->camera->get_view_matrix()));
+	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view_matrix_no_translate));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	this->shaders[0]->set_vec_3f(this->camera->get_position(), "camera_pos");
+
+	// LIGHTS
+
 	this->shaders[0]->set_1i(dir_lights.size(), "num_dir_lights");
 	this->shaders[0]->set_1i(point_lights.size(), "num_point_lights");
 	this->shaders[0]->set_1i(spot_lights.size(), "num_spot_lights");
-
-	this->shaders[0]->set_mat_4fv(this->projection_matrix, "projection_matrix", GL_FALSE);
 
 	if (spot_lights.size())
 	{
@@ -450,14 +461,6 @@ void Game::update_uniforms()
 
 	for (std::size_t i = 0; i < this->spot_lights.size(); ++i)
 		this->spot_lights[i]->send_to_shader(shaders[0], i);
-
-
-	this->shaders[1]->set_mat_4fv(this->camera->get_view_matrix(), "view_matrix", GL_FALSE);
-	this->shaders[1]->set_mat_4fv(this->projection_matrix, "projection_matrix", GL_FALSE);
-
-	glm::mat4 skybox_view_matrix = glm::mat4(glm::mat3(this->camera->get_view_matrix()));
-	this->shaders[3]->set_mat_4fv(skybox_view_matrix, "view_matrix", GL_FALSE);
-	this->shaders[3]->set_mat_4fv(this->projection_matrix, "projection_matrix", GL_FALSE);
 }
 
 void Game::update_dt()

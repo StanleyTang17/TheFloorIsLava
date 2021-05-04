@@ -61,6 +61,8 @@ private:
 	GLuint RBO;
 	GLuint screen_VAO;
 
+	GLuint uniform_buffer;
+
 	// INITIALIZE
 	void init_GLFW();
 	void init_window(const char* title, GLboolean resizable);

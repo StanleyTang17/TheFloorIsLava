@@ -34,4 +34,6 @@ public:
 	void set_vec_4f(glm::vec4 value, const GLchar* name);
 	void set_mat_3fv(glm::mat3 value, const GLchar* name, GLboolean transpose);
 	void set_mat_4fv(glm::mat4 value, const GLchar* name, GLboolean transpose);
+
+	GLuint get_id() const { return this->id; }
 };

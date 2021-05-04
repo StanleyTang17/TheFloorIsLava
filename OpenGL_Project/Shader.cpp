@@ -75,7 +75,7 @@ GLuint Shader::load_shader(GLenum type, const char* file_name)
 		std::cout << info_log << std::endl;
 		std::cout << src << std::endl;
 	}
-
+	
 	return shader;
 }
 
