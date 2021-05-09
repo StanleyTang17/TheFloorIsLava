@@ -42,6 +42,9 @@
     <ClCompile Include="Lights.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ModelInstance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libs.h">
@@ -89,6 +92,9 @@
     <ClInclude Include="FILTER.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ModelInstance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="vertex_shader.glsl">
@@ -110,6 +116,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="skybox_fragment_shader.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="geometry_shader.glsl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

@@ -3,10 +3,7 @@
 Model::Model(const char* path)
 {
 	this->load_model(path);
-	this->position = glm::vec3(0.0f);
-	this->rotation = glm::vec3(0.0f);
-	this->scale = glm::vec3(1.0f);
-	this->update_model_matrix();
+	glGenBuffers(1, &this->instance_VBO);
 }
 
 Model::~Model()
@@ -17,29 +14,29 @@ Model::~Model()
 
 void Model::load_model(std::string path)
 {
-    Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-    
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-    {
-        std::cout << "ASSIMP ERROR: " << importer.GetErrorString() << std::endl;
-        return;
-    }
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
-    this->directory = path.substr(0, path.find_last_of('/'));
-	
-    this->load_node(scene->mRootNode, scene);
-	
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+	{
+		std::cout << "ASSIMP ERROR: " << importer.GetErrorString() << std::endl;
+		return;
+	}
+
+	this->directory = path.substr(0, path.find_last_of('/'));
+
+	this->load_node(scene->mRootNode, scene);
+
 	std::cout << "Model loaded from " << path << std::endl;
 }
 
 void Model::load_node(aiNode* node, const aiScene* scene)
 {
-    for (std::size_t i = 0; i < node->mNumMeshes; ++i)
-        this->load_mesh(scene->mMeshes[node->mMeshes[i]], scene);
+	for (std::size_t i = 0; i < node->mNumMeshes; ++i)
+		this->load_mesh(scene->mMeshes[node->mMeshes[i]], scene);
 
-    for (std::size_t i = 0; i < node->mNumChildren; ++i)
-        this->load_node(node->mChildren[i], scene);
+	for (std::size_t i = 0; i < node->mNumChildren; ++i)
+		this->load_node(node->mChildren[i], scene);
 }
 
 void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
@@ -118,49 +115,41 @@ void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 	this->meshes.push_back(new Mesh(vertices, indices, textures));
 }
 
-void Model::set_position(glm::vec3 position)
+void Model::init_instances()
 {
-	this->position = position;
+	std::vector<glm::mat4> model_matrices;
+	for (ModelInstance instance : instances)
+		model_matrices.push_back(instance.get_model_matrix());
+
+	glBindBuffer(GL_ARRAY_BUFFER, this->instance_VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * model_matrices.size(), model_matrices.data(), GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	for (Mesh* mesh : this->meshes)
+		mesh->init_instances(this->instance_VBO);
 }
 
-void Model::set_rotation(glm::vec3 rotation)
+void Model::add_instance(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
-	this->rotation = rotation;
+	this->instances.push_back(ModelInstance(position, rotation, scale));
 }
 
-void Model::set_scale(glm::vec3 scale)
+void Model::add_instance(ModelInstance instance)
 {
-	this->scale = scale;
+	this->instances.push_back(instance);
 }
 
-void Model::move(glm::vec3 translate)
+void Model::remove_instance(int index)
 {
-	this->position += translate;
+	if (index > -1)
+		this->instances.erase(this->instances.begin() + index);
+	else
+		this->instances.pop_back();
 }
 
-void Model::rotate(glm::vec3 rotate)
+ModelInstance Model::get_instance(std::size_t index)
 {
-	this->rotation += rotate;
-}
-
-void Model::_scale(glm::vec3 scale)
-{
-	this->scale *= scale;
-}
-
-void Model::update_model_matrix()
-{
-	this->model_matrix = glm::mat4(1.0f);
-	this->model_matrix = glm::translate(this->model_matrix, this->position);
-	this->model_matrix = glm::rotate(this->model_matrix, glm::radians(this->rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	this->model_matrix = glm::rotate(this->model_matrix, glm::radians(this->rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-	this->model_matrix = glm::rotate(this->model_matrix, glm::radians(this->rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	this->model_matrix = glm::scale(this->model_matrix, this->scale);
-}
-
-void Model::update_uniforms(Shader* shader)
-{
-	shader->set_mat_4fv(this->model_matrix, "model_matrix", GL_FALSE);
+	return this->instances[index];
 }
 
 void Model::update(float dt)
@@ -173,8 +162,6 @@ void Model::update(float dt)
 
 void Model::render(Shader* shader)
 {
-	this->update_model_matrix();
-	this->update_uniforms(shader);
 	for (std::size_t i = 0; i < this->meshes.size(); ++i)
-		meshes[i]->rendor(shader);
+		meshes[i]->rendor(shader, this->instances.size());
 }

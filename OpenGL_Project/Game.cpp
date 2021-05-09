@@ -329,10 +329,22 @@ void Game::init_OpenGL_options()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->uniform_buffer);
 
+	// INSTANCE VAO
+	glm::vec3 translations[10];
+	for (std::size_t i = 0; i < 10; ++i)
+		translations[i] = glm::vec3(i * 5, 0.0, 0.0);
+
+	glGenBuffers(1, &this->instance_VAO);
+	glBindBuffer(GL_VERTEX_ARRAY, this->instance_VAO);
+	glBufferData(GL_VERTEX_ARRAY, sizeof(glm::vec3) * 10, &translations[0], GL_STATIC_DRAW);
+	glEnableVertexArrayAttrib(this->instance_VAO, 5);
+	//glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, )
+	
+
 	// CULL FANCE
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
+	//glFrontFace(GL_CCW);
 
 	// BLEND
 	glEnable(GL_BLEND);
@@ -362,7 +374,7 @@ void Game::init_matrices()
 
 void Game::init_shaders()
 {
-	this->shaders.push_back(new Shader("vertex_shader.glsl", "fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
+	this->shaders.push_back(new Shader("vertex_shader.glsl", "fragment_shader.glsl", "geometry_shader.glsl", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 	this->shaders.push_back(new Shader("vertex_shader.glsl", "lamp_fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 	this->shaders.push_back(new Shader("screen_vertex_shader.glsl", "screen_fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 	this->shaders.push_back(new Shader("skybox_vertex_shader.glsl", "skybox_fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
@@ -383,31 +395,26 @@ void Game::init_lights()
 void Game::init_models()
 {
 	Model* grass_plane = new Model("Models/grass_plane/grass_plane.obj");
-	grass_plane->move(glm::vec3(0.0f, -1.0f, 0.0f));
-	grass_plane->_scale(glm::vec3(3.0f));
+	grass_plane->add_instance(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f));
 	
-	Model* box1 = new Model("Models/container/container.obj");
-	box1->move(glm::vec3(0.0f, -1.0f, 0.0f));
-	
-	Model* box2 = new Model("Models/container/container.obj");
-	box2->move(glm::vec3(5.0f, -1.0f, 5.0f));
+	Model* box = new Model("Models/container/container.obj");
+	box->add_instance(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+	box->add_instance(glm::vec3(5.0f, -1.0f, 5.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 
-	Model* grass1 = new Model("Models/glass_pane/glass_pane.obj");
-	grass1->move(glm::vec3(0.0f, 0.0f, 1.01f));
-
-	Model* grass2 = new Model("Models/glass_pane/glass_pane.obj");
-	grass2->move(glm::vec3(3.99f, 0.0f, 5.0f));
-	grass2->rotate(glm::vec3(0.0f, 90.0f, 0.0f));
-
-	Model* grass3 = new Model("Models/glass_pane/glass_pane.obj");
-	grass3->move(glm::vec3(3.0f, 0.0f, -1.0f));
+	Model* glass = new Model("Models/glass_pane/glass_pane.obj");
+	glass->add_instance(glm::vec3(0.0f, 0.0f, 1.01f), glm::vec3(0.0f), glm::vec3(1.0f));
+	glass->add_instance(glm::vec3(3.99f, 0.0f, 5.0f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(1.0f));
+	glass->add_instance(glm::vec3(3.0f, 0.0f, -1.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 
 	this->models.push_back(grass_plane);
-	this->models.push_back(box1);
-	this->models.push_back(box2);
-	this->transparent_models.push_back(grass1);
-	this->transparent_models.push_back(grass2);
-	this->transparent_models.push_back(grass3);
+	this->models.push_back(box);
+	this->transparent_models.push_back(glass);
+
+	for (Model* model : this->models)
+		model->init_instances();
+	
+	for (Model* model : this->transparent_models)
+		model->init_instances();
 }
 
 void Game::init_uniforms()
@@ -461,6 +468,8 @@ void Game::update_uniforms()
 
 	for (std::size_t i = 0; i < this->spot_lights.size(); ++i)
 		this->spot_lights[i]->send_to_shader(shaders[0], i);
+
+	this->shaders[0]->set_1f(static_cast<float>(glfwGetTime()), "time");
 }
 
 void Game::update_dt()
@@ -512,11 +521,12 @@ void Game::update()
 	}
 
 	glm::vec3 cam_position = this->camera->get_position();
-	std::sort(transparent_models.begin(), transparent_models.end(),
-		[&cam_position](const Model* obj1, const Model* obj2) {
-			return glm::length(cam_position - obj1->get_position()) > glm::length(cam_position - obj2->get_position());
-		}
-	);
+
+	//std::sort(transparent_models.begin(), transparent_models.end(),
+	//	[&cam_position](const Model* obj1, const Model* obj2) {
+	//		return glm::length(cam_position - obj1->get_position()) > glm::length(cam_position - obj2->get_position());
+	//	}
+	//);
 }
 
 void Game::render()
@@ -544,9 +554,11 @@ void Game::render()
 	for (Model* model : this->models)
 		model->render(shaders[0]);
 
+	glDepthMask(false);
 	glDisable(GL_CULL_FACE);
 	for (Model* model : this->transparent_models)
 		model->render(shaders[0]);
+	glDepthMask(true);
 	glEnable(GL_CULL_FACE);
 
 	this->shaders[0]->unuse();

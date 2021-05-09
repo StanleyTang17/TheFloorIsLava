@@ -55,7 +55,7 @@ struct SpotLight
 
 // IN
 
-in VS_OUT
+in GS_OUT
 {
     vec3 position;
     vec3 normal;

@@ -53,6 +53,31 @@ void Mesh::init_mesh()
 	glBindVertexArray(0);
 }
 
+void Mesh::init_instances(GLuint instance_VBO)
+{
+	glBindVertexArray(this->VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, instance_VBO);
+
+	glEnableVertexAttribArray(5);
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+	glVertexAttribDivisor(5, 1);
+
+	glEnableVertexAttribArray(6);
+	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+	glVertexAttribDivisor(6, 1);
+
+	glEnableVertexAttribArray(7);
+	glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+	glVertexAttribDivisor(7, 1);
+
+	glEnableVertexAttribArray(8);
+	glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+	glVertexAttribDivisor(8, 1);
+
+	glBindVertexArray(0);
+}
+
 void Mesh::update_uniform(Shader* shader)
 {
 	
@@ -63,7 +88,7 @@ void Mesh::update(float dt)
 	
 }
 
-void Mesh::rendor(Shader* shader)
+void Mesh::rendor(Shader* shader, unsigned int num_instances)
 {
 	this->update_uniform(shader);
 
@@ -101,7 +126,7 @@ void Mesh::rendor(Shader* shader)
 	if (this->indices.size() == 0)
 		glDrawArrays(GL_TRIANGLES, 0, this->vertices.size());
 	else
-		glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElementsInstanced(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0, num_instances);
 
 	glBindVertexArray(0);
 	glActiveTexture(GL_TEXTURE0);

@@ -60,6 +60,7 @@ private:
 	GLuint screen_texture;
 	GLuint RBO;
 	GLuint screen_VAO;
+	GLuint instance_VAO;
 
 	GLuint uniform_buffer;
 

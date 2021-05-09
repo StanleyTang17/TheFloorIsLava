@@ -3,21 +3,17 @@
 #include"Mesh.h"
 #include"NATIVE.h"
 #include"ASSIMP.h"
+#include"ModelInstance.h"
 
 class Model
 {
 private:
 	std::vector<Mesh*> meshes;
 	std::vector<Texture2D*> textures_loaded;
+	std::vector<ModelInstance> instances;
 	std::string directory;
 
-	glm::vec3 position;
-	glm::vec3 rotation;
-	glm::vec3 scale;
-	glm::mat4 model_matrix;
-
-	void update_model_matrix();
-	void update_uniforms(Shader* shader);
+	GLuint instance_VBO;
 
 	void load_node(aiNode* node, const aiScene* scene);
 	void load_mesh(aiMesh* mesh, const aiScene* scene);
@@ -28,12 +24,12 @@ public:
 	void load_model(std::string path);
 	void update(float dt);
 	void render(Shader* shader);
-	void set_position(glm::vec3 position);
-	void set_rotation(glm::vec3 rotation);
-	void set_scale(glm::vec3 scale);
-	void move(glm::vec3 translate);
-	void rotate(glm::vec3 rotate);
-	void _scale(glm::vec3 scale);
-	glm::vec3 get_position () const { return this->position; }
+	void init_instances();
+
+	void add_instance(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+	void add_instance(ModelInstance instance);
+	void remove_instance(int index = -1);
+	ModelInstance get_instance(std::size_t index);
+	int get_num_instances() const { return this->instances.size(); }
 };
 

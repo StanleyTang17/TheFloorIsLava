@@ -3,6 +3,7 @@ layout (location = 1) in vec3 vertex_normal;
 layout (location = 2) in vec2 vertex_texcoord;
 layout (location = 3) in vec3 vertex_tangent;
 layout (location = 4) in vec3 vertex_bitangent;
+layout (location = 5) in mat4 model_matrix;
 
 layout (binding = 0, std140) uniform Matrices
 {
@@ -10,7 +11,6 @@ layout (binding = 0, std140) uniform Matrices
     mat4 view_matrix;
     mat4 view_matrix_no_translate;
 };
-uniform mat4 model_matrix;
 
 out VS_OUT
 {
@@ -18,9 +18,6 @@ out VS_OUT
     vec3 normal;
     vec2 texcoord;
 } vs_out;
-
-//uniform mat4 view_matrix;
-//uniform mat4 projection_matrix;
 
 void main()
 {

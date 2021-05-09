@@ -150,6 +150,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="ModelInstance.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>
@@ -164,6 +165,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="ModelInstance.h" />
     <ClInclude Include="NATIVE.h" />
     <ClInclude Include="OPENGL.h" />
     <ClInclude Include="Shader.h" />
@@ -172,6 +174,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment_shader.glsl" />
+    <None Include="geometry_shader.glsl" />
     <None Include="lamp_fragment_shader.glsl" />
     <None Include="screen_fragment_shader.glsl" />
     <None Include="screen_vertex_shader.glsl" />
