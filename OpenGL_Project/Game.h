@@ -56,11 +56,13 @@ private:
 	TextureCube* skybox_texture;
 	GLuint skybox_VAO;
 
-	GLuint FBO;
+	GLuint multisample_FBO;
+	GLuint multisample_RBO;
+	GLuint multisample_texture;
+
+	GLuint screen_FBO;
 	GLuint screen_texture;
-	GLuint RBO;
 	GLuint screen_VAO;
-	GLuint instance_VAO;
 
 	GLuint uniform_buffer;
 
@@ -69,6 +71,8 @@ private:
 	void init_window(const char* title, GLboolean resizable);
 	void init_GLEW();
 	void init_OpenGL_options();
+	void init_framebuffers();
+	void init_others();
 	void init_matrices();
 	void init_shaders();
 	void init_models();
