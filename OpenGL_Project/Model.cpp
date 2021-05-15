@@ -92,6 +92,7 @@ void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 		{
 			aiString str;
 			material->GetTexture(aiType, i, &str);
+			
 			bool loaded = false;
 			Texture2D* texture = nullptr;
 

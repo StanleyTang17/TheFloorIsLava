@@ -79,9 +79,6 @@ Game::~Game()
 	for (std::size_t i = 0; i < this->shaders.size(); ++i)
 		delete this->shaders[i];
 
-	for (std::size_t i = 0; i < this->light_positions.size(); ++i)
-		delete this->light_positions[i];
-
 	for (std::size_t i = 0; i < this->dir_lights.size(); ++i)
 		delete this->dir_lights[i];
 
@@ -230,6 +227,8 @@ void Game::init_OpenGL_options()
 	// DEPTH TEST
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+
+	//glEnable(GL_FRAMEBUFFER_SRGB);
 
 	//glEnable(GL_STENCIL_TEST);
 	//glStencilFunc(GL_EQUAL, 1, 0xFF);
@@ -393,13 +392,15 @@ void Game::init_shaders()
 
 void Game::init_lights()
 {
-	//SpotLight* spot_light = new SpotLight(glm::vec3(0.0f), glm::vec3(6.0f), glm::vec3(10.0f), this->camera->get_position(), this->camera->get_front(), 1.0f, 0.7f, 1.8f, 15.0f, 30.0f);
-	//this->spot_lights.push_back(spot_light);
+	SpotLight* spot_light = new SpotLight(glm::vec3(0.0f), glm::vec3(6.0f), glm::vec3(0.5f), this->camera->get_position(), this->camera->get_front(), 1.0f, 0.28f, 0.06f, 15.0f, 45.0f);
+	this->spot_lights.push_back(spot_light);
 
-	//PointLight* point_light = new PointLight(glm::vec3(0.3f), glm::vec3(5.0f), glm::vec3(10.0f), glm::vec3(0.0f, 2.0f, 0.0f), 1.0f, 0.7f, 1.8f);
+	//PointLight* point_light = new PointLight(glm::vec3(0.0f), glm::vec3(1.5f), glm::vec3(0.5f), glm::vec3(0.0f, 2.0f, 0.0f), 1.0f, 0.28f, 0.06f);
+	//PointLight* point_light2 = new PointLight(glm::vec3(0.0f), glm::vec3(1.5f), glm::vec3(0.5f), glm::vec3(2.0f, 2.0f, 5.0f), 1.0f, 0.28f, 0.06f);
 	//this->point_lights.push_back(point_light);
+	//this->point_lights.push_back(point_light2);
 
-	DirLight* dir_light = new DirLight(glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
+	DirLight* dir_light = new DirLight(glm::vec3(0.2f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
 	this->dir_lights.push_back(dir_light);
 }
 
@@ -416,6 +417,7 @@ void Game::init_models()
 	glass->add_instance(glm::vec3(0.0f, 0.0f, 1.01f), glm::vec3(0.0f), glm::vec3(1.0f));
 	glass->add_instance(glm::vec3(3.99f, 0.0f, 5.0f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(1.0f));
 	glass->add_instance(glm::vec3(3.0f, 0.0f, -1.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+	glass->add_instance(glm::vec3(-2.99f, 0.0f, 5.0f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(1.0f));
 
 	this->models.push_back(grass_plane);
 	this->models.push_back(box);
@@ -561,7 +563,7 @@ void Game::render()
 	this->skybox_texture->bind();
 	glDepthFunc(GL_LEQUAL);
 
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	//glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	this->skybox_texture->unbind();
 	this->shaders[3]->unuse();

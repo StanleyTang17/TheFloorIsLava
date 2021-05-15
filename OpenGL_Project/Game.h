@@ -46,7 +46,6 @@ private:
 
 	// VECTORS
 	std::vector<Shader*> shaders;
-	std::vector<glm::vec3*> light_positions;
 	std::vector<Model*> models;
 	std::vector<Model*> transparent_models;
 	std::vector<DirLight*> dir_lights;
