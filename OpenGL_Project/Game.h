@@ -55,15 +55,12 @@ private:
 	TextureCube* skybox_texture;
 	GLuint skybox_VAO;
 
-	GLuint multisample_FBO;
-	GLuint multisample_RBO;
-	GLuint multisample_texture;
-
-	GLuint screen_FBO;
-	GLuint screen_texture;
 	GLuint screen_VAO;
 
 	GLuint uniform_buffer;
+
+	MultiSampleFramebuffer* multisample_FBO;
+	ScreenFramebuffer* screen_FBO;
 
 	// INITIALIZE
 	void init_GLFW();

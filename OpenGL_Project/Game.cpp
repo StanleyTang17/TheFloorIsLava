@@ -71,8 +71,8 @@ Game::Game(const char* title, const int width, const int height, const int versi
 
 Game::~Game()
 {
-	glDeleteFramebuffers(1, &this->multisample_FBO);
-	glDeleteFramebuffers(1, &this->screen_FBO);
+	delete this->multisample_FBO;
+	delete this->screen_FBO;
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
@@ -228,8 +228,6 @@ void Game::init_OpenGL_options()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	//glEnable(GL_FRAMEBUFFER_SRGB);
-
 	//glEnable(GL_STENCIL_TEST);
 	//glStencilFunc(GL_EQUAL, 1, 0xFF);
 	//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -242,48 +240,8 @@ void Game::init_OpenGL_options()
 
 void Game::init_framebuffers()
 {
-	// MULTISAMPLE FRAMEBUFFER
-	const int NUM_SAMPLES = 4;
-
-	glGenFramebuffers(1, &this->multisample_FBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, this->multisample_FBO);
-
-	glGenTextures(1, &this->multisample_texture);
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->multisample_texture);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, NUM_SAMPLES, GL_RGBA, this->WINDOW_WIDTH, this->WINDOW_HEIGHT, GL_TRUE);
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, this->multisample_texture, 0);
-
-	glGenRenderbuffers(1, &this->multisample_RBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, this->multisample_RBO);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, NUM_SAMPLES, GL_DEPTH24_STENCIL8, this->WINDOW_WIDTH, this->WINDOW_HEIGHT);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, this->multisample_RBO);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		std::cout << "MULTI-SAMPLE FRAMEBUFFER INIT FAILED" << std::endl;
-		glfwTerminate();
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	// SCREEN FRAMEBUFFER
-	glGenFramebuffers(1, &this->screen_FBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, this->screen_FBO);
-
-	glGenTextures(1, &this->screen_texture);
-	glBindTexture(GL_TEXTURE_2D, this->screen_texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->WINDOW_WIDTH, this->WINDOW_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->screen_texture, 0);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		std::cout << "SCREEN FRAMEBUFFER INIT FAILED" << std::endl;
-		glfwTerminate();
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	this->multisample_FBO = new MultiSampleFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT, 4);
+	this->screen_FBO = new ScreenFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT);
 }
 
 void Game::init_others()
@@ -392,15 +350,15 @@ void Game::init_shaders()
 
 void Game::init_lights()
 {
-	SpotLight* spot_light = new SpotLight(glm::vec3(0.0f), glm::vec3(6.0f), glm::vec3(0.5f), this->camera->get_position(), this->camera->get_front(), 1.0f, 0.28f, 0.06f, 15.0f, 45.0f);
-	this->spot_lights.push_back(spot_light);
+	//SpotLight* spot_light = new SpotLight(glm::vec3(0.0f), glm::vec3(6.0f), glm::vec3(0.5f), this->camera->get_position(), this->camera->get_front(), 1.0f, 0.28f, 0.06f, 15.0f, 45.0f);
+	//this->spot_lights.push_back(spot_light);
 
 	//PointLight* point_light = new PointLight(glm::vec3(0.0f), glm::vec3(1.5f), glm::vec3(0.5f), glm::vec3(0.0f, 2.0f, 0.0f), 1.0f, 0.28f, 0.06f);
 	//PointLight* point_light2 = new PointLight(glm::vec3(0.0f), glm::vec3(1.5f), glm::vec3(0.5f), glm::vec3(2.0f, 2.0f, 5.0f), 1.0f, 0.28f, 0.06f);
 	//this->point_lights.push_back(point_light);
 	//this->point_lights.push_back(point_light2);
 
-	DirLight* dir_light = new DirLight(glm::vec3(0.2f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
+	DirLight* dir_light = new DirLight(glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
 	this->dir_lights.push_back(dir_light);
 }
 
@@ -412,6 +370,7 @@ void Game::init_models()
 	Model* box = new Model("Models/container/container.obj");
 	box->add_instance(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 	box->add_instance(glm::vec3(5.0f, -1.0f, 5.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+	box->add_instance(glm::vec3(-5.0f, 3.0f, 5.0f), glm::vec3(45.0f, 30.0f, 45.0f), glm::vec3(1.0f));
 
 	Model* glass = new Model("Models/glass_pane/glass_pane.obj");
 	glass->add_instance(glm::vec3(0.0f, 0.0f, 1.01f), glm::vec3(0.0f), glm::vec3(1.0f));
@@ -552,9 +511,7 @@ void Game::update()
 
 void Game::render()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, this->multisample_FBO);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	this->multisample_FBO->bind(true);
 	glEnable(GL_DEPTH_TEST);
 
 	/////////////////////////////START DRAW/////////////////////////////
@@ -563,7 +520,7 @@ void Game::render()
 	this->skybox_texture->bind();
 	glDepthFunc(GL_LEQUAL);
 
-	//glDrawArrays(GL_TRIANGLES, 0, 36);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	this->skybox_texture->unbind();
 	this->shaders[3]->unuse();
@@ -585,11 +542,10 @@ void Game::render()
 	this->shaders[0]->unuse();
 	//////////////////////////////END DRAW//////////////////////////////
 
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, this->multisample_FBO);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, this->screen_FBO);
-	glBlitFramebuffer(0, 0, this->WINDOW_WIDTH, this->WINDOW_HEIGHT, 0, 0, this->WINDOW_WIDTH, this->WINDOW_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	this->multisample_FBO->bind_default();
+
 	glClearColor(0.0f, 0.0f, 0.0f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
@@ -598,7 +554,7 @@ void Game::render()
 	glBindVertexArray(this->screen_VAO);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, this->screen_texture);
+	glBindTexture(GL_TEXTURE_2D, this->screen_FBO->get_texture());
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	this->shaders[2]->unuse();
