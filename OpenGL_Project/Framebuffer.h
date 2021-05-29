@@ -28,7 +28,7 @@ public:
 	void blit(Framebuffer* framebuffer, GLbitfield buffer_mask, GLenum filter);
 	GLuint get_texture() const { return texture; }
 
-	static void bind_default();
+	static void bind_default(bool clear);
 };
 
 class MultiSampleFramebuffer : public Framebuffer
@@ -49,4 +49,13 @@ protected:
 	void init_renderbuffer();
 public:
 	ScreenFramebuffer(int width, int height);
+};
+
+class DepthFramebuffer : public Framebuffer
+{
+protected:
+	void init_texture();
+	void init_renderbuffer();
+public:
+	DepthFramebuffer(int width, int height);
 };

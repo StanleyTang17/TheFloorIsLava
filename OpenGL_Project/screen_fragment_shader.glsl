@@ -3,7 +3,9 @@ in vec2 vs_texcoord;
 out vec4 fs_color;
 
 uniform sampler2D screen_texture;
+uniform sampler2D depth_texture;
 uniform int filter_mode;
+uniform int show_depth;
 
 const float offset = 1.0 / 300.0;
 const vec2 offsets[9] = vec2[](
@@ -55,4 +57,10 @@ void main()
     
         fs_color = vec4(col, 1.0);
 	}
+
+    if(show_depth == 1)
+    {
+        float depth_value = texture(depth_texture, vs_texcoord).r;
+        fs_color = vec4(vec3(depth_value), 1.0);
+    }
 }

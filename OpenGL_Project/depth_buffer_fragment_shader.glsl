@@ -95,9 +95,9 @@ uniform sampler2D shadow_map;
 // FUNCTION DECLARATIONS
 
 vec3 calc_dir_light(DirLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color);
-vec3 calc_point_light(PointLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color);
+vec3 calc_point_light(PointLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color, float shadow);
 vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color);
-float calc_shadow(vec3 normal, vec3 light_dir);
+float calc_shadow();
 
 
 
@@ -105,28 +105,7 @@ float calc_shadow(vec3 normal, vec3 light_dir);
 
 void main()
 {
-	vec3 normal = normalize(fs_in.normal);
-	vec3 view_dir = normalize(camera_pos - fs_in.position);
-
-	vec3 result = vec3(0.0, 0.0, 0.0);
-	float gamma = 2.2;
-	vec3 diffuse_color = pow(texture(material.diffuse_map, fs_in.texcoord).rgb, vec3(gamma));
-
-	for (int i = 0; i < num_dir_lights; ++i) {
-		result += calc_dir_light(dir_lights[i], normal, view_dir, diffuse_color);
-	}
-
-	for (int i = 0; i < num_point_lights; ++i) {
-		result += calc_point_light(point_lights[i], normal, view_dir, diffuse_color);
-	}
-
-	for (int i = 0; i < num_spot_lights; ++i) {
-		result += calc_spot_light(spot_lights[i], normal, view_dir, diffuse_color);
-	}
-
-	fs_color = vec4(result, texture(texture_diffuse1, fs_in.texcoord).a);
-
-	//fs_color = texture(texture_diffuse1, fs_in.texcoord) * vec4(vec3(gl_FragCoord.z), 1.0);
+	// gl_FragDepth = gl_FragCoord.z;
 }
 
 
@@ -149,7 +128,7 @@ vec3 calc_dir_light(DirLight light, vec3 normal, vec3 view_dir, vec3 diffuse_col
 	return ambient + diffuse + specular;
 }
 
-vec3 calc_point_light(PointLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color)
+vec3 calc_point_light(PointLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color, float shadow)
 {
 	vec3 light_dir = normalize(light.position - fs_in.position);
 
@@ -169,7 +148,7 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 view_dir, vec3 diffuse
 	diffuse *= attenuation;
 	specular *= attenuation;
 
-	return ambient + (1.0f - calc_shadow(normal, light_dir)) * (diffuse + specular);
+	return ambient + (1.0f - shadow) * (diffuse + specular);
 }
 
 vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color)
@@ -202,31 +181,14 @@ vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 view_dir, vec3 diffuse_c
 	return ambient + diffuse + specular;
 }
 
-float calc_shadow(vec3 normal, vec3 light_dir)
+float calc_shadow()
 {
 	vec3 proj_coords = fs_in.light_space_position.xyz / fs_in.light_space_position.w;
 	proj_coords = proj_coords * 0.5 + 0.5;
 	
 	float closest_depth = texture(shadow_map, proj_coords.xy).r;
 	float current_depth = proj_coords.z;
-
-	float bias = max(0.05 * (1 - dot(normal, light_dir)), 0.005);
-
-	float shadow = 0.0;
-	vec2 texel_size = 1.0 / textureSize(shadow_map, 0);
-	int num_samples = 0;
-	for(int x = -2; x <= 2; ++x) {
-		for(int y = -2; y <= 2; ++y) {
-			float pcf_depth = texture(shadow_map, proj_coords.xy + vec2(x,y) * texel_size).r;
-			shadow += current_depth - bias > pcf_depth ? 1.0f : 0.0f;
-			num_samples += 1;
-		}
-	}
-
-	shadow /= num_samples;
-
-	if(proj_coords.z > 1.0)
-		shadow = 0.0;
+	float shadow = current_depth > closest_depth ? 1.0f : 0.0f;
 
 	return shadow;
 }

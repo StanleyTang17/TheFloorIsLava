@@ -35,6 +35,8 @@ Game::Game(const char* title, const int width, const int height, const int versi
 
 	this->skybox_texture = nullptr;
 
+	this->show_depth = 0;
+
 	this->init_GLFW();
 	std::cout << "Initialized GLFW" << std::endl;
 
@@ -107,6 +109,13 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
 
 	switch (key)
 	{
+	case GLFW_KEY_C:
+		if (action == GLFW_PRESS)
+			game->show_depth = 1;
+		else if (action == GLFW_RELEASE)
+			game->show_depth = 0;
+		break;
+
 	case GLFW_KEY_W:
 		if (action == GLFW_PRESS)
 			game->forward_movement = 1;
@@ -242,6 +251,7 @@ void Game::init_framebuffers()
 {
 	this->multisample_FBO = new MultiSampleFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT, 4);
 	this->screen_FBO = new ScreenFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT);
+	this->depth_FBO = new DepthFramebuffer(1024, 1024);
 }
 
 void Game::init_others()
@@ -342,10 +352,11 @@ void Game::init_matrices()
 
 void Game::init_shaders()
 {
-	this->shaders.push_back(new Shader("vertex_shader.glsl", "fragment_shader.glsl", "geometry_shader.glsl", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
+	this->shaders.push_back(new Shader("vertex_shader.glsl", "fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 	this->shaders.push_back(new Shader("vertex_shader.glsl", "lamp_fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 	this->shaders.push_back(new Shader("screen_vertex_shader.glsl", "screen_fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 	this->shaders.push_back(new Shader("skybox_vertex_shader.glsl", "skybox_fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
+	this->shaders.push_back(new Shader("depth_buffer_vertex_shader.glsl", "depth_buffer_fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 }
 
 void Game::init_lights()
@@ -354,12 +365,12 @@ void Game::init_lights()
 	//this->spot_lights.push_back(spot_light);
 
 	//PointLight* point_light = new PointLight(glm::vec3(0.0f), glm::vec3(1.5f), glm::vec3(0.5f), glm::vec3(0.0f, 2.0f, 0.0f), 1.0f, 0.28f, 0.06f);
-	//PointLight* point_light2 = new PointLight(glm::vec3(0.0f), glm::vec3(1.5f), glm::vec3(0.5f), glm::vec3(2.0f, 2.0f, 5.0f), 1.0f, 0.28f, 0.06f);
+	PointLight* point_light2 = new PointLight(glm::vec3(2.0f), glm::vec3(2.0f), glm::vec3(0.5f), glm::vec3(4.0f, 5.0f, 4.0f), 1.0f, 0.045f, 0.006f);
 	//this->point_lights.push_back(point_light);
-	//this->point_lights.push_back(point_light2);
+	this->point_lights.push_back(point_light2);
 
-	DirLight* dir_light = new DirLight(glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
-	this->dir_lights.push_back(dir_light);
+	//DirLight* dir_light = new DirLight(glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
+	//this->dir_lights.push_back(dir_light);
 }
 
 void Game::init_models()
@@ -370,7 +381,7 @@ void Game::init_models()
 	Model* box = new Model("Models/container/container.obj");
 	box->add_instance(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 	box->add_instance(glm::vec3(5.0f, -1.0f, 5.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-	box->add_instance(glm::vec3(-5.0f, 3.0f, 5.0f), glm::vec3(45.0f, 30.0f, 45.0f), glm::vec3(1.0f));
+	box->add_instance(glm::vec3(0.0f, 4.0f, 6.0f), glm::vec3(45.0f, 30.0f, 45.0f), glm::vec3(1.0f));
 
 	Model* glass = new Model("Models/glass_pane/glass_pane.obj");
 	glass->add_instance(glm::vec3(0.0f, 0.0f, 1.01f), glm::vec3(0.0f), glm::vec3(1.0f));
@@ -391,18 +402,26 @@ void Game::init_models()
 
 void Game::init_uniforms()
 {
+	float light_near_plane = 1.0f, light_far_plane = 10.5f;
+	glm::mat4 light_projection_matrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, light_near_plane, light_far_plane);
+	glm::mat4 light_view_matrix = glm::lookAt(this->point_lights[0]->get_position(), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	this->light_space_matrix = light_projection_matrix * light_view_matrix;
+
 	this->shaders[3]->set_1i(this->skybox_texture->get_id(), "skybox_texture");
 
 	this->shaders[2]->set_1i(0, "screen_texture");
+	this->shaders[2]->set_1i(1, "depth_texture");
 	this->shaders[2]->set_1i(NONE, "filter_mode");
+	this->shaders[2]->set_1i(0, "show_depth");
 
 	this->shaders[0]->set_1f(64.0f, "material.shininess");
+	this->shaders[0]->set_1i(this->depth_FBO->get_texture(), "shadow_map");
 
 	// UNIFORM BUFFER
 
 	glGenBuffers(1, &this->uniform_buffer);
 	glBindBuffer(GL_UNIFORM_BUFFER, this->uniform_buffer);
-	glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, 4 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->uniform_buffer);
 }
@@ -410,20 +429,16 @@ void Game::init_uniforms()
 void Game::update_uniforms()
 {
 	// MATRICES
-
 	glfwGetFramebufferSize(this->window, &this->frame_buffer_width, &this->frame_buffer_height);
-	this->projection_matrix = glm::perspective(
-		glm::radians(this->FOV),
-		(float)this->frame_buffer_width / (float)this->frame_buffer_height,
-		this->near_plane,
-		this->far_plane
-	);
+	this->projection_matrix = glm::perspective(glm::radians(this->FOV), (float)this->frame_buffer_width / (float)this->frame_buffer_height, this->near_plane, this->far_plane);
 
 	glm::mat4 view_matrix_no_translate = glm::mat4(glm::mat3(this->camera->get_view_matrix()));
 	glBindBuffer(GL_UNIFORM_BUFFER, this->uniform_buffer);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(this->projection_matrix));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(this->camera->get_view_matrix()));
+	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(this->camera->get_view_matrix()));
 	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view_matrix_no_translate));
+	//glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(this->camera->get_view_matrix() * this->projection_matrix));
+	glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(this->light_space_matrix));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	this->shaders[0]->set_vec_3f(this->camera->get_position(), "camera_pos");
@@ -450,6 +465,8 @@ void Game::update_uniforms()
 		this->spot_lights[i]->send_to_shader(shaders[0], i);
 
 	this->shaders[0]->set_1f(static_cast<float>(glfwGetTime()), "time");
+
+	this->shaders[2]->set_1i(this->show_depth, "show_depth");
 }
 
 void Game::update_dt()
@@ -509,13 +526,10 @@ void Game::update()
 	//);
 }
 
-void Game::render()
+void Game::render_skybox(Shader* shader)
 {
-	this->multisample_FBO->bind(true);
-	glEnable(GL_DEPTH_TEST);
-
-	/////////////////////////////START DRAW/////////////////////////////
-	this->shaders[3]->use();
+	// SKYBOX
+	shader->use();
 	glBindVertexArray(this->skybox_VAO);
 	this->skybox_texture->bind();
 	glDepthFunc(GL_LEQUAL);
@@ -523,31 +537,38 @@ void Game::render()
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	this->skybox_texture->unbind();
-	this->shaders[3]->unuse();
+	shader->unuse();
 	glDepthFunc(GL_LESS);
+}
 
+void Game::render_models(Shader* shader)
+{
+	glEnable(GL_DEPTH_TEST);
 
-	this->shaders[0]->use();
+	// OBJECTS
+	shader->use();
 
 	for (Model* model : this->models)
-		model->render(shaders[0]);
+		model->render(shader);
 
 	glDepthMask(false);
 	glDisable(GL_CULL_FACE);
 	for (Model* model : this->transparent_models)
-		model->render(shaders[0]);
+		model->render(shader);
 	glDepthMask(true);
 	glEnable(GL_CULL_FACE);
 
-	this->shaders[0]->unuse();
-	//////////////////////////////END DRAW//////////////////////////////
+	//glm::mat4 model = glm::mat4(1.0f);
+	//model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
+	//model = glm::scale(model, glm::vec3(0.5f));
+	//shader->set_mat_4fv(model, "model", GL_FALSE);
+	//renderCube();
 
-	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	shader->unuse();
+}
 
-	this->multisample_FBO->bind_default();
-
-	glClearColor(0.0f, 0.0f, 0.0f, 1.f);
-	glClear(GL_COLOR_BUFFER_BIT);
+void Game::render_screen()
+{
 	glDisable(GL_DEPTH_TEST);
 
 	this->shaders[2]->use();
@@ -555,10 +576,32 @@ void Game::render()
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, this->screen_FBO->get_texture());
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, this->depth_FBO->get_texture());
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	this->shaders[2]->unuse();
+}
 
+void Game::render()
+{
+	this->depth_FBO->bind(true);
+	glViewport(0, 0, 1024, 1024);
+	glCullFace(GL_FRONT);
+	this->render_models(this->shaders[4]); // shadow map
+	glCullFace(GL_BACK);
+
+	this->multisample_FBO->bind(true);
+	glViewport(0, 0, this->WINDOW_WIDTH, this->WINDOW_HEIGHT);
+	//this->render_skybox(this->shaders[3]);
+	glActiveTexture(GL_TEXTURE0 + this->depth_FBO->get_texture());
+	glBindTexture(GL_TEXTURE_2D, this->depth_FBO->get_texture());
+	this->render_models(this->shaders[0]);
+
+	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	this->multisample_FBO->bind_default(true);
+
+	this->render_screen();
 
 	glfwSwapBuffers(this->window);
 	glFlush();
@@ -577,4 +620,75 @@ int Game::get_window_should_close()
 void Game::set_window_should_close(bool should_close)
 {
 	glfwSetWindowShouldClose(this->window, should_close);
+}
+
+void Game::renderCube()
+{
+	// initialize (if necessary)
+	if (cubeVAO == 0)
+	{
+		float vertices[] = {
+			// back face
+			-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+			 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+			 1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
+			 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+			-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+			-1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
+			// front face
+			-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+			 1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
+			 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+			 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+			-1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
+			-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+			// left face
+			-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+			-1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
+			-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+			-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+			-1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+			-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+			// right face
+			 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+			 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+			 1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
+			 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+			 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+			 1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
+			// bottom face
+			-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+			 1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
+			 1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+			 1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+			-1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+			-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+			// top face
+			-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+			 1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+			 1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
+			 1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+			-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+			-1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
+		};
+		glGenVertexArrays(1, &cubeVAO);
+		glGenBuffers(1, &cubeVBO);
+		// fill buffer
+		glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		// link vertex attributes
+		glBindVertexArray(cubeVAO);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+	// render Cube
+	glBindVertexArray(cubeVAO);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
 }

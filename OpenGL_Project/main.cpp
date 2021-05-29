@@ -10,9 +10,5 @@ int main()
 		game->update();
 		game->render();
 	}
-
-	delete game;
-	game = nullptr;
-
-	return 0;
+    return 0;
 }

@@ -146,6 +146,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="learnopengl.cpp" />
     <ClCompile Include="Lights.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -162,6 +163,8 @@
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GLM.h" />
+    <ClInclude Include="learnopengl_camera.h" />
+    <ClInclude Include="learnopengl_shader.h" />
     <ClInclude Include="libs.h" />
     <ClInclude Include="Lights.h" />
     <ClInclude Include="Material.h" />
@@ -175,11 +178,17 @@
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="3.1.1.debug_quad.vs" />
+    <None Include="3.1.1.debug_quad_depth.fs" />
+    <None Include="3.1.1.shadow_mapping_depth.fs" />
+    <None Include="3.1.1.shadow_mapping_depth.vs" />
+    <None Include="depth_buffer_vertex_shader.glsl" />
     <None Include="fragment_shader.glsl" />
     <None Include="geometry_shader.glsl" />
     <None Include="lamp_fragment_shader.glsl" />
     <None Include="screen_fragment_shader.glsl" />
     <None Include="screen_vertex_shader.glsl" />
+    <None Include="depth_buffer_fragment_shader.glsl" />
     <None Include="skybox_fragment_shader.glsl" />
     <None Include="skybox_vertex_shader.glsl" />
     <None Include="vertex_shader.glsl" />

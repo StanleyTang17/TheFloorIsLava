@@ -53,9 +53,14 @@ void Framebuffer::bind(bool clear)
 	}
 }
 
-void Framebuffer::bind_default()
+void Framebuffer::bind_default(bool clear)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	if (clear)
+	{
+		glClearColor(0.0f, 0.0f, 0.0f, 1.f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	}
 }
 
 void Framebuffer::blit(Framebuffer* other, GLbitfield buffer_mask, GLenum filter)
@@ -101,3 +106,26 @@ void ScreenFramebuffer::init_texture()
 	glTexParameteri(this->texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->texture_type, this->texture, 0);
 }
+
+DepthFramebuffer::DepthFramebuffer(int width, int height)
+	:
+	Framebuffer(GL_TEXTURE_2D, NULL, width, height)
+{
+	this->init();
+}
+
+void DepthFramebuffer::init_texture()
+{
+	glTexImage2D(this->texture_type, 0, GL_DEPTH_COMPONENT, this->WIDTH, this->HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(this->texture_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(this->texture_type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor); 
+	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->texture, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+}
+
+void DepthFramebuffer::init_renderbuffer() {}

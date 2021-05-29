@@ -41,8 +41,11 @@ private:
 	float far_plane;
 	int move_dir;
 	glm::mat4 projection_matrix;
+	glm::mat4 light_space_matrix;
 
 	Camera* camera;
+
+	int show_depth;
 
 	// VECTORS
 	std::vector<Shader*> shaders;
@@ -61,6 +64,10 @@ private:
 
 	MultiSampleFramebuffer* multisample_FBO;
 	ScreenFramebuffer* screen_FBO;
+	DepthFramebuffer* depth_FBO;
+
+	GLuint cubeVAO;
+	GLuint cubeVBO;
 
 	// INITIALIZE
 	void init_GLFW();
@@ -80,6 +87,14 @@ private:
 	void update_dt();
 	void update_mouse_input();
 	void update_keyboard_input();
+
+	// DRAW
+	void render_shadow_map();
+	void render_skybox(Shader* shader);
+	void render_models(Shader* shader);
+	void render_screen();
+
+	void renderCube();
 
 public:
 	// CONSTRUCTOR / DESTRUCTOR
