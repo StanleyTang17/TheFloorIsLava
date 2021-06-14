@@ -361,3 +361,10 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/OpenGL_Project/3.1.1.shadow_mapping_depth.vs
+/OpenGL_Project/3.1.1.shadow_mapping_depth.fs
+/OpenGL_Project/3.1.1.debug_quad_depth.fs
+/OpenGL_Project/3.1.1.debug_quad.vs
+/OpenGL_Project/learnopengl_shader.h
+/OpenGL_Project/learnopengl_camera.h
+/OpenGL_Project/learnopengl.cpp

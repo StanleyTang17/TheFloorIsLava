@@ -55,6 +55,8 @@ private:
 	std::vector<PointLight*> point_lights;
 	std::vector<SpotLight*> spot_lights;
 
+	// SKYBOX
+
 	TextureCube* skybox_texture;
 	GLuint skybox_VAO;
 
@@ -62,9 +64,12 @@ private:
 
 	GLuint uniform_buffer;
 
+	// FRAMEBUFFERS
+
 	MultiSampleFramebuffer* multisample_FBO;
 	ScreenFramebuffer* screen_FBO;
 	DepthFramebuffer* depth_FBO;
+	DepthCubeFramebuffer* depth_cube_FBO;
 
 	GLuint cubeVAO;
 	GLuint cubeVBO;
@@ -99,7 +104,7 @@ private:
 public:
 	// CONSTRUCTOR / DESTRUCTOR
 	Game(const char* title, const int width, const int height, const int GL_major_version, const int GL_minor_version, GLboolean resizable);
-	virtual ~Game();
+	~Game();
 
 	// GETTERS
 	int get_window_should_close();

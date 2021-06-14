@@ -26,7 +26,9 @@ public:
 
 	void bind(bool clear);
 	void blit(Framebuffer* framebuffer, GLbitfield buffer_mask, GLenum filter);
-	GLuint get_texture() const { return texture; }
+	GLuint get_texture() const { return this->texture; }
+	int get_width() const { return this->WIDTH; }
+	int get_height() const { return this->HEIGHT; }
 
 	static void bind_default(bool clear);
 };
@@ -58,4 +60,13 @@ protected:
 	void init_renderbuffer();
 public:
 	DepthFramebuffer(int width, int height);
+};
+
+class DepthCubeFramebuffer : public Framebuffer
+{
+protected:
+	void init_texture();
+	void init_renderbuffer();
+public:
+	DepthCubeFramebuffer(int width, int height);
 };

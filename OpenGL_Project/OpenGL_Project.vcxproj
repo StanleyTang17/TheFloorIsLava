@@ -183,6 +183,9 @@
     <None Include="3.1.1.shadow_mapping_depth.fs" />
     <None Include="3.1.1.shadow_mapping_depth.vs" />
     <None Include="depth_buffer_vertex_shader.glsl" />
+    <None Include="depth_cube_fragment_shader.glsl" />
+    <None Include="depth_cube_geometry_shader.glsl" />
+    <None Include="depth_cube_vertex_shader.glsl" />
     <None Include="fragment_shader.glsl" />
     <None Include="geometry_shader.glsl" />
     <None Include="lamp_fragment_shader.glsl" />

@@ -45,6 +45,7 @@ void Framebuffer::init()
 
 void Framebuffer::bind(bool clear)
 {
+	glViewport(0, 0, this->WIDTH, this->HEIGHT);
 	glBindFramebuffer(GL_FRAMEBUFFER, this->id);
 	if (clear)
 	{
@@ -129,3 +130,30 @@ void DepthFramebuffer::init_texture()
 }
 
 void DepthFramebuffer::init_renderbuffer() {}
+
+DepthCubeFramebuffer::DepthCubeFramebuffer(int width, int height)
+	:
+	Framebuffer(GL_TEXTURE_CUBE_MAP, NULL, width, height)
+{
+	this->init();
+}
+
+void DepthCubeFramebuffer::init_texture()
+{
+	for (unsigned int i = 0; i < 6; ++i)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, this->WIDTH, this->HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	}
+
+	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(this->texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(this->texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, this->texture, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+}
+
+void DepthCubeFramebuffer::init_renderbuffer() {}

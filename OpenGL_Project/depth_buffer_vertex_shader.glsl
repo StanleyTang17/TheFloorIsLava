@@ -13,9 +13,7 @@ layout (binding = 0, std140) uniform Matrices
     mat4 light_space_matrix;
 };
 
-//uniform mat4 model;
-
 void main()
 {
-    gl_Position =  light_space_matrix * model_matrix * vec4(vertex_position, 1.0);
+    gl_Position = light_space_matrix * model_matrix * vec4(vertex_position, 1.0);
 }

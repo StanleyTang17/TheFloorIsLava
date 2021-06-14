@@ -22,17 +22,29 @@
     <Filter Include="Header Files\game">
       <UniqueIdentifier>{b5cdfcaa-adaf-4cd5-950c-cfafbecebee9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\fragment shaders">
-      <UniqueIdentifier>{597a375f-2e7f-4a8f-b86c-bda71d5ea377}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\vertex shaders">
-      <UniqueIdentifier>{754954e1-be3b-48eb-ab84-3fcf4ac03614}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\geometry shaders">
-      <UniqueIdentifier>{b5dc8259-ffaf-4cf1-9141-196a9e5a124d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\learnopengl">
       <UniqueIdentifier>{06d3496b-2548-4ab7-8e7e-0faa0eb81ba2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\shaders">
+      <UniqueIdentifier>{d10bc817-0831-462a-b7d5-c4e1bef10994}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\shaders\main">
+      <UniqueIdentifier>{6bce8dda-7d2d-4466-9098-0cddeda684c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\shaders\screen">
+      <UniqueIdentifier>{6fcb522f-b35e-4dd5-87dc-c9dbc779a26f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\shaders\skybox">
+      <UniqueIdentifier>{b474d3ee-1bf7-429f-8408-686cb8909bce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\shaders\lamp">
+      <UniqueIdentifier>{9b905c40-9bbb-435b-91a8-1eb1c9df0493}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\shaders\depth">
+      <UniqueIdentifier>{05d06ad9-bc3f-4976-b292-db334c5f305f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\shaders\depth_cube">
+      <UniqueIdentifier>{bd5806a4-90cf-4931-afcf-b6730f871469}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -133,36 +145,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="depth_buffer_fragment_shader.glsl">
-      <Filter>Resource Files\fragment shaders</Filter>
-    </None>
-    <None Include="lamp_fragment_shader.glsl">
-      <Filter>Resource Files\fragment shaders</Filter>
-    </None>
-    <None Include="screen_fragment_shader.glsl">
-      <Filter>Resource Files\fragment shaders</Filter>
-    </None>
-    <None Include="skybox_fragment_shader.glsl">
-      <Filter>Resource Files\fragment shaders</Filter>
-    </None>
-    <None Include="fragment_shader.glsl">
-      <Filter>Resource Files\fragment shaders</Filter>
-    </None>
-    <None Include="depth_buffer_vertex_shader.glsl">
-      <Filter>Resource Files\vertex shaders</Filter>
-    </None>
-    <None Include="screen_vertex_shader.glsl">
-      <Filter>Resource Files\vertex shaders</Filter>
-    </None>
-    <None Include="skybox_vertex_shader.glsl">
-      <Filter>Resource Files\vertex shaders</Filter>
-    </None>
-    <None Include="vertex_shader.glsl">
-      <Filter>Resource Files\vertex shaders</Filter>
-    </None>
-    <None Include="geometry_shader.glsl">
-      <Filter>Resource Files\geometry shaders</Filter>
-    </None>
     <None Include="3.1.1.shadow_mapping_depth.vs">
       <Filter>Source Files\learnopengl</Filter>
     </None>
@@ -174,6 +156,45 @@
     </None>
     <None Include="3.1.1.debug_quad_depth.fs">
       <Filter>Source Files\learnopengl</Filter>
+    </None>
+    <None Include="vertex_shader.glsl">
+      <Filter>Resource Files\shaders\main</Filter>
+    </None>
+    <None Include="geometry_shader.glsl">
+      <Filter>Resource Files\shaders\main</Filter>
+    </None>
+    <None Include="fragment_shader.glsl">
+      <Filter>Resource Files\shaders\main</Filter>
+    </None>
+    <None Include="screen_vertex_shader.glsl">
+      <Filter>Resource Files\shaders\screen</Filter>
+    </None>
+    <None Include="screen_fragment_shader.glsl">
+      <Filter>Resource Files\shaders\screen</Filter>
+    </None>
+    <None Include="skybox_fragment_shader.glsl">
+      <Filter>Resource Files\shaders\skybox</Filter>
+    </None>
+    <None Include="skybox_vertex_shader.glsl">
+      <Filter>Resource Files\shaders\skybox</Filter>
+    </None>
+    <None Include="depth_buffer_fragment_shader.glsl">
+      <Filter>Resource Files\shaders\depth</Filter>
+    </None>
+    <None Include="depth_buffer_vertex_shader.glsl">
+      <Filter>Resource Files\shaders\depth</Filter>
+    </None>
+    <None Include="lamp_fragment_shader.glsl">
+      <Filter>Resource Files\shaders\lamp</Filter>
+    </None>
+    <None Include="depth_cube_fragment_shader.glsl">
+      <Filter>Resource Files\shaders\depth_cube</Filter>
+    </None>
+    <None Include="depth_cube_geometry_shader.glsl">
+      <Filter>Resource Files\shaders\depth_cube</Filter>
+    </None>
+    <None Include="depth_cube_vertex_shader.glsl">
+      <Filter>Resource Files\shaders\depth_cube</Filter>
     </None>
   </ItemGroup>
 </Project>

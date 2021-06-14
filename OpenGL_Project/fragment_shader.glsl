@@ -60,7 +60,6 @@ in VS_OUT
     vec3 position;
     vec3 normal;
     vec2 texcoord;
-	vec4 light_space_position;
 } fs_in;
 
 
@@ -89,6 +88,8 @@ uniform sampler2D texture_normal1;
 uniform sampler2D texture_specular1;
 
 uniform sampler2D shadow_map;
+uniform samplerCube shadow_cube;
+uniform float far_plane;
 
 
 
@@ -97,7 +98,8 @@ uniform sampler2D shadow_map;
 vec3 calc_dir_light(DirLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color);
 vec3 calc_point_light(PointLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color);
 vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color);
-float calc_shadow(vec3 normal, vec3 light_dir);
+//float calc_shadow(vec3 normal, vec3 light_dir);
+float calc_point_shadow(vec3 light_pos);
 
 
 
@@ -169,7 +171,8 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 view_dir, vec3 diffuse
 	diffuse *= attenuation;
 	specular *= attenuation;
 
-	return ambient + (1.0f - calc_shadow(normal, light_dir)) * (diffuse + specular);
+	//return ambient + (1.0f - calc_shadow(normal, light_dir)) * (diffuse + specular);
+	return ambient + (1.0f - calc_point_shadow(light.position)) * (diffuse + specular);
 }
 
 vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color)
@@ -201,7 +204,7 @@ vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 view_dir, vec3 diffuse_c
 
 	return ambient + diffuse + specular;
 }
-
+/*
 float calc_shadow(vec3 normal, vec3 light_dir)
 {
 	vec3 proj_coords = fs_in.light_space_position.xyz / fs_in.light_space_position.w;
@@ -227,6 +230,18 @@ float calc_shadow(vec3 normal, vec3 light_dir)
 
 	if(proj_coords.z > 1.0)
 		shadow = 0.0;
+
+	return shadow;
+}
+*/
+float calc_point_shadow(vec3 light_pos)
+{
+	vec3 pos_to_light = fs_in.position - light_pos;
+	float closest_depth = texture(shadow_cube, pos_to_light).r * far_plane;
+	float current_depth = length(pos_to_light);
+
+	float bias = 0.05f;
+	float shadow = current_depth - bias > closest_depth ? 1.0f : 0.0f;
 
 	return shadow;
 }

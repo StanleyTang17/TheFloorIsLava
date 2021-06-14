@@ -12,18 +12,7 @@ layout (binding = 0, std140) uniform Matrices
     mat4 view_matrix_no_translate;
 };
 
-out VS_OUT
-{
-    vec3 position;
-    vec3 normal;
-    vec2 texcoord;
-} vs_out;
-
 void main()
 {
-    vs_out.position = vec3(model_matrix * vec4(vertex_position, 1.0f));
-    vs_out.normal = mat3(transpose(inverse(model_matrix))) * vertex_normal;
-    vs_out.texcoord = vertex_texcoord;
-
-    gl_Position = projection_matrix * view_matrix * vec4(vs_out.position, 1.0f);
+    gl_Position =  model_matrix * vec4(vertex_position, 1.0);
 }

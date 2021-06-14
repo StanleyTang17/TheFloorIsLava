@@ -2,6 +2,9 @@
 
 #include"Game.h"
 
+// TODO: test point shadow in closed room
+// TODO: add PCF
+
 Game::Game(const char* title, const int width, const int height, const int version_major, const int version_minor, GLboolean resizable)
 	:
 	WINDOW_WIDTH(width), WINDOW_HEIGHT(height), GL_VERSION_MAJOR(version_major), GL_VERSION_MINOR(version_minor)
@@ -252,6 +255,7 @@ void Game::init_framebuffers()
 	this->multisample_FBO = new MultiSampleFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT, 4);
 	this->screen_FBO = new ScreenFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT);
 	this->depth_FBO = new DepthFramebuffer(1024, 1024);
+	this->depth_cube_FBO = new DepthCubeFramebuffer(1024, 1024);
 }
 
 void Game::init_others()
@@ -356,7 +360,7 @@ void Game::init_shaders()
 	this->shaders.push_back(new Shader("vertex_shader.glsl", "lamp_fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 	this->shaders.push_back(new Shader("screen_vertex_shader.glsl", "screen_fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 	this->shaders.push_back(new Shader("skybox_vertex_shader.glsl", "skybox_fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
-	this->shaders.push_back(new Shader("depth_buffer_vertex_shader.glsl", "depth_buffer_fragment_shader.glsl", "", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
+	this->shaders.push_back(new Shader("depth_cube_vertex_shader.glsl", "depth_cube_fragment_shader.glsl", "depth_cube_geometry_shader.glsl", this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 }
 
 void Game::init_lights()
@@ -402,26 +406,56 @@ void Game::init_models()
 
 void Game::init_uniforms()
 {
+	// SHADOWS
+
 	float light_near_plane = 1.0f, light_far_plane = 10.5f;
 	glm::mat4 light_projection_matrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, light_near_plane, light_far_plane);
 	glm::mat4 light_view_matrix = glm::lookAt(this->point_lights[0]->get_position(), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	this->light_space_matrix = light_projection_matrix * light_view_matrix;
 
+	// POINT SHADOW
+
+	float aspect = (float)depth_cube_FBO->get_width() / (float)depth_cube_FBO->get_height();
+	float near = 1.0f;
+	float far = 25.0f;
+	glm::mat4 shadow_proj = glm::perspective(glm::radians(90.0f), aspect, near, far);
+	glm::vec3 light_pos = this->point_lights[0]->get_position();
+	std::vector<glm::mat4> shadow_transforms;
+	shadow_transforms.push_back(shadow_proj * glm::lookAt(light_pos, light_pos + glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3( 0.0f, -1.0f,  0.0f)));
+	shadow_transforms.push_back(shadow_proj * glm::lookAt(light_pos, light_pos + glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3( 0.0f, -1.0f,  0.0f)));
+	shadow_transforms.push_back(shadow_proj * glm::lookAt(light_pos, light_pos + glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3( 0.0f,  0.0f,  1.0f)));
+	shadow_transforms.push_back(shadow_proj * glm::lookAt(light_pos, light_pos + glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3( 0.0f,  0.0f, -1.0f)));
+	shadow_transforms.push_back(shadow_proj * glm::lookAt(light_pos, light_pos + glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3( 0.0f, -1.0f,  0.0f)));
+	shadow_transforms.push_back(shadow_proj * glm::lookAt(light_pos, light_pos + glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3( 0.0f, -1.0f,  0.0f)));
+	for (unsigned int i = 0; i < 6; ++i) {
+		std::string arr_name = "shadow_transforms[" + std::to_string(i) + "]";
+		this->shaders[4]->set_mat_4fv(shadow_transforms[i], arr_name.c_str(), GL_FALSE);
+	}
+	this->shaders[4]->set_vec_3f(light_pos, "light_pos");
+	this->shaders[4]->set_1f(far, "far_plane");
+
+	// SKYBOX
+
 	this->shaders[3]->set_1i(this->skybox_texture->get_id(), "skybox_texture");
+
+	// AFTER EFFECTS
 
 	this->shaders[2]->set_1i(0, "screen_texture");
 	this->shaders[2]->set_1i(1, "depth_texture");
 	this->shaders[2]->set_1i(NONE, "filter_mode");
 	this->shaders[2]->set_1i(0, "show_depth");
 
+	// MAIN FRAGMENT
+
 	this->shaders[0]->set_1f(64.0f, "material.shininess");
-	this->shaders[0]->set_1i(this->depth_FBO->get_texture(), "shadow_map");
+	this->shaders[0]->set_1i(this->depth_cube_FBO->get_texture(), "shadow_cube");
+	this->shaders[0]->set_1f(far, "far_plane");
 
 	// UNIFORM BUFFER
 
 	glGenBuffers(1, &this->uniform_buffer);
 	glBindBuffer(GL_UNIFORM_BUFFER, this->uniform_buffer);
-	glBufferData(GL_UNIFORM_BUFFER, 4 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->uniform_buffer);
 }
@@ -437,8 +471,6 @@ void Game::update_uniforms()
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(this->projection_matrix));
 	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(this->camera->get_view_matrix()));
 	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view_matrix_no_translate));
-	//glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(this->camera->get_view_matrix() * this->projection_matrix));
-	glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(this->light_space_matrix));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	this->shaders[0]->set_vec_3f(this->camera->get_position(), "camera_pos");
@@ -585,17 +617,13 @@ void Game::render_screen()
 
 void Game::render()
 {
-	this->depth_FBO->bind(true);
-	glViewport(0, 0, 1024, 1024);
-	glCullFace(GL_FRONT);
-	this->render_models(this->shaders[4]); // shadow map
-	glCullFace(GL_BACK);
+	this->depth_cube_FBO->bind(true);
+	this->render_models(this->shaders[4]);
 
 	this->multisample_FBO->bind(true);
-	glViewport(0, 0, this->WINDOW_WIDTH, this->WINDOW_HEIGHT);
 	//this->render_skybox(this->shaders[3]);
-	glActiveTexture(GL_TEXTURE0 + this->depth_FBO->get_texture());
-	glBindTexture(GL_TEXTURE_2D, this->depth_FBO->get_texture());
+	glActiveTexture(GL_TEXTURE0 + this->depth_cube_FBO->get_texture());
+	glBindTexture(GL_TEXTURE_CUBE_MAP, this->depth_cube_FBO->get_texture());
 	this->render_models(this->shaders[0]);
 
 	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
