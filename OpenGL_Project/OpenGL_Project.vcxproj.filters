@@ -13,188 +13,132 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\libs">
-      <UniqueIdentifier>{72ed98b9-c5c8-422b-8a28-5280f83f3218}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\game">
-      <UniqueIdentifier>{3dcf4bf4-14d6-4550-b6ea-5172f3ee693c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\game">
-      <UniqueIdentifier>{b5cdfcaa-adaf-4cd5-950c-cfafbecebee9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\learnopengl">
-      <UniqueIdentifier>{06d3496b-2548-4ab7-8e7e-0faa0eb81ba2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\shaders">
-      <UniqueIdentifier>{d10bc817-0831-462a-b7d5-c4e1bef10994}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\shaders\main">
-      <UniqueIdentifier>{6bce8dda-7d2d-4466-9098-0cddeda684c2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\shaders\screen">
-      <UniqueIdentifier>{6fcb522f-b35e-4dd5-87dc-c9dbc779a26f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\shaders\skybox">
-      <UniqueIdentifier>{b474d3ee-1bf7-429f-8408-686cb8909bce}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\shaders\lamp">
-      <UniqueIdentifier>{9b905c40-9bbb-435b-91a8-1eb1c9df0493}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\shaders\depth">
-      <UniqueIdentifier>{05d06ad9-bc3f-4976-b292-db334c5f305f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\shaders\depth_cube">
-      <UniqueIdentifier>{bd5806a4-90cf-4931-afcf-b6730f871469}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\engine\framebuffer\Framebuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Source Files\game</Filter>
+    <ClCompile Include="src\engine\lights\Lights.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Framebuffer.cpp">
-      <Filter>Source Files\game</Filter>
+    <ClCompile Include="src\engine\material\Material.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Game.cpp">
-      <Filter>Source Files\game</Filter>
+    <ClCompile Include="src\engine\mesh\Mesh.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Lights.cpp">
-      <Filter>Source Files\game</Filter>
+    <ClCompile Include="src\engine\model\Model.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Material.cpp">
-      <Filter>Source Files\game</Filter>
+    <ClCompile Include="src\engine\model\ModelInstance.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Source Files\game</Filter>
+    <ClCompile Include="src\engine\shader\Shader.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Model.cpp">
-      <Filter>Source Files\game</Filter>
+    <ClCompile Include="src\engine\texture\Texture.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ModelInstance.cpp">
-      <Filter>Source Files\game</Filter>
+    <ClCompile Include="src\engine\Game.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Source Files\game</Filter>
+    <ClCompile Include="src\gameobject\player\Player.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>Source Files\game</Filter>
+    <ClCompile Include="src\gameobject\GameObject.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="learnopengl.cpp">
-      <Filter>Source Files\learnopengl</Filter>
+    <ClCompile Include="src\Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\camera\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\collision\Collision.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ASSIMP.h">
-      <Filter>Header Files\libs</Filter>
+    <ClInclude Include="src\engine\framebuffer\Framebuffer.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FILTER.h">
-      <Filter>Header Files\libs</Filter>
+    <ClInclude Include="src\engine\lights\Lights.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GLM.h">
-      <Filter>Header Files\libs</Filter>
+    <ClInclude Include="src\engine\material\Material.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NATIVE.h">
-      <Filter>Header Files\libs</Filter>
+    <ClInclude Include="src\engine\mesh\Mesh.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OPENGL.h">
-      <Filter>Header Files\libs</Filter>
+    <ClInclude Include="src\libs\VERTEX.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="libs.h">
-      <Filter>Header Files\libs</Filter>
+    <ClInclude Include="src\engine\model\Model.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="src\engine\model\ModelInstance.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Framebuffer.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="src\engine\shader\Shader.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Game.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="src\engine\texture\Texture.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Lights.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="src\engine\Game.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Material.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="src\gameobject\crate\Crate.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="src\gameobject\player\Player.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Model.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="src\gameobject\GameObject.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ModelInstance.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="src\libs\ASSIMP.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="src\libs\FILTER.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="src\libs\GLM.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex.h">
-      <Filter>Header Files\game</Filter>
+    <ClInclude Include="src\libs\ALL.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="learnopengl_shader.h">
-      <Filter>Source Files\learnopengl</Filter>
+    <ClInclude Include="src\libs\NATIVE.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="learnopengl_camera.h">
-      <Filter>Source Files\learnopengl</Filter>
+    <ClInclude Include="src\libs\OPENGL.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\camera\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\collision\Collision.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="3.1.1.shadow_mapping_depth.vs">
-      <Filter>Source Files\learnopengl</Filter>
-    </None>
-    <None Include="3.1.1.shadow_mapping_depth.fs">
-      <Filter>Source Files\learnopengl</Filter>
-    </None>
-    <None Include="3.1.1.debug_quad.vs">
-      <Filter>Source Files\learnopengl</Filter>
-    </None>
-    <None Include="3.1.1.debug_quad_depth.fs">
-      <Filter>Source Files\learnopengl</Filter>
-    </None>
-    <None Include="vertex_shader.glsl">
-      <Filter>Resource Files\shaders\main</Filter>
-    </None>
-    <None Include="geometry_shader.glsl">
-      <Filter>Resource Files\shaders\main</Filter>
-    </None>
-    <None Include="fragment_shader.glsl">
-      <Filter>Resource Files\shaders\main</Filter>
-    </None>
-    <None Include="screen_vertex_shader.glsl">
-      <Filter>Resource Files\shaders\screen</Filter>
-    </None>
-    <None Include="screen_fragment_shader.glsl">
-      <Filter>Resource Files\shaders\screen</Filter>
-    </None>
-    <None Include="skybox_fragment_shader.glsl">
-      <Filter>Resource Files\shaders\skybox</Filter>
-    </None>
-    <None Include="skybox_vertex_shader.glsl">
-      <Filter>Resource Files\shaders\skybox</Filter>
-    </None>
-    <None Include="depth_buffer_fragment_shader.glsl">
-      <Filter>Resource Files\shaders\depth</Filter>
-    </None>
-    <None Include="depth_buffer_vertex_shader.glsl">
-      <Filter>Resource Files\shaders\depth</Filter>
-    </None>
-    <None Include="lamp_fragment_shader.glsl">
-      <Filter>Resource Files\shaders\lamp</Filter>
-    </None>
-    <None Include="depth_cube_fragment_shader.glsl">
-      <Filter>Resource Files\shaders\depth_cube</Filter>
-    </None>
-    <None Include="depth_cube_geometry_shader.glsl">
-      <Filter>Resource Files\shaders\depth_cube</Filter>
-    </None>
-    <None Include="depth_cube_vertex_shader.glsl">
-      <Filter>Resource Files\shaders\depth_cube</Filter>
-    </None>
+    <None Include="assimp-vc142-mt.dll" />
+    <None Include="freetype.dll" />
+    <None Include="glew32.dll" />
+    <None Include="glfw3.dll" />
+    <None Include="src\shaders\depth_buffer\fragment.glsl" />
+    <None Include="src\shaders\depth_buffer\vertex.glsl" />
+    <None Include="src\shaders\depth_cube\fragment.glsl" />
+    <None Include="src\shaders\depth_cube\geometry.glsl" />
+    <None Include="src\shaders\depth_cube\vertex.glsl" />
+    <None Include="src\shaders\game\fragment.glsl" />
+    <None Include="src\shaders\game\geometry.glsl" />
+    <None Include="src\shaders\game\vertex.glsl" />
+    <None Include="src\shaders\screen\fragment.glsl" />
+    <None Include="src\shaders\screen\vertex.glsl" />
+    <None Include="src\shaders\skybox\fragment.glsl" />
+    <None Include="src\shaders\skybox\vertex.glsl" />
   </ItemGroup>
 </Project>

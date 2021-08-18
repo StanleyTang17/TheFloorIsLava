@@ -18,6 +18,63 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\engine\camera\Camera.cpp" />
+    <ClCompile Include="src\engine\collision\Collision.cpp" />
+    <ClCompile Include="src\engine\framebuffer\Framebuffer.cpp" />
+    <ClCompile Include="src\engine\Game.cpp" />
+    <ClCompile Include="src\engine\lights\Lights.cpp" />
+    <ClCompile Include="src\engine\material\Material.cpp" />
+    <ClCompile Include="src\engine\mesh\Mesh.cpp" />
+    <ClCompile Include="src\engine\model\Model.cpp" />
+    <ClCompile Include="src\engine\model\ModelInstance.cpp" />
+    <ClCompile Include="src\engine\shader\Shader.cpp" />
+    <ClCompile Include="src\engine\texture\Texture.cpp" />
+    <ClCompile Include="src\gameobject\GameObject.cpp" />
+    <ClCompile Include="src\gameobject\player\Player.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\engine\camera\Camera.h" />
+    <ClInclude Include="src\engine\collision\Collision.h" />
+    <ClInclude Include="src\engine\framebuffer\Framebuffer.h" />
+    <ClInclude Include="src\engine\Game.h" />
+    <ClInclude Include="src\engine\lights\Lights.h" />
+    <ClInclude Include="src\engine\material\Material.h" />
+    <ClInclude Include="src\engine\mesh\Mesh.h" />
+    <ClInclude Include="src\libs\VERTEX.h" />
+    <ClInclude Include="src\engine\model\Model.h" />
+    <ClInclude Include="src\engine\model\ModelInstance.h" />
+    <ClInclude Include="src\engine\shader\Shader.h" />
+    <ClInclude Include="src\engine\texture\Texture.h" />
+    <ClInclude Include="src\gameobject\crate\Crate.h" />
+    <ClInclude Include="src\gameobject\GameObject.h" />
+    <ClInclude Include="src\gameobject\player\Player.h" />
+    <ClInclude Include="src\libs\ASSIMP.h" />
+    <ClInclude Include="src\libs\FILTER.h" />
+    <ClInclude Include="src\libs\GLM.h" />
+    <ClInclude Include="src\libs\ALL.h" />
+    <ClInclude Include="src\libs\NATIVE.h" />
+    <ClInclude Include="src\libs\OPENGL.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assimp-vc142-mt.dll" />
+    <None Include="freetype.dll" />
+    <None Include="glew32.dll" />
+    <None Include="glfw3.dll" />
+    <None Include="src\shaders\depth_buffer\fragment.glsl" />
+    <None Include="src\shaders\depth_buffer\vertex.glsl" />
+    <None Include="src\shaders\depth_cube\fragment.glsl" />
+    <None Include="src\shaders\depth_cube\geometry.glsl" />
+    <None Include="src\shaders\depth_cube\vertex.glsl" />
+    <None Include="src\shaders\game\fragment.glsl" />
+    <None Include="src\shaders\game\geometry.glsl" />
+    <None Include="src\shaders\game\vertex.glsl" />
+    <None Include="src\shaders\screen\fragment.glsl" />
+    <None Include="src\shaders\screen\vertex.glsl" />
+    <None Include="src\shaders\skybox\fragment.glsl" />
+    <None Include="src\shaders\skybox\vertex.glsl" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -78,6 +135,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -116,13 +175,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Linking\SOIL2\include;$(SolutionDir)\Linking\GLM\include;$(SolutionDir)\Linking\GLEW\include;$(SolutionDir)\Linking\GLFW\include;$(SolutionDir)\Linking\Assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/include;$(ProjectDir)/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Linking\SOIL2\lib;$(SolutionDir)\Linking\GLEW\lib;$(SolutionDir)\Linking\GLFW\lib;$(SolutionDir)\Linking\Assimp\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32.lib;soil2-debug.lib;assimp-vc142-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32.lib;soil2-debug.lib;assimp-vc142-mt.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -142,60 +201,6 @@
       <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32.lib;soil2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Framebuffer.cpp" />
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="learnopengl.cpp" />
-    <ClCompile Include="Lights.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Material.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Model.cpp" />
-    <ClCompile Include="ModelInstance.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="Texture.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="ASSIMP.h" />
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="FILTER.h" />
-    <ClInclude Include="Framebuffer.h" />
-    <ClInclude Include="Game.h" />
-    <ClInclude Include="GLM.h" />
-    <ClInclude Include="learnopengl_camera.h" />
-    <ClInclude Include="learnopengl_shader.h" />
-    <ClInclude Include="libs.h" />
-    <ClInclude Include="Lights.h" />
-    <ClInclude Include="Material.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Model.h" />
-    <ClInclude Include="ModelInstance.h" />
-    <ClInclude Include="NATIVE.h" />
-    <ClInclude Include="OPENGL.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="Texture.h" />
-    <ClInclude Include="Vertex.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="3.1.1.debug_quad.vs" />
-    <None Include="3.1.1.debug_quad_depth.fs" />
-    <None Include="3.1.1.shadow_mapping_depth.fs" />
-    <None Include="3.1.1.shadow_mapping_depth.vs" />
-    <None Include="depth_buffer_vertex_shader.glsl" />
-    <None Include="depth_cube_fragment_shader.glsl" />
-    <None Include="depth_cube_geometry_shader.glsl" />
-    <None Include="depth_cube_vertex_shader.glsl" />
-    <None Include="fragment_shader.glsl" />
-    <None Include="geometry_shader.glsl" />
-    <None Include="lamp_fragment_shader.glsl" />
-    <None Include="screen_fragment_shader.glsl" />
-    <None Include="screen_vertex_shader.glsl" />
-    <None Include="depth_buffer_fragment_shader.glsl" />
-    <None Include="skybox_fragment_shader.glsl" />
-    <None Include="skybox_vertex_shader.glsl" />
-    <None Include="vertex_shader.glsl" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
