@@ -57,6 +57,9 @@
     <ClCompile Include="src\engine\collision\Collision.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\engine\font\Font.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\framebuffer\Framebuffer.h">
@@ -122,6 +125,9 @@
     <ClInclude Include="src\engine\collision\Collision.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\engine\font\Font.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc142-mt.dll" />
@@ -140,5 +146,7 @@
     <None Include="src\shaders\screen\vertex.glsl" />
     <None Include="src\shaders\skybox\fragment.glsl" />
     <None Include="src\shaders\skybox\vertex.glsl" />
+    <None Include="src\shaders\text\vertex.glsl" />
+    <None Include="src\shaders\text\fragment.glsl" />
   </ItemGroup>
 </Project>

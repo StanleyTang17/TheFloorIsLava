@@ -75,6 +75,9 @@ Game::Game(const char* title, const int width, const int height, const int versi
 
 	this->init_uniforms();
 	std::cout << "Initialized Uniforms" << std::endl;
+
+	this->init_fonts();
+	std::cout << "Initialized Fonts" << std::endl;
 }
 
 Game::~Game()
@@ -285,6 +288,22 @@ void Game::init_others()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+
+	// TEXT VAO & VBO
+	glGenVertexArrays(1, &this->text_VAO);
+	glBindVertexArray(this->text_VAO);
+
+	glGenBuffers(1, &this->text_VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, this->text_VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	this->test_texture = new Texture2D("font", "container.png", "res/images/");
 }
 
 void Game::init_matrices()
@@ -300,6 +319,7 @@ void Game::init_shaders()
 	this->shaders.push_back(new Shader("src/shaders/screen", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 	this->shaders.push_back(new Shader("src/shaders/skybox", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 	this->shaders.push_back(new Shader("src/shaders/depth_cube", true, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
+	this->shaders.push_back(new Shader("src/shaders/text", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MAJOR));
 }
 
 void Game::init_lights()
@@ -355,6 +375,11 @@ void Game::init_game_objects()
 
 void Game::init_uniforms()
 {
+	// TEXT
+
+	glm::mat4 text_proj = glm::ortho(0.0f, (float)this->WINDOW_WIDTH, 0.0f, (float)this->WINDOW_HEIGHT);
+	this->shaders[4]->set_mat_4fv(text_proj, "projection", GL_FALSE);
+
 	// SHADOWS
 
 	float light_near_plane = 1.0f, light_far_plane = 10.5f;
@@ -407,6 +432,12 @@ void Game::init_uniforms()
 	glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->uniform_buffer);
+}
+
+void Game::init_fonts()
+{
+	this->arial = new Font("arial", 48);
+
 }
 
 void Game::update_uniforms()
@@ -565,6 +596,46 @@ void Game::render_screen()
 	this->shaders[1]->unuse();
 }
 
+void Game::render_text(Shader* shader, std::string text, float x, float y, float scale, glm::vec3 color)
+{
+	shader->set_1i(0, "font_texture");
+	shader->set_vec_3f(color, "font_color");
+	shader->use();
+	glBindVertexArray(this->text_VAO);
+	
+	for (std::string::const_iterator c = text.begin(); c != text.end(); ++c)
+	{
+		Character ch = this->arial->get_character(*c);
+
+		float x_pos = x + ch.bearing.x * scale;
+		float y_pos = y + (ch.bearing.y - ch.size.y) * scale;
+
+		float w = ch.size.x * scale;
+		float h = ch.size.y * scale;
+
+		float vertices[6][4] = {
+			{ x_pos,     y_pos + h,   0.0f, 0.0f },
+			{ x_pos,     y_pos,       0.0f, 1.0f },
+			{ x_pos + w, y_pos,       1.0f, 1.0f },
+
+			{ x_pos,     y_pos + h,   0.0f, 0.0f },
+			{ x_pos + w, y_pos,       1.0f, 1.0f },
+			{ x_pos + w, y_pos + h,   1.0f, 0.0f }
+		};
+
+		glBindBuffer(GL_ARRAY_BUFFER, this->text_VBO);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		ch.texture->bind();
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		x += (ch.advance >> 6) * scale;
+	}
+
+	shader->unuse();
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindVertexArray(0);
+}
+
 void Game::render()
 {
 	this->depth_cube_FBO->bind(true);
@@ -579,6 +650,7 @@ void Game::render()
 	this->multisample_FBO->bind_default(true);
 
 	this->render_screen();
+	this->render_text(this->shaders[4], "Hello World!", 700.0f, 600.0f, 1.0f, glm::vec3(0.5f, 0.8f, 0.2f));
 
 	glfwSwapBuffers(this->window);
 	glFlush();
@@ -620,75 +692,4 @@ int Game::get_window_should_close()
 void Game::set_window_should_close(bool should_close)
 {
 	glfwSetWindowShouldClose(this->window, should_close);
-}
-
-void Game::renderCube()
-{
-	// initialize (if necessary)
-	if (cubeVAO == 0)
-	{
-		float vertices[] = {
-			// back face
-			-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-			 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-			 1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
-			 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-			-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-			-1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
-			// front face
-			-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-			 1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
-			 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-			 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-			-1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
-			-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-			// left face
-			-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-			-1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
-			-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-			-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-			-1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-			-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-			// right face
-			 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-			 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-			 1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
-			 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-			 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-			 1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
-			// bottom face
-			-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-			 1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
-			 1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-			 1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-			-1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-			-1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-			// top face
-			-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-			 1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-			 1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
-			 1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-			-1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-			-1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
-		};
-		glGenVertexArrays(1, &cubeVAO);
-		glGenBuffers(1, &cubeVBO);
-		// fill buffer
-		glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		// link vertex attributes
-		glBindVertexArray(cubeVAO);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-	}
-	// render Cube
-	glBindVertexArray(cubeVAO);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glBindVertexArray(0);
 }

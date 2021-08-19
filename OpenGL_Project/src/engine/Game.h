@@ -63,7 +63,12 @@ private:
 	TextureCube* skybox_texture;
 	GLuint skybox_VAO;
 
+	// OTHER VAOs and VBOs;
+
 	GLuint screen_VAO;
+	GLuint text_VAO;
+	GLuint text_VBO;
+	Texture2D* test_texture;
 
 	GLuint uniform_buffer;
 
@@ -74,12 +79,13 @@ private:
 	DepthFramebuffer* depth_FBO;
 	DepthCubeFramebuffer* depth_cube_FBO;
 
-	GLuint cubeVAO;
-	GLuint cubeVBO;
-
 	// GAMEOBJECTS
 
 	Player* player;
+
+	// FONTS
+
+	Font* arial;
 
 	// INITIALIZE
 	void init_GLFW();
@@ -91,9 +97,11 @@ private:
 	void init_matrices();
 	void init_shaders();
 	void init_models();
+	void init_game_objects();
 	void init_lights();
 	void init_uniforms();
-	void init_game_objects();
+	void init_fonts();
+
 
 	// UPDATE
 	void update_uniforms();
@@ -105,8 +113,7 @@ private:
 	void render_skybox(Shader* shader);
 	void render_models(Shader* shader);
 	void render_screen();
-
-	void renderCube();
+	void render_text(Shader* shader, std::string text, float x, float y, float scale, glm::vec3 color);
 
 public:
 	// CONSTRUCTOR / DESTRUCTOR

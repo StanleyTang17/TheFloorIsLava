@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="src\engine\camera\Camera.cpp" />
     <ClCompile Include="src\engine\collision\Collision.cpp" />
+    <ClCompile Include="src\engine\font\Font.cpp" />
     <ClCompile Include="src\engine\framebuffer\Framebuffer.cpp" />
     <ClCompile Include="src\engine\Game.cpp" />
     <ClCompile Include="src\engine\lights\Lights.cpp" />
@@ -37,6 +38,7 @@
   <ItemGroup>
     <ClInclude Include="src\engine\camera\Camera.h" />
     <ClInclude Include="src\engine\collision\Collision.h" />
+    <ClInclude Include="src\engine\font\Font.h" />
     <ClInclude Include="src\engine\framebuffer\Framebuffer.h" />
     <ClInclude Include="src\engine\Game.h" />
     <ClInclude Include="src\engine\lights\Lights.h" />
@@ -74,6 +76,8 @@
     <None Include="src\shaders\screen\vertex.glsl" />
     <None Include="src\shaders\skybox\fragment.glsl" />
     <None Include="src\shaders\skybox\vertex.glsl" />
+    <None Include="src\shaders\text\fragment.glsl" />
+    <None Include="src\shaders\text\vertex.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
