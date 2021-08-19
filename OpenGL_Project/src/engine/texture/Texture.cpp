@@ -12,9 +12,18 @@ Texture::~Texture()
 	glDeleteTextures(1, &this->id);
 }
 
+void Texture::generate()
+{
+	glGenTextures(1, &this->id);
+	if (id < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS)
+		this->unit = GL_TEXTURE0 + id;
+	else
+		this->unit = GL_TEXTURE0 + GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS;
+}
+
 void Texture::bind()
 {
-	glActiveTexture(GL_TEXTURE0 + this->id);
+	glActiveTexture(this->unit);
 	glBindTexture(this->gl_texture_type, this->id);
 }
 
@@ -22,6 +31,23 @@ void Texture::unbind()
 {
 	glActiveTexture(0);
 	glBindTexture(this->gl_texture_type, 0); // UNBIND TEXTURE
+}
+
+void Texture::tex_parameteri(GLenum param_name, GLint param_value)
+{
+	this->bind();
+	glTexParameteri(this->gl_texture_type, param_name, param_value);
+	this->unbind();
+}
+
+void Texture::tex_parameteri(std::size_t num_params, GLenum param_names[], GLint param_values[])
+{
+	this->bind();
+	for (std::size_t i = 0; i < num_params; ++i)
+	{
+		glTexParameteri(this->gl_texture_type, param_names[i], param_values[i]);
+	}
+	this->unbind();
 }
 
 Texture2D::Texture2D(std::string type, std::string path, std::string directory)
@@ -33,7 +59,7 @@ Texture2D::Texture2D(std::string type, std::string path, std::string directory)
 	int channels;
 	unsigned char* image = SOIL_load_image(image_file.c_str(), &this->width, &this->height, &channels, SOIL_LOAD_AUTO);
 
-	glGenTextures(1, &this->id);
+	this->generate();
 
 	if (image)
 	{
@@ -45,31 +71,44 @@ Texture2D::Texture2D(std::string type, std::string path, std::string directory)
 		else if (channels == 4)
 			format = GL_RGBA;
 
-		glBindTexture(this->gl_texture_type, this->id);
+		this->bind();
 		glTexImage2D(this->gl_texture_type, 0, format, this->width, this->height, 0, format, GL_UNSIGNED_BYTE, image);
 		glGenerateMipmap(this->gl_texture_type);
 
-		glTexParameteri(this->gl_texture_type, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(this->gl_texture_type, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(this->gl_texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(this->gl_texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		GLenum params[] = { GL_TEXTURE_WRAP_S,	GL_TEXTURE_WRAP_T,	GL_TEXTURE_MAG_FILTER,		GL_TEXTURE_MIN_FILTER };
+		GLint values[] = {	GL_REPEAT,			GL_REPEAT,			GL_LINEAR_MIPMAP_LINEAR,	GL_LINEAR };
+		this->tex_parameteri(4, params, values);
 	}
 	else
 	{
 		std::cout << "FAILED TO LOAD TEXTURE: " << image_file << std::endl;
 	}
 
-	glActiveTexture(0);
-	glBindTexture(this->gl_texture_type, 0); // UNBIND TEXTURE
+	this->unbind();
 	SOIL_free_image_data(image);
+}
+
+Texture2D::Texture2D(std::string type, GLenum format, int width, int height, const void* pixels, std::size_t num_params, GLenum params[], GLint values[])
+	:
+	Texture(type, GL_TEXTURE_2D)
+{
+	this->path = "";
+	this->generate();
+	this->bind();
+
+	glTexImage2D(this->gl_texture_type, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, pixels);
+	glGenerateMipmap(this->gl_texture_type);
+	this->tex_parameteri(num_params, params, values);
+
+	this->unbind();
 }
 
 TextureCube::TextureCube(std::vector<std::string> paths, std::string directory)
 	:
 	Texture("cube", GL_TEXTURE_CUBE_MAP)
 {
-	glGenTextures(1, &this->id);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, this->id);
+	this->generate();
+	this->bind();
 
 	if (paths.size() >= 6)
 	{
@@ -104,13 +143,9 @@ TextureCube::TextureCube(std::vector<std::string> paths, std::string directory)
 		std::cout << "NOT ENOUGH TEXTURES FOR CUBEMAP" << std::endl;
 	}
 
-	glTexParameteri(this->gl_texture_type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(this->gl_texture_type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(this->gl_texture_type, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTexParameteri(this->gl_texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(this->gl_texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	GLenum params[] = { GL_TEXTURE_WRAP_S,	GL_TEXTURE_WRAP_T,	GL_TEXTURE_WRAP_R,	GL_TEXTURE_MAG_FILTER,	GL_TEXTURE_MIN_FILTER };
+	GLint values[] = {	GL_CLAMP_TO_EDGE,	GL_CLAMP_TO_EDGE,	GL_CLAMP_TO_EDGE,	GL_LINEAR,				GL_LINEAR };
+	this->tex_parameteri(5, params, values);
 
-
-	glActiveTexture(0);
-	glBindTexture(this->gl_texture_type, 0); // UNBIND TEXTURE
+	this->unbind();
 }
