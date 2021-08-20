@@ -1,7 +1,7 @@
 #pragma once
 
 #include"libs/ALL.h"
-
+#include"GlobalDebug.h"
 class Game
 {
 private:
@@ -82,6 +82,7 @@ private:
 	// GAMEOBJECTS
 
 	Player* player;
+	bool hit;
 
 	// FONTS
 

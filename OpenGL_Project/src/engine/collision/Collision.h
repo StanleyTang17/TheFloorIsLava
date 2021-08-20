@@ -1,7 +1,7 @@
 #pragma once
 
 #include"libs/GLM.h"
-
+#include"GlobalDebug.h"
 namespace Collision
 {
 	enum class ShapeType;

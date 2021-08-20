@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\gameobject\ball\Ball.cpp" />
     <ClCompile Include="src\engine\camera\Camera.cpp" />
     <ClCompile Include="src\engine\collision\Collision.cpp" />
     <ClCompile Include="src\engine\font\Font.cpp" />
@@ -36,6 +37,7 @@
     <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\gameobject\ball\Ball.h" />
     <ClInclude Include="src\engine\camera\Camera.h" />
     <ClInclude Include="src\engine\collision\Collision.h" />
     <ClInclude Include="src\engine\font\Font.h" />
@@ -44,6 +46,8 @@
     <ClInclude Include="src\engine\lights\Lights.h" />
     <ClInclude Include="src\engine\material\Material.h" />
     <ClInclude Include="src\engine\mesh\Mesh.h" />
+    <ClInclude Include="src\GlobalDebug.h" />
+    <ClInclude Include="src\libs\GAMEOBJECTS.h" />
     <ClInclude Include="src\libs\VERTEX.h" />
     <ClInclude Include="src\engine\model\Model.h" />
     <ClInclude Include="src\engine\model\ModelInstance.h" />

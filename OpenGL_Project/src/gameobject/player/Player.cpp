@@ -23,7 +23,6 @@ Player::~Player()
 
 void Player::update(const float dt)
 {
-	this->camera->set_position(this->position + glm::vec3(0.0f, 2.0f, 0.0f));
 	this->camera->update_camera_vectors();
 
 	if (forward_movement || side_movement || vertical_movement) {
@@ -39,6 +38,7 @@ void Player::update(const float dt)
 
 	this->position += this->velocity * dt;
 	this->model_instance->set_position(this->position);
+	this->camera->set_position(this->position + glm::vec3(0.0f, 2.0f, 0.0f));
 }
 
 void Player::update_keyboard_input(GLFWwindow* window, int key, int action)

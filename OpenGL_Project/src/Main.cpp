@@ -1,5 +1,7 @@
 #include"engine/Game.h"
 
+// CURRENT LINES OF CODE: 2295
+
 int main()
 {
 	Game* game = new Game("OpenGL Project", 1270, 800, 4, 6, GL_FALSE);

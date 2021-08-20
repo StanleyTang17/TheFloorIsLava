@@ -371,6 +371,7 @@ void Game::init_game_objects()
 
 	this->add_game_object(this->player);
 	this->add_game_object(new Crate(glm::vec3(6.0f, 0.5f, 10.0f)));
+	this->add_game_object(new Ball(glm::vec3(5.0f, 0.0f, 7.0f)));
 }
 
 void Game::init_uniforms()
@@ -436,7 +437,7 @@ void Game::init_uniforms()
 
 void Game::init_fonts()
 {
-	this->arial = new Font("arial", 48);
+	this->arial = new Font("arial", 24);
 
 }
 
@@ -531,10 +532,14 @@ void Game::update()
 
 	glm::vec3 cam_position = this->camera->get_position();
 
+	this->hit = false;
 	for (std::size_t i = 0; i < game_objects.size(); ++i)
 	{
 		for (std::size_t j = i + 1; j < game_objects.size(); ++j)
-			game_objects[i]->check_collision(game_objects[j]);
+		{
+			if (game_objects[i]->check_collision(game_objects[j]))
+				this->hit = true;
+		}
 		game_objects[i]->update(this->dt);
 	}
 
@@ -650,7 +655,10 @@ void Game::render()
 	this->multisample_FBO->bind_default(true);
 
 	this->render_screen();
-	this->render_text(this->shaders[4], "Hello World!", 700.0f, 600.0f, 1.0f, glm::vec3(0.5f, 0.8f, 0.2f));
+
+	this->render_text(this->shaders[4], "Hit: " + std::to_string(this->hit), 0.0f, 18.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	this->render_text(this->shaders[4], "Position: " + glm::to_string(this->player->get_position()), 0.0f, 48.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	this->render_text(this->shaders[4], "Diff: " + glm::to_string(global::diff), 0.0f, 78.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 
 	glfwSwapBuffers(this->window);
 	glFlush();

@@ -2,6 +2,8 @@
 #include<math.h>
 #include<iostream>
 
+glm::vec3 global::diff = glm::vec3(0.0f);
+
 using namespace Collision;
 
 Shape::Shape(glm::vec3* position_ref, glm::vec3* velocity_ref, ShapeType type)
@@ -45,8 +47,8 @@ bool Collision::check(Shape* shape1, Shape* shape2)
 
 bool Collision::check(Sphere* sphere1, Sphere* sphere2)
 {
-	glm::vec3 center1 = sphere1->get_position() + sphere1->get_velocity();
-	glm::vec3 center2 = sphere2->get_position() + sphere2->get_velocity();
+	glm::vec3 center1 = sphere1->get_position();
+	glm::vec3 center2 = sphere2->get_position();
 	float distance = glm::distance(center1, center2);
 
 	return distance < sphere1->get_radius() + sphere2->get_radius();
@@ -54,8 +56,8 @@ bool Collision::check(Sphere* sphere1, Sphere* sphere2)
 
 bool Collision::check(Box* box1, Box* box2)
 {
-	glm::vec3 center1 = box1->get_position() + box1->get_velocity();
-	glm::vec3 center2 = box2->get_position() + box2->get_velocity();
+	glm::vec3 center1 = box1->get_position();
+	glm::vec3 center2 = box2->get_position();
 	glm::vec3 diff = center2 - center1;
 
 	glm::vec3 abs_diff = glm::vec3(std::abs(diff.x), std::abs(diff.y), std::abs(diff.z));
@@ -68,8 +70,8 @@ bool Collision::check(Box* box1, Box* box2)
 
 bool Collision::check(Sphere* sphere, Box* box)
 {
-	glm::vec3 center1 = sphere->get_position() + sphere->get_velocity();
-	glm::vec3 center2 = box->get_position() + box->get_velocity();
+	glm::vec3 center1 = sphere->get_position();
+	glm::vec3 center2 = box->get_position();
 	float half_length = box->get_length() / 2;
 	float half_width = box->get_width() / 2;
 	float half_height = box->get_height() / 2;
@@ -79,6 +81,8 @@ bool Collision::check(Sphere* sphere, Box* box)
 		std::max(center2.y - half_height, std::min(center2.y + half_height, center1.y)),
 		std::max(center2.z - half_width, std::min(center2.z + half_width, center1.z))
 	);
+
+	global::diff = glm::abs(closest_point - center1);
 
 	return glm::distance(closest_point, center1) < sphere->get_radius();
 
