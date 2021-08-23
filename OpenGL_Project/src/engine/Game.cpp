@@ -117,7 +117,9 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
 		return;
 	}
 
-	game->player->update_keyboard_input(window, key, action);
+	game->player->get_keyboard_control()->update_input(window, key, action);
+	game->crate2->get_keyboard_control()->update_input(window, key, action);
+	game->crate->get_keyboard_control()->update_input(window, key, action);
 }
 
 void Game::scroll_callback(GLFWwindow* window, double x_offset, double y_offset)
@@ -332,8 +334,8 @@ void Game::init_lights()
 	//this->point_lights.push_back(point_light);
 	this->point_lights.push_back(point_light2);
 
-	//DirLight* dir_light = new DirLight(glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
-	//this->dir_lights.push_back(dir_light);
+	DirLight* dir_light = new DirLight(glm::vec3(1.5f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
+	this->dir_lights.push_back(dir_light);
 }
 
 void Game::init_models()
@@ -344,10 +346,10 @@ void Game::init_models()
 	Model* box = new Model("res/models/container/container.obj");
 
 	Model* glass = new Model("res/models/glass_pane/glass_pane.obj");
-	glass->add_instance(glm::vec3(0.0f, 0.0f, 1.01f), glm::vec3(0.0f), glm::vec3(1.0f));
-	glass->add_instance(glm::vec3(3.99f, 0.0f, 5.0f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(1.0f));
-	glass->add_instance(glm::vec3(3.0f, 0.0f, -1.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-	glass->add_instance(glm::vec3(-2.99f, 0.0f, 5.0f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(1.0f));
+	//glass->add_instance(glm::vec3(0.0f, 0.0f, 1.01f), glm::vec3(0.0f), glm::vec3(1.0f));
+	//glass->add_instance(glm::vec3(3.99f, 0.0f, 5.0f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(1.0f));
+	//glass->add_instance(glm::vec3(3.0f, 0.0f, -1.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+	//glass->add_instance(glm::vec3(-2.99f, 0.0f, 5.0f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(1.0f));
 	
 	Model* ball = new Model("res/models/ball/ball.obj");
 
@@ -368,10 +370,14 @@ void Game::init_game_objects()
 {
 	this->camera = new Camera(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	this->player = new Player(glm::vec3(0.0f, 0.0f, 0.0f), this->camera);
+	this->crate = new Crate(glm::vec3(3.0f, 2.5f, 6.0f), Collision::Behavior::STATIC, 2.0f);
+	this->crate2 = new Crate(glm::vec3(2.0f, 0.0f, 2.0f), Collision::Behavior::KINETIC, 1.0f);
+	this->crate2->set_control(new KeyboardControl(GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_LEFT, GLFW_KEY_RIGHT, GLFW_KEY_ENTER, GLFW_KEY_RIGHT_SHIFT));
+	
 
 	this->add_game_object(this->player);
-	this->add_game_object(new Crate(glm::vec3(6.0f, 0.5f, 10.0f)));
-	this->add_game_object(new Ball(glm::vec3(5.0f, 0.0f, 7.0f)));
+	this->add_game_object(this->crate);
+	this->add_game_object(this->crate2);
 }
 
 void Game::init_uniforms()
@@ -438,7 +444,7 @@ void Game::init_uniforms()
 void Game::init_fonts()
 {
 	this->arial = new Font("arial", 24);
-
+	this->arial_big = new Font("arial", 48);
 }
 
 void Game::update_uniforms()
@@ -532,15 +538,20 @@ void Game::update()
 
 	glm::vec3 cam_position = this->camera->get_position();
 
+	
+	for (std::size_t i = 0; i < game_objects.size(); ++i)
+		game_objects[i]->update_velocity();
+
 	this->hit = false;
 	for (std::size_t i = 0; i < game_objects.size(); ++i)
 	{
 		for (std::size_t j = i + 1; j < game_objects.size(); ++j)
 		{
-			if (game_objects[i]->check_collision(game_objects[j]))
+			if (game_objects[i]->check_collision(game_objects[j], this->dt))
 				this->hit = true;
 		}
-		game_objects[i]->update(this->dt);
+		game_objects[i]->move(dt);
+		game_objects[i]->update();
 	}
 
 	//std::sort(transparent_models.begin(), transparent_models.end(),
@@ -601,7 +612,7 @@ void Game::render_screen()
 	this->shaders[1]->unuse();
 }
 
-void Game::render_text(Shader* shader, std::string text, float x, float y, float scale, glm::vec3 color)
+void Game::render_text(Shader* shader, Font* font, std::string text, float x, float y, float scale, glm::vec3 color)
 {
 	shader->set_1i(0, "font_texture");
 	shader->set_vec_3f(color, "font_color");
@@ -610,7 +621,7 @@ void Game::render_text(Shader* shader, std::string text, float x, float y, float
 	
 	for (std::string::const_iterator c = text.begin(); c != text.end(); ++c)
 	{
-		Character ch = this->arial->get_character(*c);
+		Character ch = font->get_character(*c);
 
 		float x_pos = x + ch.bearing.x * scale;
 		float y_pos = y + (ch.bearing.y - ch.size.y) * scale;
@@ -656,9 +667,9 @@ void Game::render()
 
 	this->render_screen();
 
-	this->render_text(this->shaders[4], "Hit: " + std::to_string(this->hit), 0.0f, 18.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-	this->render_text(this->shaders[4], "Position: " + glm::to_string(this->player->get_position()), 0.0f, 48.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-	this->render_text(this->shaders[4], "Diff: " + glm::to_string(global::diff), 0.0f, 78.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	this->render_text(this->shaders[4], this->arial_big, "Hit: " + std::to_string(this->hit), 1150.0f, 750.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	this->render_text(this->shaders[4], this->arial, "Position: " + glm::to_string(this->player->get_position()), 0.0f, 48.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	this->render_text(this->shaders[4], this->arial, "Set back: " + glm::to_string(global::set_back), 0.0f, 78.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 
 	glfwSwapBuffers(this->window);
 	glFlush();

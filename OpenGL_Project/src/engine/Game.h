@@ -82,11 +82,14 @@ private:
 	// GAMEOBJECTS
 
 	Player* player;
+	Crate* crate;
+	Crate* crate2;
 	bool hit;
 
 	// FONTS
 
 	Font* arial;
+	Font* arial_big;
 
 	// INITIALIZE
 	void init_GLFW();
@@ -114,7 +117,7 @@ private:
 	void render_skybox(Shader* shader);
 	void render_models(Shader* shader);
 	void render_screen();
-	void render_text(Shader* shader, std::string text, float x, float y, float scale, glm::vec3 color);
+	void render_text(Shader* shader, Font* font, std::string text, float x, float y, float scale, glm::vec3 color);
 
 public:
 	// CONSTRUCTOR / DESTRUCTOR

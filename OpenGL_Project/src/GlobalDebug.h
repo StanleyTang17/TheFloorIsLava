@@ -2,5 +2,5 @@
 
 namespace global
 {
-	extern glm::vec3 diff;
+	extern glm::vec3 set_back;
 }

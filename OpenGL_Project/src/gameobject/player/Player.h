@@ -1,24 +1,22 @@
 #pragma once
 
 #include"engine/camera/Camera.h"
+#include"engine/control/KeyboardControl.h"
 #include"gameobject/GameObject.h"
 #include"libs/NATIVE.h"
 
 class Player : public GameObject
 {
 private:
-	// MOVEMENT
-	int forward_movement;
-	int side_movement;
-	int vertical_movement;
 	float speed = 5.0f;
-
 	Camera* camera;
+	KeyboardControl* control;
 
 public:
 	Player(glm::vec3 position, Camera* camera);
 	~Player();
 
-	void update_keyboard_input(GLFWwindow* window, int key, int action);
-	void update(const float dt);
+	void update_velocity();
+	void update();
+	KeyboardControl* get_keyboard_control() { return this->control; }
 };

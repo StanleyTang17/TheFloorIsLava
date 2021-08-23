@@ -37,9 +37,16 @@ void GameObject::set_graphic_model(ModelClass model_class, ModelInstance* model_
 	this->model_instance = model_instance;
 }
 
-bool GameObject::check_collision(GameObject* other) {
+bool GameObject::check_collision(GameObject* other, const float dt) {
 	bool hit = false;
 	if (this->collision_shape != nullptr && other->collision_shape != nullptr)
-		hit = Collision::check(this->collision_shape, other->collision_shape);
+		hit = Collision::check(this->collision_shape, other->collision_shape, dt);
 	return hit;
+}
+
+void GameObject::move(const float dt)
+{
+	this->position += this->velocity * dt;
+	if (this->model_instance != nullptr)
+		this->model_instance->set_position(this->position);
 }

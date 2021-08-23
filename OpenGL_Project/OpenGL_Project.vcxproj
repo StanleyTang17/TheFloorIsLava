@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\engine\control\KeyboardControl.cpp" />
+    <ClCompile Include="src\engine\math\Math.cpp" />
     <ClCompile Include="src\gameobject\ball\Ball.cpp" />
     <ClCompile Include="src\engine\camera\Camera.cpp" />
     <ClCompile Include="src\engine\collision\Collision.cpp" />
@@ -32,11 +34,14 @@
     <ClCompile Include="src\engine\model\ModelInstance.cpp" />
     <ClCompile Include="src\engine\shader\Shader.cpp" />
     <ClCompile Include="src\engine\texture\Texture.cpp" />
+    <ClCompile Include="src\gameobject\crate\Crate.cpp" />
     <ClCompile Include="src\gameobject\GameObject.cpp" />
     <ClCompile Include="src\gameobject\player\Player.cpp" />
     <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\engine\control\KeyboardControl.h" />
+    <ClInclude Include="src\engine\math\Math.h" />
     <ClInclude Include="src\gameobject\ball\Ball.h" />
     <ClInclude Include="src\engine\camera\Camera.h" />
     <ClInclude Include="src\engine\collision\Collision.h" />

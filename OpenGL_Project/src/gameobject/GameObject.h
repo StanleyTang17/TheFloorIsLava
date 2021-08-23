@@ -17,7 +17,9 @@ protected:
 public:
 	GameObject(glm::vec3 position);
 	~GameObject();
-	virtual void update(const float dt) = 0;
+	virtual void update_velocity() = 0;
+	virtual void update() = 0;
+	void move(const float dt);
 
 	glm::vec3 get_position() const { return this->position; }
 	glm::vec3 get_velocity() const { return this->velocity; }
@@ -27,5 +29,5 @@ public:
 	void set_velocity(glm::vec3 velocity) { this->position = position; };
 	void set_graphic_model(ModelClass model_class, ModelInstance* model_instance);
 	void set_collision_shape(Collision::Shape* shape);
-	bool check_collision(GameObject* other);
+	bool check_collision(GameObject* other, const float dt);
 };
