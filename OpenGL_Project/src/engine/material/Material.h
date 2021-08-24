@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef MATERIAL_H
+#define MATERIAL_H
+
 #include"engine/shader/Shader.h"
 
 class Material
@@ -13,3 +16,5 @@ public:
 	~Material();
 	void send_to_shader(Shader* program);
 };
+
+#endif

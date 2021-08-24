@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef FONT_H
+#define FONT_H
+
 #include<ft2build.h>
 #include FT_FREETYPE_H
 #include"engine/texture/Texture.h"
@@ -21,3 +24,5 @@ public:
 	Font(std::string font_name, unsigned int size);
 	Character get_character(char c) const { return characters.at(c); };
 };
+
+#endif

@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef FRAMEBUFFER_H
+#define FRAMEBUFFER_H
+
 #include"libs/OPENGL.h"
 #include"libs/NATIVE.h"
 
@@ -70,3 +73,5 @@ protected:
 public:
 	DepthCubeFramebuffer(int width, int height);
 };
+
+#endif

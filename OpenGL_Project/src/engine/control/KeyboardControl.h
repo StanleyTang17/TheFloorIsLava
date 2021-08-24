@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef KEYBOARDCONTROL_H
+#define KEYBOARDCONTROL_H
+
 #include"libs/OPENGL.h"
 
 class KeyboardControl
@@ -29,3 +32,4 @@ public:
 	int get_vertical_movement() const { return this->vertical_movement; }
 };
 
+#endif

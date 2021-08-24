@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef MESH_H
+#define MESH_H
+
 #include"engine/shader/Shader.h"
 #include"engine/texture/Texture.h"
 #include"libs/VERTEX.h"
@@ -25,3 +28,5 @@ public:
 	void init_mesh();
 	void init_instances(GLuint instance_VBO);
 };
+
+#endif

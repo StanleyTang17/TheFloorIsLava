@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef TEXTURE_H
+#define TEXTURE_H
+
 #include"libs/NATIVE.h"
 #include"libs/OPENGL.h"
 #include"soil2/SOIL2.h"
@@ -44,3 +47,5 @@ class TextureCube : public Texture
 public:
 	TextureCube(std::vector<std::string> paths, std::string directory);
 };
+
+#endif

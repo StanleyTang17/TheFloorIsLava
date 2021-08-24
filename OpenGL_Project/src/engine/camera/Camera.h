@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef CAMERA_H
+#define CAMERA_H
+
 #include"libs/OPENGL.h"
 #include"libs/GLM.h"
 
@@ -39,3 +42,5 @@ public:
 
 	void set_position(glm::vec3 position);
 };
+
+#endif

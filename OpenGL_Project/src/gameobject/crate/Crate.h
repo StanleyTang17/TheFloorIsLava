@@ -1,3 +1,6 @@
+#ifndef CRATE_H
+#define CRATE_H
+
 #include"gameobject/GameObject.h"
 #include"engine/control/KeyboardControl.h"
 
@@ -14,3 +17,5 @@ public:
 
 	KeyboardControl* get_keyboard_control() { return this->control; };
 };
+
+#endif

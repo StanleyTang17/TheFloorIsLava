@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef SHADER_H
+#define SHADER_H
+
 #include"libs/NATIVE.h"
 #include"libs/OPENGL.h"
 #include"libs/GLM.h"
@@ -32,3 +35,5 @@ public:
 
 	GLuint get_id() const { return this->id; }
 };
+
+#endif

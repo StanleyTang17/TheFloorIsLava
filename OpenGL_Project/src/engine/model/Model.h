@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef MODEL_H
+#define MODEL_H
+
 #include"engine/mesh/Mesh.h"
 #include"engine/model/ModelInstance.h"
 #include"libs/ASSIMP.h"
@@ -39,3 +42,4 @@ public:
 	int get_num_instances() const { return this->instances.size(); }
 };
 
+#endif

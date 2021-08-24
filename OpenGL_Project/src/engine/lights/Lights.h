@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef LIGHTS_H
+#define LIGHTS_H
+
 #include"engine/shader/Shader.h"
 
 class AbstractLight
@@ -67,3 +70,5 @@ public:
 
 	void set_direction(glm::vec3 direction) { this->direction = direction; }
 };
+
+#endif

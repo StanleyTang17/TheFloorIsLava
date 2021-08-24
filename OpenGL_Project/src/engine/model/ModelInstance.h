@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef MODELINSTANCE_H
+#define MODELINSTANCE_H
+
 #include"libs/GLM.h"
 
 class ModelInstance
@@ -22,3 +25,5 @@ public:
 	glm::vec3 get_position() const { return this->position; }
 	glm::mat4 get_model_matrix();
 };
+
+#endif

@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef GAMEOBJECT_H
+#define GAMEOBJECT_H
+
 #include"engine/model/Model.h"
 #include"engine/collision/Collision.h"
 
@@ -31,3 +34,5 @@ public:
 	void set_collision_shape(Collision::Shape* shape);
 	bool check_collision(GameObject* other, const float dt);
 };
+
+#endif

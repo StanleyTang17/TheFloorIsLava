@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef GAME_ENGINE_H
+#define GAME_ENGINE_H
+
 #include"libs/ALL.h"
 #include"GlobalDebug.h"
 class Game
@@ -142,3 +145,5 @@ public:
 	static void scroll_callback(GLFWwindow* window, double x_offset, double y_offset);
 
 };
+
+#endif

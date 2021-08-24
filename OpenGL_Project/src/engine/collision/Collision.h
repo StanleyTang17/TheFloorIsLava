@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef COLLISION_H
+#define COLLISION_H
+
 #include"libs/GLM.h"
 #include"GlobalDebug.h"
 #include"engine/math/Math.h"
@@ -82,3 +85,5 @@ public:
 	glm::vec3* get_vertices();
 	Math::Plane* get_planes();
 };
+
+#endif
