@@ -58,6 +58,8 @@ private:
 	std::vector<PointLight*> point_lights;
 	std::vector<SpotLight*> spot_lights;
 	std::vector<GameObject*> game_objects;
+	std::vector<Animation::Model*> animated_models;
+	std::vector<Animation::Animator*> animators;
 
 	std::map<ModelClass, Model*>models;
 
@@ -104,6 +106,7 @@ private:
 	void init_matrices();
 	void init_shaders();
 	void init_models();
+	void init_animations();
 	void init_game_objects();
 	void init_lights();
 	void init_uniforms();
@@ -119,6 +122,7 @@ private:
 	// DRAW
 	void render_skybox(Shader* shader);
 	void render_models(Shader* shader);
+	void render_animated_models(Shader* shader);
 	void render_screen();
 	void render_text(Shader* shader, Font* font, std::string text, float x, float y, float scale, glm::vec3 color);
 

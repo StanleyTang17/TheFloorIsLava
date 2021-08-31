@@ -67,6 +67,9 @@ Game::Game(const char* title, const int width, const int height, const int versi
 	this->init_models();
 	std::cout << "Initialized Models" << std::endl;
 
+	this->init_animations();
+	std::cout << "Initialized Animations" << std::endl;
+
 	this->init_game_objects();
 	std::cout << "Initialized GameObjects" << std::endl;
 
@@ -322,6 +325,7 @@ void Game::init_shaders()
 	this->shaders.push_back(new Shader("src/shaders/skybox", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 	this->shaders.push_back(new Shader("src/shaders/depth_cube", true, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
 	this->shaders.push_back(new Shader("src/shaders/text", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MAJOR));
+	this->shaders.push_back(new Shader("src/shaders/animation", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MAJOR));
 }
 
 void Game::init_lights()
@@ -346,10 +350,6 @@ void Game::init_models()
 	Model* box = new Model("res/models/container/container.obj");
 
 	Model* glass = new Model("res/models/glass_pane/glass_pane.obj");
-	//glass->add_instance(glm::vec3(0.0f, 0.0f, 1.01f), glm::vec3(0.0f), glm::vec3(1.0f));
-	//glass->add_instance(glm::vec3(3.99f, 0.0f, 5.0f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(1.0f));
-	//glass->add_instance(glm::vec3(3.0f, 0.0f, -1.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-	//glass->add_instance(glm::vec3(-2.99f, 0.0f, 5.0f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(1.0f));
 	
 	Model* ball = new Model("res/models/ball/ball.obj");
 
@@ -364,6 +364,15 @@ void Game::init_models()
 	
 	for (Model* model : this->transparent_models)
 		model->init_instances();
+}
+
+void Game::init_animations()
+{
+	Animation::Model* zombie_model = new Animation::Model("res/animations/zombie/zombie2.dae");
+	Animation::Sequence* zombie_sequence = new Animation::Sequence("res/animations/zombie/zombie2.dae", zombie_model);
+	Animation::Animator* animator = new Animation::Animator(zombie_sequence);
+	this->animated_models.push_back(zombie_model);
+	this->animators.push_back(animator);
 }
 
 void Game::init_game_objects()
@@ -432,6 +441,10 @@ void Game::init_uniforms()
 	this->shaders[0]->set_1i(this->depth_cube_FBO->get_texture(), "shadow_cube");
 	this->shaders[0]->set_1f(far, "far_plane");
 
+	this->shaders[5]->set_1f(64.0f, "material.shininess");
+	this->shaders[5]->set_1i(this->depth_cube_FBO->get_texture(), "shadow_cube");
+	this->shaders[5]->set_1f(far, "far_plane");
+
 	// UNIFORM BUFFER
 
 	glGenBuffers(1, &this->uniform_buffer);
@@ -461,12 +474,17 @@ void Game::update_uniforms()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	this->shaders[0]->set_vec_3f(this->camera->get_position(), "camera_pos");
+	this->shaders[5]->set_vec_3f(this->camera->get_position(), "camera_pos");
 
 	// LIGHTS
 
 	this->shaders[0]->set_1i(dir_lights.size(), "num_dir_lights");
 	this->shaders[0]->set_1i(point_lights.size(), "num_point_lights");
 	this->shaders[0]->set_1i(spot_lights.size(), "num_spot_lights");
+
+	this->shaders[5]->set_1i(dir_lights.size(), "num_dir_lights");
+	this->shaders[5]->set_1i(point_lights.size(), "num_point_lights");
+	this->shaders[5]->set_1i(spot_lights.size(), "num_spot_lights");
 
 	if (spot_lights.size())
 	{
@@ -475,15 +493,25 @@ void Game::update_uniforms()
 	}
 
 	for (std::size_t i = 0; i < this->dir_lights.size(); ++i)
+	{
 		this->dir_lights[i]->send_to_shader(shaders[0], i);
+		this->dir_lights[i]->send_to_shader(shaders[5], i);
+	}
 
 	for (std::size_t i = 0; i < this->point_lights.size(); ++i)
+	{
 		this->point_lights[i]->send_to_shader(shaders[0], i);
-
+		this->point_lights[i]->send_to_shader(shaders[5], i);
+	}
+		
 	for (std::size_t i = 0; i < this->spot_lights.size(); ++i)
+	{
 		this->spot_lights[i]->send_to_shader(shaders[0], i);
-
+		this->spot_lights[i]->send_to_shader(shaders[5], i);
+	}
+		
 	this->shaders[0]->set_1f(static_cast<float>(glfwGetTime()), "time");
+	this->shaders[5]->set_1f(static_cast<float>(glfwGetTime()), "time");
 
 	this->shaders[2]->set_1i(this->show_depth, "show_depth");
 }
@@ -532,12 +560,7 @@ void Game::update()
 	this->update_uniforms();
 
 	for (std::map<ModelClass, Model*>::iterator it = this->models.begin(); it != this->models.end(); ++it)
-	{
 		it->second->update(this->dt);
-	}
-
-	glm::vec3 cam_position = this->camera->get_position();
-
 	
 	for (std::size_t i = 0; i < game_objects.size(); ++i)
 		game_objects[i]->update_velocity();
@@ -550,10 +573,17 @@ void Game::update()
 			if (game_objects[i]->check_collision(game_objects[j], this->dt))
 				this->hit = true;
 		}
-		game_objects[i]->move(dt);
+		game_objects[i]->move(this->dt);
 		game_objects[i]->update();
 	}
 
+	for (std::size_t i = 0; i < this->animated_models.size(); ++i)
+	{
+		this->animated_models[i]->update(this->dt);
+		this->animators[i]->update(this->dt);
+	}
+
+	//glm::vec3 cam_position = this->camera->get_position();
 	//std::sort(transparent_models.begin(), transparent_models.end(),
 	//	[&cam_position](const Model* obj1, const Model* obj2) {
 	//		return glm::length(cam_position - obj1->get_position()) > glm::length(cam_position - obj2->get_position());
@@ -594,6 +624,33 @@ void Game::render_models(Shader* shader)
 	glEnable(GL_CULL_FACE);
 
 	shader->unuse();
+}
+
+void Game::render_animated_models(Shader* shader)
+{
+	glDisable(GL_CULL_FACE);
+	shader->set_mat_4fv(this->projection_matrix, "projection_matrix", GL_FALSE);
+	shader->set_mat_4fv(this->camera->get_view_matrix(), "view_matrix", GL_FALSE);
+
+	for (std::size_t i = 0; i < this->animated_models.size(); ++i)
+	{
+		Animation::Model* model = this->animated_models[i];
+		Animation::Animator* animator = this->animators[i];
+		std::vector<glm::mat4> bone_matrices = animator->get_final_bone_matrices();
+
+		for (std::size_t j = 0; j < 100; ++j)
+			shader->set_mat_4fv(bone_matrices[j], ("final_bone_matrices[" + std::to_string(j) + "]").c_str(), GL_FALSE);
+
+		glm::mat4 model_matrix = glm::mat4(1.0f);
+		model_matrix = glm::translate(model_matrix, glm::vec3(0.0f, 1.0f, 0.0f));
+		model_matrix = glm::scale(model_matrix, glm::vec3(0.5f));
+		shader->set_mat_4fv(model_matrix, "model_matrix", GL_FALSE);
+
+		shader->use();
+		model->render(shader);
+	}
+	shader->unuse();
+	glEnable(GL_CULL_FACE);
 }
 
 void Game::render_screen()
@@ -661,6 +718,7 @@ void Game::render()
 	glActiveTexture(GL_TEXTURE0 + this->depth_cube_FBO->get_texture());
 	glBindTexture(GL_TEXTURE_CUBE_MAP, this->depth_cube_FBO->get_texture());
 	this->render_models(this->shaders[0]);
+	this->render_animated_models(this->shaders[5]);
 
 	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	this->multisample_FBO->bind_default(true);

@@ -10,7 +10,7 @@
 
 enum class ModelClass
 {
-	Undefined, Ball, Box, GrassPlane, GlassPane, BrickWall
+	Undefined, Ball, Box, GrassPlane, GlassPane, BrickWall, Zombie
 };
 
 class Model

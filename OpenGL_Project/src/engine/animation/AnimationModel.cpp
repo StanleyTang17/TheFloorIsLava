@@ -1,24 +1,20 @@
-#include "Model.h"
+#include"AnimationModel.h"
 
-Model::Model(const char* path)
+Animation::Model::Model(std::string path)
 {
 	this->load_model(path);
-	glGenBuffers(1, &this->instance_VBO);
 }
 
-Model::~Model()
+Animation::Model::~Model()
 {
 	for (Mesh* mesh : this->meshes)
 		delete mesh;
 
 	for (Texture2D* texture : this->textures_loaded)
 		delete texture;
-
-	for (ModelInstance* instance : this->instances)
-		delete instance;
 }
 
-void Model::load_model(std::string path)
+void Animation::Model::load_model(std::string path)
 {
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
@@ -33,10 +29,10 @@ void Model::load_model(std::string path)
 
 	this->load_node(scene->mRootNode, scene);
 
-	std::cout << "Model loaded from " << path << std::endl;
+	std::cout << "Animated Model loaded from " << path << std::endl;
 }
 
-void Model::load_node(aiNode* node, const aiScene* scene)
+void Animation::Model::load_node(aiNode* node, const aiScene* scene)
 {
 	for (std::size_t i = 0; i < node->mNumMeshes; ++i)
 		this->load_mesh(scene->mMeshes[node->mMeshes[i]], scene);
@@ -45,7 +41,61 @@ void Model::load_node(aiNode* node, const aiScene* scene)
 		this->load_node(node->mChildren[i], scene);
 }
 
-void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
+void Animation::Model::set_vertex_bone_default(Vertex& vertex)
+{
+	for (std::size_t i = 0; i < 4; ++i)
+	{
+		vertex.bone_ids[i] = -1;
+		vertex.weights[i] = 0.0;
+	}
+}
+
+void Animation::Model::append_vertex_bone(Vertex& vertex, int bone_id, float weight)
+{
+	for (std::size_t i = 0; i < 4; ++i)
+	{
+		if (vertex.bone_ids[i] < 0)
+		{
+			vertex.bone_ids[i] = bone_id;
+			vertex.weights[i] = weight;
+			break;
+		}
+	}
+}
+
+void Animation::Model::extract_bone_info(std::vector<Vertex> &vertices, aiMesh* mesh, const aiScene* scene)
+{
+	for (std::size_t i = 0; i < mesh->mNumBones; ++i)
+	{
+		aiBone* bone = mesh->mBones[i];
+		std::string bone_name = bone->mName.C_Str();
+		int bone_id = -1;
+
+		if (this->bone_info_map.find(bone_name) == this->bone_info_map.end())
+		{
+			bone_id = this->bone_count;
+			BoneInfo info = { bone_id, AssimpToGLM::mat4(bone->mOffsetMatrix) };
+			this->bone_info_map.emplace(bone_name, info);
+			this->bone_count++;
+		}
+		else
+		{
+			bone_id = this->bone_info_map.at(bone_name).id;
+		}
+
+		assert(bone_id != -1);
+
+		for (std::size_t j = 0; j < bone->mNumWeights; ++j)
+		{
+			int vertex_id = bone->mWeights[j].mVertexId;
+			float weight = bone->mWeights[j].mWeight;
+			assert(vertex_id <= vertices.size());
+			this->append_vertex_bone(vertices[vertex_id], bone_id, weight);
+		}
+	}
+}
+
+void Animation::Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 {
 	std::vector<Vertex> vertices;
 	std::vector<GLuint> indices;
@@ -59,29 +109,26 @@ void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 
 	for (std::size_t i = 0; i < mesh->mNumVertices; ++i)
 	{
-		aiVector3D aiVertex = mesh->mVertices[i];
-
 		Vertex vertex;
-		vertex.position = glm::vec3(aiVertex.x, aiVertex.y, aiVertex.z);
+		this->set_vertex_bone_default(vertex);
+		vertex.position = AssimpToGLM::vec3(mesh->mVertices[i]);
 
 		if (mesh->HasNormals())
 		{
-			aiVector3D aiNormal = mesh->mNormals[i];
-			vertex.normal = glm::vec3(aiNormal.x, aiNormal.y, aiNormal.z);
+			vertex.normal = AssimpToGLM::vec3(mesh->mNormals[i]);
 		}
 
 		if (mesh->mTextureCoords[0])
 		{
-			aiVector3D aiTexcoord = mesh->mTextureCoords[0][i];
-			aiVector3D aiTangent = mesh->mTangents[i];
-			aiVector3D aiBitangent = mesh->mBitangents[i];
-			vertex.texcoord = glm::vec2(aiTexcoord.x, aiTexcoord.y);
-			vertex.tangent = glm::vec3(aiTangent.x, aiTangent.y, aiTangent.z);
-			vertex.bitangent = glm::vec3(aiBitangent.x, aiBitangent.y, aiBitangent.z);
+			vertex.texcoord = glm::vec2(AssimpToGLM::vec3(mesh->mTextureCoords[0][i]));
+			vertex.tangent = AssimpToGLM::vec3(mesh->mTangents[i]);
+			vertex.bitangent = AssimpToGLM::vec3(mesh->mBitangents[i]);
 		}
 
 		vertices.push_back(vertex);
 	}
+
+	this->extract_bone_info(vertices, mesh, scene);
 
 	for (std::size_t i = 0; i < mesh->mNumFaces; ++i)
 	{
@@ -98,7 +145,7 @@ void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 		{
 			aiString str;
 			material->GetTexture(aiType, i, &str);
-			
+
 			bool loaded = false;
 			Texture2D* texture = nullptr;
 
@@ -122,64 +169,18 @@ void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 	this->meshes.push_back(new Mesh(vertices, indices, textures));
 }
 
-void Model::init_instances()
+void Animation::Model::update(const float dt)
 {
-	std::vector<glm::mat4> model_matrices;
-	for (ModelInstance* instance : instances)
-		model_matrices.push_back(instance->get_model_matrix());
-
-	glBindBuffer(GL_ARRAY_BUFFER, this->instance_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * model_matrices.size(), model_matrices.data(), GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	for (Mesh* mesh : this->meshes)
-		mesh->init_instances(this->instance_VBO);
-}
-
-void Model::add_instance(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
-{
-	this->instances.push_back(new ModelInstance(position, rotation, scale));
-}
-
-void Model::add_instance(ModelInstance* instance)
-{
-	this->instances.push_back(instance);
-}
-
-void Model::remove_instance(int index)
-{
-	if (index > -1)
-		this->instances.erase(this->instances.begin() + index);
-	else
-		this->instances.pop_back();
-}
-
-void Model::remove_instance(ModelInstance* instance)
-{
-	for(std::size_t i = 0; i < this->instances.size(); ++i)
-		if (instances[i] == instance)
-		{
-			instances.erase(instances.begin() + i);
-			break;
-		}
-}
-
-ModelInstance* Model::get_instance(std::size_t index)
-{
-	return this->instances[index];
-}
-
-void Model::update(float dt)
-{
-	this->init_instances();
 	for (Mesh* mesh : this->meshes)
 	{
 		mesh->update(dt);
 	}
 }
 
-void Model::render(Shader* shader)
+void Animation::Model::render(Shader* shader)
 {
-	for (std::size_t i = 0; i < this->meshes.size(); ++i)
-		meshes[i]->rendor(shader, this->instances.size());
+	for (Mesh* mesh : this->meshes)
+	{
+		mesh->rendor(shader);
+	}
 }

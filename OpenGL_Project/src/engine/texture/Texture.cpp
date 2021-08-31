@@ -76,7 +76,8 @@ Texture2D::Texture2D(std::string type, std::string path, std::string directory)
 		glGenerateMipmap(this->gl_texture_type);
 
 		GLenum params[] = { GL_TEXTURE_WRAP_S,	GL_TEXTURE_WRAP_T,	GL_TEXTURE_MAG_FILTER,		GL_TEXTURE_MIN_FILTER };
-		GLint values[] = {	GL_REPEAT,			GL_REPEAT,			GL_LINEAR_MIPMAP_LINEAR,	GL_LINEAR };
+//		GLint values[] = {	GL_REPEAT,			GL_REPEAT,			GL_LINEAR_MIPMAP_LINEAR,	GL_LINEAR };
+		GLint values[] = { GL_REPEAT,			GL_REPEAT,			GL_NEAREST,					GL_NEAREST };
 		this->tex_parameteri(4, params, values);
 	}
 	else
