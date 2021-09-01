@@ -19,7 +19,7 @@ namespace Math
 		glm::vec3 N;
 	};
 
-	bool find_POI(Line l, Plane p, glm::vec3 &POI, float &t);
+	int find_POI(Line l, Plane p, glm::vec3 &POI, float &t);
 }
 
 #endif

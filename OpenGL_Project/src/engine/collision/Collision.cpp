@@ -141,6 +141,7 @@ bool Collision::check(Box* box1, Box* box2, const float dt)
 	if (behavior1 == Behavior::STATIC)
 		std::swap(kinetic_box, static_box);
 
+	// expand static box
 	glm::vec3 original = glm::vec3(static_box->get_length(), static_box->get_height(), static_box->get_width());
 	static_box->set_length(static_box->get_length() + kinetic_box->get_length());
 	static_box->set_height(static_box->get_height() + kinetic_box->get_height());
@@ -150,6 +151,7 @@ bool Collision::check(Box* box1, Box* box2, const float dt)
 	glm::vec3 kinetic_vel = kinetic_box->get_velocity();
 	Math::Line ray = { kinetic_pos, kinetic_vel };
 	Math::Plane* planes = static_box->get_planes();
+	bool in_bound = static_box->is_in_box(kinetic_pos);
 
 	glm::vec3 final_pos = kinetic_pos + kinetic_vel;
 	glm::vec3 collide_norm = glm::vec3(0.0f);
@@ -157,7 +159,18 @@ bool Collision::check(Box* box1, Box* box2, const float dt)
 	{
 		glm::vec3 POI = glm::vec3(0.0f);
 		float t = -1;
-		if (Math::find_POI(ray, planes[i], POI, t) && t >= 0 && static_box->is_in_box(POI))
+		int result = Math::find_POI(ray, planes[i], POI, t);
+		bool valid_t = (t >= 0 && !in_bound) || (t <= 0 && in_bound);
+
+		if (result == 1) // if the line lies on one of the planes
+		{
+			static_box->set_length(original.x);
+			static_box->set_height(original.y);
+			static_box->set_width(original.z);
+
+			return false;
+		}
+		else if (result == 0 && valid_t && static_box->is_in_box(POI))
 		{
 			if (glm::distance(kinetic_pos, POI) < glm::distance(kinetic_pos, final_pos))
 			{
@@ -167,7 +180,7 @@ bool Collision::check(Box* box1, Box* box2, const float dt)
 		}
 	}
 
-	kinetic_box->set_position(final_pos + collide_norm * 0.00001f);
+	kinetic_box->set_position(final_pos);
 	kinetic_box->set_velocity(kinetic_vel + collide_norm * glm::abs(kinetic_vel));
 
 	delete[] planes;
@@ -177,7 +190,7 @@ bool Collision::check(Box* box1, Box* box2, const float dt)
 	static_box->set_height(original.y);
 	static_box->set_width(original.z);
 
-	return collide;
+	return true;
 }
 
 bool Collision::check(Sphere* sphere, Box* box, const float dt)
