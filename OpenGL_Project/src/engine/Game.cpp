@@ -355,7 +355,7 @@ void Game::init_models()
 	AnimatedModel::load_model("res/animations/zombie/zombie2.dae", "res/animations/zombie/split.txt");
 
 	this->static_models.push_back(new ModelInstance("grass_plane", glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
-	// this->animated_models.push_back(new ModelInstance("zombie2", glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
+	this->animated_models.push_back(new ModelInstance("zombie2", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f)));
 }
 
 void Game::init_game_objects()

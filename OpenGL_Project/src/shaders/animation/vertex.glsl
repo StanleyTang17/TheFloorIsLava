@@ -6,8 +6,13 @@ layout (location = 4) in vec3 vertex_bitangent;
 layout (location = 5) in vec4 bone_ids;
 layout (location = 6) in vec4 weights;
 
-uniform mat4 projection_matrix;
-uniform mat4 view_matrix;
+layout (binding = 0, std140) uniform Matrices
+{
+    mat4 projection_matrix;
+    mat4 view_matrix;
+    mat4 view_matrix_no_translate;
+};
+
 uniform mat4 model_matrix;
 
 const int MAX_BONES = 100;

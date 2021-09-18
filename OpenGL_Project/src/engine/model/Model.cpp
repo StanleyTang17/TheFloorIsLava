@@ -34,12 +34,24 @@ bool Model::remove_loaded_model(std::string model_name)
 	return false;
 }
 
+Model::Model()
+{
+	this->directory = "";
+	this->name = "";
+	this->animated = false;
+}
+
 Model::Model(std::string path)
+{
+	this->animated = false;
+	this->load(path);
+}
+
+void Model::load(std::string path)
 {
 	std::size_t last_slash_pos = path.find_last_of('/');
 	this->directory = path.substr(0, last_slash_pos);
 	this->name = path.substr(last_slash_pos + 1, path.find_last_of('.') - last_slash_pos - 1);
-	this->animated = false;
 
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
@@ -141,7 +153,6 @@ std::vector<Texture2D*> Model::load_textures(aiMesh* mesh, const aiScene* scene)
 			if (!loaded) {
 				texture = new Texture2D(type, str.C_Str(), this->directory);
 				this->textures_loaded.push_back(texture);
-				std::cout << "texture " << texture->get_id() << " loaded for " << this->name << std::endl;
 			}
 
 			textures.push_back(texture);

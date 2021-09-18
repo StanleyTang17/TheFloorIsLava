@@ -7,16 +7,16 @@ ModelInstance::ModelInstance(Model* model, glm::vec3 position, glm::vec3 rotatio
 	this->scale = scale;
 	this->model = model;
 	this->stop = false;
+	this->animation_time = 0;
 
 	if (this->model->is_animated())
 	{
-		this->current_animation = &(this->get_animated_model()->get_animations().begin()->second);
-		this->animation_time = this->current_animation->start_time;
+		this->current_animation = this->get_animated_model()->get_animations().begin()->second;
+		this->animation_time = this->current_animation.start_time;
 	}
 	else
 	{
-		this->current_animation = nullptr;
-		this->animation_time = 0;
+		this->current_animation = { 0, 0 };
 	}
 }
 
@@ -27,15 +27,16 @@ ModelInstance::ModelInstance(std::string loaded_model_name, glm::vec3 position, 
 	this->scale = scale;
 	this->model = Model::get_loaded_model(loaded_model_name);
 	this->stop = false;
+	this->animation_time = 0;
+
 	if (this->model->is_animated())
 	{
-		this->current_animation = &(this->get_animated_model()->get_animations().begin()->second);
-		this->animation_time = this->current_animation->start_time;
+		this->current_animation = this->get_animated_model()->get_animations().begin()->second;
+		this->animation_time = this->current_animation.start_time;
 	}
 	else
 	{
-		this->current_animation = nullptr;
-		this->animation_time = 0;
+		this->current_animation = { 0, 0 };
 	}
 }
 
@@ -43,10 +44,14 @@ void ModelInstance::update(const float dt)
 {
 	if (this->model->is_animated() && !this->stop)
 	{
-		this->animation_time += this->get_animated_model()->get_FPS() * dt;
+		this->animation_time += dt;
 
-		if (this->animation_time > current_animation->end_time)
-			this->animation_time = current_animation->end_time - this->animation_time + current_animation->start_time;
+		if (this->animation_time > this->current_animation.end_time)
+		{
+			float duration = this->current_animation.end_time - this->current_animation.start_time;
+			while (this->animation_time > this->current_animation.end_time)
+				this->animation_time -= duration;
+		}
 	}
 }
 
@@ -68,8 +73,8 @@ void ModelInstance::play_animation(std::string animation_name)
 {
 	if (!this->model->is_animated()) return;
 
-	this->current_animation = &(this->get_animated_model()->get_animations()[animation_name]);
-	this->animation_time = this->current_animation->start_time;
+	this->current_animation = this->get_animated_model()->get_animations().at(animation_name);
+	this->animation_time = this->current_animation.start_time;
 }
 
 void ModelInstance::pause()

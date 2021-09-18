@@ -10,7 +10,7 @@ class ModelInstance
 private:
 	Model* model;
 
-	Sequence* current_animation;
+	Sequence current_animation;
 	float animation_time;
 	bool stop;
 

@@ -9,12 +9,16 @@ void AnimatedModel::load_model(std::string model_path, std::string split_animati
 
 AnimatedModel::AnimatedModel(std::string model_path, std::string split_animation_path)
 	:
-	Model(model_path)
+	Model()
 {
 	this->bone_count = 0;
 	this->animated = true;
 	this->FPS = 24;
 	this->bone_matrices.reserve(100);
+	for (std::size_t i = 0; i < 100; ++i)
+		this->bone_matrices.push_back(glm::mat4(1.0f));
+
+	this->load(model_path);
 
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(model_path, aiProcess_Triangulate);
@@ -27,11 +31,11 @@ AnimatedModel::AnimatedModel(std::string model_path, std::string split_animation
 
 	aiAnimation* animation = scene->mAnimations[0];
 	this->FPS = animation->mTicksPerSecond;
+	this->FPS = 24;
 
 	this->read_animated_node(0, scene->mRootNode);
 	this->read_animated_bones(animation, scene);
 	this->read_split_animations(split_animation_path);
-
 }
 
 void AnimatedModel::set_vertex_bone_default(AnimatedVertex& vertex)
@@ -113,7 +117,7 @@ void AnimatedModel::read_animated_bones(aiAnimation* animation, const aiScene* s
 		{
 			BoneInfo new_bone = { this->bone_count, glm::mat4(1.0f) };
 			this->bone_info_map.emplace(bone_name, new_bone);
-			std::cout << "Found missing bone: " << this->bone_count << std::endl;
+			std::cout << "Found missing bone id=" << this->bone_count << std::endl;
 			++this->bone_count;
 		}
 
@@ -136,7 +140,7 @@ void AnimatedModel::read_split_animations(std::string split_file)
 			ss >> name;
 			ss >> start_frame;
 			ss >> end_frame;
-			Sequence animation = { stoi(start_frame) * this->FPS, stoi(end_frame) * this->FPS };
+			Sequence animation = { stof(start_frame) / this->FPS, stof(end_frame) / this->FPS };
 			this->animations.emplace(name, animation);
 		}
 	}
@@ -147,9 +151,9 @@ void AnimatedModel::read_split_animations(std::string split_file)
 
 AnimatedBone* AnimatedModel::find_bone_by_name(std::string name)
 {
-	for (AnimatedBone bone : this->animated_bones)
-		if (bone.get_name() == name)
-			return &bone;
+	for (std::vector<AnimatedBone>::iterator it = this->animated_bones.begin(); it != this->animated_bones.end(); ++it)
+		if (it->get_name() == name)
+			return &(*it);
 
 	return nullptr;
 }

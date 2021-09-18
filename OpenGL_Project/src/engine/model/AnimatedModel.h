@@ -49,7 +49,7 @@ private:
 
 protected:
 	std::vector<AnimatedVertex> load_vertices(aiMesh* mesh, const aiScene* scene);
-	void load_mesh(aiMesh* mesh, const aiScene* scene);
+	void load_mesh(aiMesh* mesh, const aiScene* scene) override;
 
 public:
 	AnimatedModel(std::string model_file, std::string split_animation_file);
