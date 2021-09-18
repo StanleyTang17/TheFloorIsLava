@@ -15,26 +15,32 @@ struct Vertex
 	glm::vec3 bitangent;
 };
 
+constexpr auto MAX_BONE_INFLUENCE = 4;
+
+struct AnimatedVertex : Vertex
+{
+	float bone_ids[MAX_BONE_INFLUENCE];
+	float weights[MAX_BONE_INFLUENCE];
+};
+
 class Mesh
 {
 protected:
-	std::vector<Vertex> vertices;
-	std::vector<GLuint> indices;
 	std::vector<Texture2D*> textures;
 
 	GLuint VAO;
 	GLuint VBO;
 	GLuint EBO;
+	unsigned int num_vertices;
+	unsigned int num_indices;
 	
 	void update_uniform(Shader* shader);
 
 public:
 	Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture2D*> textures);
+	Mesh(std::vector<AnimatedVertex> vertices, std::vector<GLuint> indices, std::vector<Texture2D*> textures);
 	~Mesh();
-	void update(float dt);
-	void rendor(Shader* shader, unsigned int num_instances);
-	void init_mesh();
-	void init_instances(GLuint instance_VBO);
+	void rendor(Shader* shader);
 };
 
 #endif

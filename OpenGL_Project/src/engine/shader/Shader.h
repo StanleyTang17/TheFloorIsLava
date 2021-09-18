@@ -6,6 +6,7 @@
 #include"libs/NATIVE.h"
 #include"libs/OPENGL.h"
 #include"libs/GLM.h"
+#include<fstream>
 
 class Shader
 {

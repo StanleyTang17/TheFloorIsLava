@@ -2,38 +2,25 @@
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture2D*> textures)
 {
-	this->vertices = vertices;
-	this->indices = indices;
+	this->num_vertices = vertices.size();
+	this->num_indices = indices.size();
 	this->textures = textures;
-
-	this->init_mesh();
-}
-
-Mesh::~Mesh()
-{
-	glDeleteVertexArrays(1, &this->VAO);
-	glDeleteBuffers(1, &this->VBO);
-	if(this->indices.size() > 0)
-		glDeleteBuffers(1, &this->EBO);
-	for (std::size_t i = 0; i < this->textures.size(); ++i)
-		delete textures[i];
-}
-
-void Mesh::init_mesh()
-{
+	
 	glCreateVertexArrays(1, &this->VAO);
 	glBindVertexArray(this->VAO);
 
 	glGenBuffers(1, &this->VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-	glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), this->vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
-	if (this->indices.size() > 0)
+	if (indices.size() > 0)
 	{
 		glGenBuffers(1, &this->EBO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(GLuint), this->indices.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
 	}
+	else
+		this->EBO = 0;
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
 	glEnableVertexAttribArray(0);
@@ -53,29 +40,60 @@ void Mesh::init_mesh()
 	glBindVertexArray(0);
 }
 
-void Mesh::init_instances(GLuint instance_VBO)
+Mesh::Mesh(std::vector<AnimatedVertex> vertices, std::vector<GLuint> indices, std::vector<Texture2D*> textures)
 {
+	this->num_vertices = vertices.size();
+	this->num_indices = indices.size();
+	this->textures = textures;
+
+	glCreateVertexArrays(1, &this->VAO);
 	glBindVertexArray(this->VAO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, instance_VBO);
+	glGenBuffers(1, &this->VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(AnimatedVertex), vertices.data(), GL_STATIC_DRAW);
 
+	if (indices.size() > 0)
+	{
+		glGenBuffers(1, &this->EBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint),indices.data(), GL_STATIC_DRAW);
+	}
+	else
+		this->EBO = 0;
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (GLvoid*)offsetof(AnimatedVertex, position));
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (GLvoid*)offsetof(AnimatedVertex, normal));
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (GLvoid*)offsetof(AnimatedVertex, texcoord));
+	glEnableVertexAttribArray(2);
+
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (GLvoid*)offsetof(AnimatedVertex, tangent));
+	glEnableVertexAttribArray(3);
+
+	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (GLvoid*)offsetof(AnimatedVertex, bitangent));
+	glEnableVertexAttribArray(4);
+
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (GLvoid*)offsetof(AnimatedVertex, bone_ids));
 	glEnableVertexAttribArray(5);
-	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-	glVertexAttribDivisor(5, 1);
 
+	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (GLvoid*)offsetof(AnimatedVertex, weights));
 	glEnableVertexAttribArray(6);
-	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-	glVertexAttribDivisor(6, 1);
-
-	glEnableVertexAttribArray(7);
-	glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-	glVertexAttribDivisor(7, 1);
-
-	glEnableVertexAttribArray(8);
-	glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-	glVertexAttribDivisor(8, 1);
 
 	glBindVertexArray(0);
+}
+
+Mesh::~Mesh()
+{
+	glDeleteVertexArrays(1, &this->VAO);
+	glDeleteBuffers(1, &this->VBO);
+	if(this->num_indices > 0)
+		glDeleteBuffers(1, &this->EBO);
+	for (std::size_t i = 0; i < this->textures.size(); ++i)
+		delete textures[i];
 }
 
 void Mesh::update_uniform(Shader* shader)
@@ -88,7 +106,8 @@ void Mesh::update_uniform(Shader* shader)
 	for (std::size_t i = 0; i < this->textures.size(); ++i)
 	{
 		Texture* tex = this->textures[i];
-		glActiveTexture(GL_TEXTURE0 + tex->get_unit());
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, tex->get_id());
 
 		std::string name = tex->get_type();
 		unsigned int number = 0;
@@ -103,29 +122,23 @@ void Mesh::update_uniform(Shader* shader)
 			number = num_height++;
 
 		std::string combined = name + std::to_string(number);
-
-		shader->set_1i(tex->get_unit(), combined.c_str());
-		glBindTexture(GL_TEXTURE_2D, tex->get_id());
+		shader->set_1i(i, combined.c_str());
 	}
 }
 
-void Mesh::update(float dt)
-{	
-	
-}
-
-void Mesh::rendor(Shader* shader, unsigned int num_instances)
+void Mesh::rendor(Shader* shader)
 {
 	this->update_uniform(shader);
 
 	shader->use();
 	glBindVertexArray(this->VAO);
 
-	if (this->indices.size() == 0)
-		glDrawArrays(GL_TRIANGLES, 0, this->vertices.size());
+	if (this->num_indices == 0)
+		glDrawArrays(GL_TRIANGLES, 0, this->num_vertices);
 	else
-		glDrawElementsInstanced(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0, num_instances);
+		glDrawElements(GL_TRIANGLES, this->num_indices, GL_UNSIGNED_INT, 0);
 
 	glBindVertexArray(0);
 	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

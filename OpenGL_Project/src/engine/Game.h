@@ -53,15 +53,13 @@ private:
 
 	// VECTORS
 	std::vector<Shader*> shaders;
-	std::vector<Model*> transparent_models;
+	std::vector<ModelInstance*> transparent_models;
+	std::vector<ModelInstance*> static_models;
+	std::vector<ModelInstance*> animated_models;
 	std::vector<DirLight*> dir_lights;
 	std::vector<PointLight*> point_lights;
 	std::vector<SpotLight*> spot_lights;
 	std::vector<GameObject*> game_objects;
-	std::vector<Animation::Model*> animated_models;
-	std::vector<Animation::Animator*> animators;
-
-	std::map<ModelClass, Model*>models;
 
 	// SKYBOX
 
@@ -106,7 +104,6 @@ private:
 	void init_matrices();
 	void init_shaders();
 	void init_models();
-	void init_animations();
 	void init_game_objects();
 	void init_lights();
 	void init_uniforms();
@@ -147,6 +144,7 @@ public:
 	static void framebuffer_resize_callback(GLFWwindow* window, int frame_buffer_width, int frame_buffer_height);
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void scroll_callback(GLFWwindow* window, double x_offset, double y_offset);
+	static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
 };
 

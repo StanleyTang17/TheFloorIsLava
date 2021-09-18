@@ -1,9 +1,8 @@
 #pragma once
 
-#ifndef ANIMATION_BONE_H
-#define ANIMATION_BONE_H
+#ifndef ANIMATED_BONE_H
+#define ANIMATED_BONE_H
 
-#include"Animation.h"
 #include"libs/NATIVE.h"
 #include"utility/AssimpToGLM.h"
 
@@ -25,7 +24,7 @@ struct KeyScale
 	float time_stamp;
 };
 
-class Animation::Bone
+class AnimatedBone
 {
 private:
 	std::vector<KeyPosition> positions;
@@ -47,7 +46,7 @@ private:
 	glm::mat4 interpolate_scale(const float animation_time);
 
 public:
-	Bone(std::string name, int id, aiNodeAnim* channel);
+	AnimatedBone(std::string name, int id, aiNodeAnim* channel);
 
 	void update(const float animation_time);
 	glm::mat4 get_transform() const { return this->local_transform; }

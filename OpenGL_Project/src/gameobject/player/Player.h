@@ -1,8 +1,11 @@
 #pragma once
 
+#ifndef PLAYER_H
+#define PLAYER_H
+
 #include"engine/camera/Camera.h"
 #include"engine/control/KeyboardControl.h"
-#include"gameobject/GameObject.h"
+#include"gameobject/firearm/Firearm.h"
 #include"libs/NATIVE.h"
 
 class Player : public GameObject
@@ -11,6 +14,7 @@ private:
 	float speed = 5.0f;
 	Camera* camera;
 	KeyboardControl* control;
+	Firearm* firearm;
 
 public:
 	Player(glm::vec3 position, Camera* camera);
@@ -18,5 +22,9 @@ public:
 
 	void update_velocity();
 	void update();
-	KeyboardControl* get_keyboard_control() { return this->control; }
+	void update_mouse_input(GLFWwindow* window, int button, int action);
+	void update_keyboard_input(GLFWwindow* window, int key, int action);
+	void equip(Firearm* firearm);
 };
+
+#endif

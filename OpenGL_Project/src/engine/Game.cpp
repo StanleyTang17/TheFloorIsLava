@@ -67,9 +67,6 @@ Game::Game(const char* title, const int width, const int height, const int versi
 	this->init_models();
 	std::cout << "Initialized Models" << std::endl;
 
-	this->init_animations();
-	std::cout << "Initialized Animations" << std::endl;
-
 	this->init_game_objects();
 	std::cout << "Initialized GameObjects" << std::endl;
 
@@ -120,7 +117,7 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
 		return;
 	}
 
-	game->player->get_keyboard_control()->update_input(window, key, action);
+	game->player->update_keyboard_input(window, key, action);
 	game->crate2->get_keyboard_control()->update_input(window, key, action);
 	game->crate->get_keyboard_control()->update_input(window, key, action);
 }
@@ -128,6 +125,12 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
 void Game::scroll_callback(GLFWwindow* window, double x_offset, double y_offset)
 {
 	Game* game = static_cast<Game*>(glfwGetWindowUserPointer(window));
+}
+
+void Game::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	Game* game = static_cast<Game*>(glfwGetWindowUserPointer(window));
+	game->player->update_mouse_input(window, button, action);
 }
 
 void Game::init_GLFW()
@@ -163,6 +166,7 @@ void Game::init_window(const char* title, GLboolean resizable)
 	glfwSetWindowUserPointer(this->window, this);
 	glfwSetKeyCallback(this->window, key_callback);
 	glfwSetScrollCallback(this->window, scroll_callback);
+	glfwSetMouseButtonCallback(this->window, mouse_button_callback);
 
 	glfwMakeContextCurrent(this->window); // IMPORTANT!
 }
@@ -344,35 +348,14 @@ void Game::init_lights()
 
 void Game::init_models()
 {
-	Model* grass_plane = new Model("res/models/grass_plane/grass_plane.obj");
-	grass_plane->add_instance(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f));
-	
-	Model* box = new Model("res/models/container/container.obj");
+	Model::load_model("res/models/grass_plane/grass_plane.obj");
+	Model::load_model("res/models/container/container.obj");
+	Model::load_model("res/models/glass_pane/glass_pane.obj");
+	Model::load_model("res/models/ball/ball.obj");
+	AnimatedModel::load_model("res/animations/zombie/zombie2.dae", "res/animations/zombie/split.txt");
 
-	Model* glass = new Model("res/models/glass_pane/glass_pane.obj");
-	
-	Model* ball = new Model("res/models/ball/ball.obj");
-
-	this->models.emplace(ModelClass::GrassPlane, grass_plane);
-	this->models.emplace(ModelClass::Box, box);
-	this->models.emplace(ModelClass::Ball, ball);
-
-	this->transparent_models.push_back(glass);
-
-	for (std::map<ModelClass, Model*>::iterator it = this->models.begin(); it != this->models.end(); ++it)
-		it->second->init_instances();
-	
-	for (Model* model : this->transparent_models)
-		model->init_instances();
-}
-
-void Game::init_animations()
-{
-	Animation::Model* zombie_model = new Animation::Model("res/animations/zombie/zombie2.dae");
-	Animation::Sequence* zombie_sequence = new Animation::Sequence("res/animations/zombie/zombie2.dae", zombie_model);
-	Animation::Animator* animator = new Animation::Animator(zombie_sequence);
-	this->animated_models.push_back(zombie_model);
-	this->animators.push_back(animator);
+	this->static_models.push_back(new ModelInstance("grass_plane", glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
+	// this->animated_models.push_back(new ModelInstance("zombie2", glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
 }
 
 void Game::init_game_objects()
@@ -383,7 +366,6 @@ void Game::init_game_objects()
 	this->crate2 = new Crate(glm::vec3(2.0f, 0.0f, 2.0f), Collision::Behavior::KINETIC, 1.0f);
 	this->crate2->set_control(new KeyboardControl(GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_LEFT, GLFW_KEY_RIGHT, GLFW_KEY_ENTER, GLFW_KEY_RIGHT_SHIFT));
 	
-
 	this->add_game_object(this->player);
 	this->add_game_object(this->crate);
 	this->add_game_object(this->crate2);
@@ -557,10 +539,13 @@ void Game::update()
 	this->update_mouse_input();
 	this->update_keyboard_input();
 
-	this->update_uniforms();
+	//this->update_uniforms();
 
-	for (std::map<ModelClass, Model*>::iterator it = this->models.begin(); it != this->models.end(); ++it)
-		it->second->update(this->dt);
+	for (ModelInstance* instance : this->static_models)
+		instance->update(this->dt);
+
+	for (ModelInstance* instance : this->animated_models)
+		instance->update(this->dt);
 	
 	for (std::size_t i = 0; i < game_objects.size(); ++i)
 		game_objects[i]->update_velocity();
@@ -575,12 +560,6 @@ void Game::update()
 		}
 		game_objects[i]->move(this->dt);
 		game_objects[i]->update();
-	}
-
-	for (std::size_t i = 0; i < this->animated_models.size(); ++i)
-	{
-		this->animated_models[i]->update(this->dt);
-		this->animators[i]->update(this->dt);
 	}
 
 	//glm::vec3 cam_position = this->camera->get_position();
@@ -613,44 +592,27 @@ void Game::render_models(Shader* shader)
 	// OBJECTS
 	shader->use();
 
-	for (std::map<ModelClass, Model*>::iterator it = this->models.begin(); it != this->models.end(); ++it)
-		it->second->render(shader);
+	for (ModelInstance* instance : this->static_models)
+		instance->render(shader);
 
 	glDepthMask(false);
 	glDisable(GL_CULL_FACE);
-	for (Model* model : this->transparent_models)
-		model->render(shader);
+	for (ModelInstance* instance : this->transparent_models)
+		instance->render(shader);
 	glDepthMask(true);
 	glEnable(GL_CULL_FACE);
-
+	
 	shader->unuse();
 }
 
 void Game::render_animated_models(Shader* shader)
 {
-	glDisable(GL_CULL_FACE);
-	shader->set_mat_4fv(this->projection_matrix, "projection_matrix", GL_FALSE);
-	shader->set_mat_4fv(this->camera->get_view_matrix(), "view_matrix", GL_FALSE);
+	shader->use();
 
-	for (std::size_t i = 0; i < this->animated_models.size(); ++i)
-	{
-		Animation::Model* model = this->animated_models[i];
-		Animation::Animator* animator = this->animators[i];
-		std::vector<glm::mat4> bone_matrices = animator->get_final_bone_matrices();
+	for (ModelInstance* instance : this->animated_models)
+		instance->render(shader);
 
-		for (std::size_t j = 0; j < 100; ++j)
-			shader->set_mat_4fv(bone_matrices[j], ("final_bone_matrices[" + std::to_string(j) + "]").c_str(), GL_FALSE);
-
-		glm::mat4 model_matrix = glm::mat4(1.0f);
-		model_matrix = glm::translate(model_matrix, glm::vec3(0.0f, 1.0f, 0.0f));
-		model_matrix = glm::scale(model_matrix, glm::vec3(0.5f));
-		shader->set_mat_4fv(model_matrix, "model_matrix", GL_FALSE);
-
-		shader->use();
-		model->render(shader);
-	}
 	shader->unuse();
-	glEnable(GL_CULL_FACE);
 }
 
 void Game::render_screen()
@@ -711,6 +673,8 @@ void Game::render_text(Shader* shader, Font* font, std::string text, float x, fl
 
 void Game::render()
 {
+	this->update_uniforms();
+
 	this->depth_cube_FBO->bind(true);
 	this->render_models(this->shaders[3]);
 
@@ -727,12 +691,12 @@ void Game::render()
 
 	this->render_text(this->shaders[4], this->arial_big, "Hit: " + std::to_string(this->hit), 1150.0f, 750.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 	this->render_text(this->shaders[4], this->arial, "Position: " + glm::to_string(this->player->get_position()), 0.0f, 48.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-	this->render_text(this->shaders[4], this->arial, "Set back: " + glm::to_string(global::set_back), 0.0f, 78.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	this->render_text(this->shaders[4], this->arial, "Frame Rate: " + std::to_string((int)(1.0f / this->dt)), 0.0f, 78.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 
 	glfwSwapBuffers(this->window);
 	glFlush();
 
-	glActiveTexture(0);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
@@ -741,23 +705,28 @@ void Game::render()
 void Game::add_game_object(GameObject* game_object)
 {
 	this->game_objects.push_back(game_object);
-	ModelClass model = game_object->get_model_class();
 	ModelInstance* instance = game_object->get_model_instance();
-	if (model != ModelClass::Undefined && instance != nullptr)
-		this->models[model]->add_instance(instance);
+	if (instance != nullptr)
+	{
+		if (instance->is_animated())
+			this->animated_models.push_back(instance);
+		else
+			this->static_models.push_back(instance);
+	}
 }
 
 void Game::remove_game_object(GameObject* game_object)
 {
-	ModelClass model = game_object->get_model_class();
 	ModelInstance* instance = game_object->get_model_instance();
 	for(std::size_t i = 0; i < game_objects.size(); ++i)
 		if (game_objects[i] == game_object)
 		{
 			game_objects.erase(game_objects.begin() + i);
-			if (model != ModelClass::Undefined && instance != nullptr)
-				this->models[model]->remove_instance(instance);
-			break;
+
+			std::vector<ModelInstance*>* list = instance->is_animated() ? &(this->animated_models) : &(this->static_models);
+			for (std::size_t j = 0; j < list->size(); ++j)
+				if (list->at(j) == instance)
+					list->erase(list->begin() + j);
 		}
 }
 

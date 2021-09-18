@@ -86,6 +86,7 @@ uniform int num_spot_lights;
 uniform sampler2D texture_diffuse1;
 uniform sampler2D texture_normal1;
 uniform sampler2D texture_specular1;
+uniform int test;
 
 uniform sampler2D shadow_map;
 uniform samplerCube shadow_cube;
@@ -129,6 +130,8 @@ void main()
 	fs_color = vec4(result, texture(texture_diffuse1, fs_in.texcoord).a);
 
 	//fs_color = texture(texture_diffuse1, fs_in.texcoord) * vec4(vec3(gl_FragCoord.z), 1.0);
+
+	//fs_color = vec4(test / 20.0f, test / 20.0f, test / 20.0f, 1.0f);
 }
 
 

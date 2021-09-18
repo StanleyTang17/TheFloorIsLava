@@ -1,25 +1,46 @@
 #include "Model.h"
 
-Model::Model(const char* path)
+std::map<std::string, Model*> Model::create_loaded_set()
 {
-	this->load_model(path);
-	glGenBuffers(1, &this->instance_VBO);
+	if (&LOADED_SET == nullptr)
+	{
+		std::map<std::string, Model*> new_set;
+		return new_set;
+	}
+	else
+		return LOADED_SET;
 }
 
-Model::~Model()
-{
-	for (Mesh* mesh : this->meshes)
-		delete mesh;
-
-	for (Texture2D* texture : this->textures_loaded)
-		delete texture;
-
-	for (ModelInstance* instance : this->instances)
-		delete instance;
-}
+std::map<std::string, Model*> Model::LOADED_SET = Model::create_loaded_set();
 
 void Model::load_model(std::string path)
 {
+	Model* model = new Model(path);
+	if (LOADED_SET.find(model->name) == LOADED_SET.end())
+		LOADED_SET.emplace(model->name, model);
+}
+
+Model* Model::get_loaded_model(std::string model_name)
+{
+	if (LOADED_SET.find(model_name) != LOADED_SET.end())
+		return LOADED_SET.at(model_name);
+	return nullptr;
+}
+
+bool Model::remove_loaded_model(std::string model_name)
+{
+	if (LOADED_SET.find(model_name) != LOADED_SET.end())
+		return LOADED_SET.erase(model_name);
+	return false;
+}
+
+Model::Model(std::string path)
+{
+	std::size_t last_slash_pos = path.find_last_of('/');
+	this->directory = path.substr(0, last_slash_pos);
+	this->name = path.substr(last_slash_pos + 1, path.find_last_of('.') - last_slash_pos - 1);
+	this->animated = false;
+
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
@@ -29,11 +50,18 @@ void Model::load_model(std::string path)
 		return;
 	}
 
-	this->directory = path.substr(0, path.find_last_of('/'));
-
 	this->load_node(scene->mRootNode, scene);
 
-	std::cout << "Model loaded from " << path << std::endl;
+	std::cout << this->name << " model loaded from " << path << std::endl;
+}
+
+Model::~Model()
+{
+	for (Mesh* mesh : this->meshes)
+		delete mesh;
+
+	for (Texture2D* texture : this->textures_loaded)
+		delete texture;
 }
 
 void Model::load_node(aiNode* node, const aiScene* scene)
@@ -45,10 +73,43 @@ void Model::load_node(aiNode* node, const aiScene* scene)
 		this->load_node(node->mChildren[i], scene);
 }
 
-void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
+std::vector<Vertex> Model::load_vertices(aiMesh* mesh)
 {
 	std::vector<Vertex> vertices;
+	for (std::size_t i = 0; i < mesh->mNumVertices; ++i)
+	{
+		Vertex vertex;
+		vertex.position = AssimpToGLM::vec3(mesh->mVertices[i]);
+
+		if (mesh->HasNormals())
+			vertex.normal = AssimpToGLM::vec3(mesh->mNormals[i]);
+
+		if (mesh->mTextureCoords[0])
+		{
+			vertex.texcoord = glm::vec2(AssimpToGLM::vec3(mesh->mTextureCoords[0][i]));
+			vertex.tangent = AssimpToGLM::vec3(mesh->mTangents[i]);
+			vertex.bitangent = AssimpToGLM::vec3(mesh->mBitangents[i]);
+		}
+
+		vertices.push_back(vertex);
+	}
+	return vertices;
+}
+
+std::vector<GLuint> Model::load_indices(aiMesh* mesh)
+{
 	std::vector<GLuint> indices;
+	for (std::size_t i = 0; i < mesh->mNumFaces; ++i)
+	{
+		aiFace face = mesh->mFaces[i];
+		for (std::size_t j = 0; j < face.mNumIndices; ++j)
+			indices.push_back(face.mIndices[j]);
+	}
+	return indices;
+}
+
+std::vector<Texture2D*> Model::load_textures(aiMesh* mesh, const aiScene* scene)
+{
 	std::vector<Texture2D*> textures;
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 	std::map<aiTextureType, std::string> texture_types;
@@ -56,39 +117,6 @@ void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 	texture_types.emplace(aiTextureType_SPECULAR, "texture_specular");
 	texture_types.emplace(aiTextureType_HEIGHT, "texture_normal");
 	texture_types.emplace(aiTextureType_AMBIENT, "texture_height");
-
-	for (std::size_t i = 0; i < mesh->mNumVertices; ++i)
-	{
-		aiVector3D aiVertex = mesh->mVertices[i];
-
-		Vertex vertex;
-		vertex.position = glm::vec3(aiVertex.x, aiVertex.y, aiVertex.z);
-
-		if (mesh->HasNormals())
-		{
-			aiVector3D aiNormal = mesh->mNormals[i];
-			vertex.normal = glm::vec3(aiNormal.x, aiNormal.y, aiNormal.z);
-		}
-
-		if (mesh->mTextureCoords[0])
-		{
-			aiVector3D aiTexcoord = mesh->mTextureCoords[0][i];
-			aiVector3D aiTangent = mesh->mTangents[i];
-			aiVector3D aiBitangent = mesh->mBitangents[i];
-			vertex.texcoord = glm::vec2(aiTexcoord.x, aiTexcoord.y);
-			vertex.tangent = glm::vec3(aiTangent.x, aiTangent.y, aiTangent.z);
-			vertex.bitangent = glm::vec3(aiBitangent.x, aiBitangent.y, aiBitangent.z);
-		}
-
-		vertices.push_back(vertex);
-	}
-
-	for (std::size_t i = 0; i < mesh->mNumFaces; ++i)
-	{
-		aiFace face = mesh->mFaces[i];
-		for (std::size_t j = 0; j < face.mNumIndices; ++j)
-			indices.push_back(face.mIndices[j]);
-	}
 
 	for (std::map<aiTextureType, std::string>::iterator it = texture_types.begin(); it != texture_types.end(); ++it)
 	{
@@ -98,7 +126,7 @@ void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 		{
 			aiString str;
 			material->GetTexture(aiType, i, &str);
-			
+
 			bool loaded = false;
 			Texture2D* texture = nullptr;
 
@@ -113,73 +141,26 @@ void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 			if (!loaded) {
 				texture = new Texture2D(type, str.C_Str(), this->directory);
 				this->textures_loaded.push_back(texture);
+				std::cout << "texture " << texture->get_id() << " loaded for " << this->name << std::endl;
 			}
 
 			textures.push_back(texture);
 		}
 	}
-
-	this->meshes.push_back(new Mesh(vertices, indices, textures));
+	return textures;
 }
 
-void Model::init_instances()
+void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 {
-	std::vector<glm::mat4> model_matrices;
-	for (ModelInstance* instance : instances)
-		model_matrices.push_back(instance->get_model_matrix());
-
-	glBindBuffer(GL_ARRAY_BUFFER, this->instance_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * model_matrices.size(), model_matrices.data(), GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	for (Mesh* mesh : this->meshes)
-		mesh->init_instances(this->instance_VBO);
-}
-
-void Model::add_instance(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
-{
-	this->instances.push_back(new ModelInstance(position, rotation, scale));
-}
-
-void Model::add_instance(ModelInstance* instance)
-{
-	this->instances.push_back(instance);
-}
-
-void Model::remove_instance(int index)
-{
-	if (index > -1)
-		this->instances.erase(this->instances.begin() + index);
-	else
-		this->instances.pop_back();
-}
-
-void Model::remove_instance(ModelInstance* instance)
-{
-	for(std::size_t i = 0; i < this->instances.size(); ++i)
-		if (instances[i] == instance)
-		{
-			instances.erase(instances.begin() + i);
-			break;
-		}
-}
-
-ModelInstance* Model::get_instance(std::size_t index)
-{
-	return this->instances[index];
-}
-
-void Model::update(float dt)
-{
-	this->init_instances();
-	for (Mesh* mesh : this->meshes)
-	{
-		mesh->update(dt);
-	}
+	this->meshes.push_back(new Mesh(
+		this->load_vertices(mesh),
+		this->load_indices(mesh),
+		this->load_textures(mesh, scene)
+	));
 }
 
 void Model::render(Shader* shader)
 {
-	for (std::size_t i = 0; i < this->meshes.size(); ++i)
-		meshes[i]->rendor(shader, this->instances.size());
+	for (Mesh* mesh : this->meshes)
+		mesh->rendor(shader);
 }

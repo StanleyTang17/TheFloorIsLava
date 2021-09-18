@@ -18,7 +18,7 @@ void Texture::generate()
 	if (id < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS)
 		this->unit = GL_TEXTURE0 + id;
 	else
-		this->unit = GL_TEXTURE0 + GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS;
+		this->unit = GL_TEXTURE0 + GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1;
 }
 
 void Texture::bind()
@@ -29,7 +29,7 @@ void Texture::bind()
 
 void Texture::unbind()
 {
-	glActiveTexture(0);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(this->gl_texture_type, 0); // UNBIND TEXTURE
 }
 

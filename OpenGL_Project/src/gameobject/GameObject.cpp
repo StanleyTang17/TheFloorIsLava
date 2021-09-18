@@ -3,7 +3,6 @@
 GameObject::GameObject(glm::vec3 position)
 {
 	this->position = position;
-	this->model_class = ModelClass::Undefined;
 	this->model_instance = nullptr;
 	this->collision_shape = nullptr;
 	this->velocity = glm::vec3(0.0f);
@@ -30,9 +29,8 @@ void GameObject::set_collision_shape(Collision::Shape* shape)
 	}
 }
 
-void GameObject::set_graphic_model(ModelClass model_class, ModelInstance* model_instance)
+void GameObject::set_graphic_model(ModelInstance* model_instance)
 {
-	this->model_class = model_class;
 	delete this->model_instance;
 	this->model_instance = model_instance;
 }

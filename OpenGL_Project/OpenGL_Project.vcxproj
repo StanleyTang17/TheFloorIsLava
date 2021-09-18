@@ -19,14 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\engine\animation\Animator.cpp" />
+    <ClCompile Include="src\engine\model\ModelInstance.cpp" />
+    <ClCompile Include="src\engine\model\AnimatedBone.cpp" />
+    <ClCompile Include="src\engine\model\AnimatedModel.cpp" />
+    <ClCompile Include="src\gameobject\firearm\Firearm.cpp" />
     <ClCompile Include="src\utility\AssimpToGLM.cpp" />
-    <ClCompile Include="src\engine\animation\AnimationSequence.cpp" />
-    <ClCompile Include="src\engine\animation\AnimationBone.cpp" />
-    <ClCompile Include="src\engine\animation\AnimationModel.cpp" />
     <ClCompile Include="src\engine\control\KeyboardControl.cpp" />
     <ClCompile Include="src\engine\math\Math.cpp" />
-    <ClCompile Include="src\engine\animation\AnimationMesh.cpp" />
     <ClCompile Include="src\gameobject\ball\Ball.cpp" />
     <ClCompile Include="src\engine\camera\Camera.cpp" />
     <ClCompile Include="src\engine\collision\Collision.cpp" />
@@ -37,7 +36,6 @@
     <ClCompile Include="src\engine\material\Material.cpp" />
     <ClCompile Include="src\engine\mesh\Mesh.cpp" />
     <ClCompile Include="src\engine\model\Model.cpp" />
-    <ClCompile Include="src\engine\model\ModelInstance.cpp" />
     <ClCompile Include="src\engine\shader\Shader.cpp" />
     <ClCompile Include="src\engine\texture\Texture.cpp" />
     <ClCompile Include="src\gameobject\crate\Crate.cpp" />
@@ -46,15 +44,13 @@
     <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\engine\animation\Animator.h" />
+    <ClInclude Include="src\engine\model\ModelInstance.h" />
+    <ClInclude Include="src\engine\model\AnimatedBone.h" />
+    <ClInclude Include="src\engine\model\AnimatedModel.h" />
+    <ClInclude Include="src\gameobject\firearm\Firearm.h" />
     <ClInclude Include="src\utility\AssimpToGLM.h" />
-    <ClInclude Include="src\engine\animation\AnimationSequence.h" />
-    <ClInclude Include="src\engine\animation\AnimationBone.h" />
-    <ClInclude Include="src\engine\animation\Animation.h" />
-    <ClInclude Include="src\engine\animation\AnimationModel.h" />
     <ClInclude Include="src\engine\control\KeyboardControl.h" />
     <ClInclude Include="src\engine\math\Math.h" />
-    <ClInclude Include="src\engine\animation\AnimationMesh.h" />
     <ClInclude Include="src\gameobject\ball\Ball.h" />
     <ClInclude Include="src\engine\camera\Camera.h" />
     <ClInclude Include="src\engine\collision\Collision.h" />
@@ -68,7 +64,6 @@
     <ClInclude Include="src\libs\GAMEOBJECTS.h" />
     <ClInclude Include="src\libs\VERTEX.h" />
     <ClInclude Include="src\engine\model\Model.h" />
-    <ClInclude Include="src\engine\model\ModelInstance.h" />
     <ClInclude Include="src\engine\shader\Shader.h" />
     <ClInclude Include="src\engine\texture\Texture.h" />
     <ClInclude Include="src\gameobject\crate\Crate.h" />

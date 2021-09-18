@@ -3,7 +3,8 @@ layout (location = 1) in vec3 vertex_normal;
 layout (location = 2) in vec2 vertex_texcoord;
 layout (location = 3) in vec3 vertex_tangent;
 layout (location = 4) in vec3 vertex_bitangent;
-layout (location = 5) in mat4 model_matrix;
+
+uniform mat4 model_matrix;
 
 layout (binding = 0, std140) uniform Matrices
 {

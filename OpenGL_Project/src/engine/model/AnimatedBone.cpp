@@ -1,6 +1,6 @@
-#include "AnimationBone.h"
+#include "AnimatedBone.h"
 
-Animation::Bone::Bone(std::string name, int id, aiNodeAnim* channel)
+AnimatedBone::AnimatedBone(std::string name, int id, aiNodeAnim* channel)
 {
 	this->name = name;
 	this->id = id;
@@ -28,7 +28,7 @@ Animation::Bone::Bone(std::string name, int id, aiNodeAnim* channel)
 	}
 }
 
-void Animation::Bone::update(const float animation_time)
+void AnimatedBone::update(const float animation_time)
 {
 	glm::mat4 position_transform = this->interpolate_position(animation_time);
 	glm::mat4 rotation_transform = this->interpolate_rotation(animation_time);
@@ -36,7 +36,7 @@ void Animation::Bone::update(const float animation_time)
 	this->local_transform = position_transform * rotation_transform * scale_transform;
 }
 
-std::size_t Animation::Bone::get_position_index(const float animation_time)
+std::size_t AnimatedBone::get_position_index(const float animation_time)
 {
 	for (std::size_t i = 0; i < this->positions.size() - 1; ++i)
 		if (animation_time < this->positions[i + 1].time_stamp)
@@ -44,7 +44,7 @@ std::size_t Animation::Bone::get_position_index(const float animation_time)
 	assert(0);
 }
 
-std::size_t Animation::Bone::get_rotation_index(const float animation_time)
+std::size_t AnimatedBone::get_rotation_index(const float animation_time)
 {
 	for (std::size_t i = 0; i < this->rotations.size() - 1; ++i)
 		if (animation_time < this->rotations[i + 1].time_stamp)
@@ -52,7 +52,7 @@ std::size_t Animation::Bone::get_rotation_index(const float animation_time)
 	assert(0);
 }
 
-std::size_t Animation::Bone::get_scale_index(const float animation_time)
+std::size_t AnimatedBone::get_scale_index(const float animation_time)
 {
 	for (std::size_t i = 0; i < this->scales.size() - 1; ++i)
 		if (animation_time < this->scales[i + 1].time_stamp)
@@ -60,12 +60,12 @@ std::size_t Animation::Bone::get_scale_index(const float animation_time)
 	assert(0);
 }
 
-float Animation::Bone::get_scale_factor(float last_time, float next_time, float current_time)
+float AnimatedBone::get_scale_factor(float last_time, float next_time, float current_time)
 {
 	return (current_time - last_time) / (next_time - last_time);
 }
 
-glm::mat4 Animation::Bone::interpolate_position(const float animation_time)
+glm::mat4 AnimatedBone::interpolate_position(const float animation_time)
 {
 	if (this->positions.size() == 1)
 		return glm::translate(glm::mat4(1.0f), this->positions[0].position);
@@ -73,14 +73,14 @@ glm::mat4 Animation::Bone::interpolate_position(const float animation_time)
 	std::size_t index = this->get_position_index(animation_time);
 	KeyPosition pos0 = this->positions[index];
 	KeyPosition pos1 = this->positions[index + 1];
-	
+
 	float scale_factor = this->get_scale_factor(pos0.time_stamp, pos1.time_stamp, animation_time);
 	glm::vec3 final_pos = glm::mix(pos0.position, pos1.position, scale_factor);
 
 	return glm::translate(glm::mat4(1.0f), final_pos);
 }
 
-glm::mat4 Animation::Bone::interpolate_rotation(const float animation_time)
+glm::mat4 AnimatedBone::interpolate_rotation(const float animation_time)
 {
 	if (this->rotations.size() == 1)
 		glm::toMat4(glm::normalize(this->rotations[0].orientation));
@@ -95,7 +95,7 @@ glm::mat4 Animation::Bone::interpolate_rotation(const float animation_time)
 	return glm::toMat4(glm::normalize(final_rot));
 }
 
-glm::mat4 Animation::Bone::interpolate_scale(const float animation_time)
+glm::mat4 AnimatedBone::interpolate_scale(const float animation_time)
 {
 	if (this->scales.size() == 1)
 		glm::scale(glm::mat4(1.0f), this->scales[0].scale);
