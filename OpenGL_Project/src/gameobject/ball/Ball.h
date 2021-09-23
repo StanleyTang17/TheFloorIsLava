@@ -11,7 +11,6 @@ private:
 
 public:
 	Ball(glm::vec3 position);
-	void update() {};
 	void update_velocity();
 
 	KeyboardControl* get_keyboard_control() { return this->control; };

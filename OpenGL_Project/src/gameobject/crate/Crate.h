@@ -11,7 +11,6 @@ private:
 	float speed = 3.0f;
 public:
 	Crate(glm::vec3 position, Collision::Behavior behavior, float size);
-	void update() {};
 	void update_velocity();
 	void set_control(KeyboardControl* control) { this->control = control; }
 

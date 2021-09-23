@@ -17,8 +17,8 @@ protected:
 public:
 	GameObject(glm::vec3 position);
 	~GameObject();
-	virtual void update_velocity() = 0;
-	virtual void update() = 0;
+	virtual void update_velocity() {};
+	virtual void update() {};
 	void move(const float dt);
 
 	glm::vec3 get_position() const { return this->position; }
