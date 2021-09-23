@@ -1,0 +1,2 @@
+reload 0 40
+fire 50 54

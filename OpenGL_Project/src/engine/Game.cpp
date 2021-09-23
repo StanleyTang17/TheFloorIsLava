@@ -352,10 +352,16 @@ void Game::init_models()
 	Model::load_model("res/models/container/container.obj");
 	Model::load_model("res/models/glass_pane/glass_pane.obj");
 	Model::load_model("res/models/ball/ball.obj");
+	
 	AnimatedModel::load_model("res/animations/zombie/zombie2.dae", "res/animations/zombie/split.txt");
+	AnimatedModel::load_model("res/animations/ak_47/ak_47.dae", "res/animations/ak_47/split.txt");
 
 	this->static_models.push_back(new ModelInstance("grass_plane", glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
 	this->animated_models.push_back(new ModelInstance("zombie2", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f)));
+
+	ModelInstance* ak_instance = new ModelInstance("ak_47", glm::vec3(-1.0f, 2.0f, -4.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+	ak_instance->play_animation("reload");
+	this->animated_models.push_back(ak_instance);
 }
 
 void Game::init_game_objects()

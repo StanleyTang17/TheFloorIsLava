@@ -31,7 +31,9 @@ AnimatedModel::AnimatedModel(std::string model_path, std::string split_animation
 
 	aiAnimation* animation = scene->mAnimations[0];
 	this->FPS = animation->mTicksPerSecond;
-	this->FPS = 24;
+	
+	if (this->FPS < 24)
+		this->FPS = 24;
 
 	this->read_animated_node(0, scene->mRootNode);
 	this->read_animated_bones(animation, scene);
@@ -117,7 +119,7 @@ void AnimatedModel::read_animated_bones(aiAnimation* animation, const aiScene* s
 		{
 			BoneInfo new_bone = { this->bone_count, glm::mat4(1.0f) };
 			this->bone_info_map.emplace(bone_name, new_bone);
-			std::cout << "Found missing bone id=" << this->bone_count << std::endl;
+			std::cout << "Found missing bone " << bone_name << " id=" << this->bone_count << std::endl;
 			++this->bone_count;
 		}
 
@@ -142,6 +144,7 @@ void AnimatedModel::read_split_animations(std::string split_file)
 			ss >> end_frame;
 			Sequence animation = { stof(start_frame) / this->FPS, stof(end_frame) / this->FPS };
 			this->animations.emplace(name, animation);
+			std::cout << "Loaded sequence " << name << " " << start_frame << " => " << end_frame << std::endl;
 		}
 	}
 	else
