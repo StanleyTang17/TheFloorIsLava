@@ -23,7 +23,7 @@ public:
 
 	glm::vec3 get_position() const { return this->position; }
 	glm::vec3 get_velocity() const { return this->velocity; }
-	ModelInstance* get_model_instance() const { return model_instance; }
+	ModelInstance* get_model_instance() { return this->model_instance; }
 	void set_position(glm::vec3 position) { this->velocity = velocity; };
 	void set_velocity(glm::vec3 velocity) { this->position = position; };
 	void set_graphic_model(ModelInstance* model_instance);

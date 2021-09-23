@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\gameobject\firearm\Kalashnikov.cpp" />
     <ClCompile Include="src\engine\model\ModelInstance.cpp" />
     <ClCompile Include="src\engine\model\AnimatedBone.cpp" />
     <ClCompile Include="src\engine\model\AnimatedModel.cpp" />
@@ -42,8 +43,10 @@
     <ClCompile Include="src\gameobject\GameObject.cpp" />
     <ClCompile Include="src\gameobject\player\Player.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\utility\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\gameobject\firearm\Kalashnikov.h" />
     <ClInclude Include="src\engine\model\ModelInstance.h" />
     <ClInclude Include="src\engine\model\AnimatedBone.h" />
     <ClInclude Include="src\engine\model\AnimatedModel.h" />
@@ -75,6 +78,7 @@
     <ClInclude Include="src\libs\ALL.h" />
     <ClInclude Include="src\libs\NATIVE.h" />
     <ClInclude Include="src\libs\OPENGL.h" />
+    <ClInclude Include="src\utility\Utility.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc142-mt.dll" />

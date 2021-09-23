@@ -57,7 +57,7 @@ void ModelInstance::update(const float dt)
 
 void ModelInstance::render(Shader* shader)
 {
-	if (this->model->is_animated() && !this->stop)
+	if (this->model->is_animated())
 	{
 		std::vector<glm::mat4> bone_matrices = this->get_animated_model()->get_bone_matrices(this->animation_time);
 		for (std::size_t j = 0; j < 100; ++j)
@@ -89,11 +89,5 @@ void ModelInstance::unpause()
 
 glm::mat4 ModelInstance::get_model_matrix()
 {
-	glm::mat4 model_matrix = glm::mat4(1.0f);
-	model_matrix = glm::translate(model_matrix, this->position);
-	model_matrix = glm::rotate(model_matrix, glm::radians(this->rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	model_matrix = glm::rotate(model_matrix, glm::radians(this->rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-	model_matrix = glm::rotate(model_matrix, glm::radians(this->rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	model_matrix = glm::scale(model_matrix, this->scale);
-	return model_matrix;
+	return Utility::generate_transform(this->position, this->rotation, this->scale);
 }

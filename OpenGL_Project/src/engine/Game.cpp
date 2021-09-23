@@ -359,9 +359,9 @@ void Game::init_models()
 	this->static_models.push_back(new ModelInstance("grass_plane", glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
 	this->animated_models.push_back(new ModelInstance("zombie2", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f)));
 
-	ModelInstance* ak_instance = new ModelInstance("ak_47", glm::vec3(-1.0f, 2.0f, -4.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+	ModelInstance* ak_instance = new ModelInstance("ak_47", glm::vec3(1.0f, -0.8f, -1.0f), glm::vec3(-0.10f, 70.0f, 0.0f), glm::vec3(0.7f));
 	ak_instance->play_animation("reload");
-	this->animated_models.push_back(ak_instance);
+	this->foreground_animated_models.push_back(ak_instance);
 }
 
 void Game::init_game_objects()
@@ -552,6 +552,9 @@ void Game::update()
 
 	for (ModelInstance* instance : this->animated_models)
 		instance->update(this->dt);
+
+	for (ModelInstance* instance : this->foreground_animated_models)
+		instance->update(this->dt);
 	
 	for (std::size_t i = 0; i < game_objects.size(); ++i)
 		game_objects[i]->update_velocity();
@@ -616,6 +619,24 @@ void Game::render_animated_models(Shader* shader)
 	shader->use();
 
 	for (ModelInstance* instance : this->animated_models)
+		instance->render(shader);
+
+	shader->unuse();
+}
+
+void Game::render_foreground_animated_models(Shader* shader)
+{
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glm::mat4 view_matrix_no_translate = glm::mat4(glm::mat3(this->camera->get_view_matrix()));
+	glBindBuffer(GL_UNIFORM_BUFFER, this->uniform_buffer);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(this->projection_matrix));
+	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(glm::mat4(1.0f)));
+	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view_matrix_no_translate));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	shader->use();
+
+	for (ModelInstance* instance : this->foreground_animated_models)
 		instance->render(shader);
 
 	shader->unuse();
@@ -689,6 +710,7 @@ void Game::render()
 	glBindTexture(GL_TEXTURE_CUBE_MAP, this->depth_cube_FBO->get_texture());
 	this->render_models(this->shaders[0]);
 	this->render_animated_models(this->shaders[5]);
+	this->render_foreground_animated_models(this->shaders[5]);
 
 	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	this->multisample_FBO->bind_default(true);

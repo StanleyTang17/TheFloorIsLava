@@ -4,6 +4,7 @@
 #define MODEL_INSTANCE_H
 
 #include"AnimatedModel.h"
+#include"utility/Utility.h"
 
 class ModelInstance
 {

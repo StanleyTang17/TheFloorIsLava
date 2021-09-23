@@ -56,6 +56,7 @@ private:
 	std::vector<ModelInstance*> transparent_models;
 	std::vector<ModelInstance*> static_models;
 	std::vector<ModelInstance*> animated_models;
+	std::vector<ModelInstance*> foreground_animated_models;
 	std::vector<DirLight*> dir_lights;
 	std::vector<PointLight*> point_lights;
 	std::vector<SpotLight*> spot_lights;
@@ -120,6 +121,7 @@ private:
 	void render_skybox(Shader* shader);
 	void render_models(Shader* shader);
 	void render_animated_models(Shader* shader);
+	void render_foreground_animated_models(Shader* shader);
 	void render_screen();
 	void render_text(Shader* shader, Font* font, std::string text, float x, float y, float scale, glm::vec3 color);
 
