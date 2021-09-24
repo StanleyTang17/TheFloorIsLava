@@ -1,36 +1,81 @@
 #include"Shader.h"
 
-Shader::Shader(std::string directory, bool has_geometry_shader, int major_version, int minor_version)
+GLuint Shader::CURRENT_SHADER = 0;
+
+Shader::Shader(GLenum type, std::string src_path, bool seperable, int major, int minor)
 {
-	GLuint vertex_shader = 0;
-	GLuint fragment_shader = 0;
-	GLuint geometry_shader = 0;
-	this->major_version = major_version;
-	this->minor_version = minor_version;
+	this->major_version = major;
+	this->minor_version = minor;
+	this->seperable = seperable;
+	
+	GLuint shader_id = this->load_shader(type, src_path.c_str());
+	if (shader_id == 0)
+		std::cout << "SHADER SOURCE FILE NOT FOUND AT " << src_path << std::endl;
 
-	if (directory.back() != '/')
-		directory += '/';
+	char info_log[512];
+	GLint success;
 
-	vertex_shader = this->load_shader(GL_VERTEX_SHADER, (directory + "vertex.glsl").c_str());
-	if (vertex_shader == 0)
-		std::cout << "VERTEX SHADER SOURCE FILE NOT FOUND!" << std::endl;
+	this->id = glCreateProgram();
+	glProgramParameteri(this->id, GL_PROGRAM_SEPARABLE, seperable);
 
-	fragment_shader = this->load_shader(GL_FRAGMENT_SHADER, (directory + "fragment.glsl").c_str());
-	if (fragment_shader == 0)
-		std::cout << "FRAGMENT SHADER SOURCE FILE NOT FOUND!" << std::endl;
+	glAttachShader(this->id, shader_id);
 
-	if (has_geometry_shader)
+	glLinkProgram(this->id);
+
+	glGetProgramiv(this->id, GL_LINK_STATUS, &success);
+	if (!success)
 	{
-		geometry_shader = this->load_shader(GL_GEOMETRY_SHADER, (directory + "geometry.glsl").c_str());
-		if (geometry_shader == 0)
-			std::cout << "GEOMETRY SHADER SOURCE FILE NOT FOUND!";
+		glGetProgramInfoLog(this->id, 512, NULL, info_log);
+		std::cout << "FAILED TO LINK PROGRAM!" << std::endl;
+		std::cout << info_log << std::endl;
 	}
 
-	this->link_program(vertex_shader, fragment_shader, geometry_shader);
+	glDeleteShader(shader_id);
 
-	glDeleteShader(vertex_shader);
-	glDeleteShader(geometry_shader);
-	glDeleteShader(fragment_shader);
+	glUseProgram(0);
+}
+
+Shader::Shader(std::size_t num_shaders, GLenum types[], std::string src_paths[], bool seperable, int major, int minor)
+{
+	this->major_version = major;
+	this->minor_version = minor;
+	this->seperable = seperable;
+
+	GLuint* shader_ids = new GLuint[num_shaders];
+
+	for (std::size_t i = 0; i < num_shaders; ++i)
+	{
+		shader_ids[i] = this->load_shader(types[i], src_paths[i].c_str());
+		if (shader_ids[i] == 0)
+			std::cout << "SHADER SOURCE FILE NOT FOUND AT " << src_paths[i] << std::endl;
+	}
+
+	char info_log[512];
+	GLint success;
+
+	this->id = glCreateProgram();
+	glProgramParameteri(this->id, GL_PROGRAM_SEPARABLE, seperable);
+
+	for (std::size_t i = 0; i < num_shaders; ++i)
+		glAttachShader(this->id, shader_ids[i]);
+
+	glLinkProgram(this->id);
+
+	glGetProgramiv(this->id, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		glGetProgramInfoLog(this->id, 512, NULL, info_log);
+		std::cout << "FAILED TO LINK PROGRAM!" << std::endl;
+		std::cout << info_log << std::endl;
+	}
+
+	for (std::size_t i = 0; i < num_shaders; ++i)
+		glDeleteShader(shader_ids[i]);
+
+	glUseProgram(0);
+
+	delete[] shader_ids;
+	shader_ids = nullptr;
 }
 
 Shader::~Shader()
@@ -124,59 +169,60 @@ void Shader::link_program(GLuint vertex_shader, GLuint fragment_shader, GLuint g
 
 void Shader::use()
 {
-	glUseProgram(this->id);
+	if (!this->in_use())
+	{
+		glUseProgram(this->id);
+		CURRENT_SHADER = this->id;
+	}
 }
 
 void Shader::unuse()
 {
-	glUseProgram(0);
+	if (CURRENT_SHADER != 0)
+	{
+		glUseProgram(0);
+		CURRENT_SHADER = 0;
+	}
 }
 
 void Shader::set_1i(GLint value, const GLchar* name)
 {
 	this->use();
 	glUniform1i(glGetUniformLocation(this->id, name), value);
-	this->unuse();
 }
 
 void Shader::set_1f(GLfloat value, const GLchar* name)
 {
 	this->use();
 	glUniform1f(glGetUniformLocation(this->id, name), value);
-	this->unuse();
 }
 
 void Shader::set_vec_2f(glm::vec2 value, const GLchar* name)
 {
 	this->use();
 	glUniform2fv(glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
-	this->unuse();
 }
 
 void Shader::set_vec_3f(glm::vec3 value, const GLchar* name)
 {
 	this->use();
 	glUniform3fv(glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
-	this->unuse();
 }
 
 void Shader::set_vec_4f(glm::vec4 value, const GLchar* name)
 {
 	this->use();
 	glUniform4fv(glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
-	this->unuse();
 }
 
 void Shader::set_mat_3fv(glm::mat3 value, const GLchar* name, GLboolean transpose)
 {
 	this->use();
 	glUniformMatrix3fv(glGetUniformLocation(this->id, name), 1, transpose, glm::value_ptr(value));
-	this->unuse();
 }
 
 void Shader::set_mat_4fv(glm::mat4 value, const GLchar* name, GLboolean transpose)
 {
 	this->use();
 	glUniformMatrix4fv(glGetUniformLocation(this->id, name), 1, transpose, glm::value_ptr(value));
-	this->unuse();
 }

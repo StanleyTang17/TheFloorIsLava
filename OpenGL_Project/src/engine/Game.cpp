@@ -324,12 +324,36 @@ void Game::init_matrices()
 
 void Game::init_shaders()
 {
-	this->shaders.push_back(new Shader("src/shaders/game", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
-	this->shaders.push_back(new Shader("src/shaders/screen", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
-	this->shaders.push_back(new Shader("src/shaders/skybox", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
-	this->shaders.push_back(new Shader("src/shaders/depth_cube", true, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
-	this->shaders.push_back(new Shader("src/shaders/text", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MAJOR));
-	this->shaders.push_back(new Shader("src/shaders/animation", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MAJOR));
+	GLenum game_types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
+	std::string game_srcs[] = { "src/shaders/game/vertex.glsl", "src/shaders/game/fragment.glsl" };
+	this->shaders.push_back(new Shader(2, game_types, game_srcs));
+
+	GLenum screen_types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
+	std::string screen_srcs[] = { "src/shaders/screen/vertex.glsl", "src/shaders/screen/fragment.glsl" };
+	this->shaders.push_back(new Shader(2, screen_types, screen_srcs));
+
+	GLenum skybox_types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
+	std::string skybox_srcs[] = { "src/shaders/skybox/vertex.glsl", "src/shaders/skybox/fragment.glsl" };
+	this->shaders.push_back(new Shader(2, skybox_types, skybox_srcs));
+
+	GLenum depth_cube_types[] = { GL_VERTEX_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER };
+	std::string depth_cube_srcs[] = { "src/shaders/depth_cube/vertex.glsl", "src/shaders/depth_cube/geometry.glsl", "src/shaders/depth_cube/fragment.glsl" };
+	this->shaders.push_back(new Shader(3, depth_cube_types, depth_cube_srcs));
+
+	GLenum text_types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
+	std::string text_srcs[] = { "src/shaders/text/vertex.glsl", "src/shaders/text/fragment.glsl" };
+	this->shaders.push_back(new Shader(2, text_types, text_srcs));
+
+	GLenum animation_types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
+	std::string animation_srcs[] = { "src/shaders/animation/vertex.glsl", "src/shaders/animation/fragment.glsl" };
+	this->shaders.push_back(new Shader(2, animation_types, animation_srcs));
+
+	//this->shaders.push_back(new Shader("src/shaders/game", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
+	//this->shaders.push_back(new Shader("src/shaders/screen", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
+	//this->shaders.push_back(new Shader("src/shaders/skybox", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
+	//this->shaders.push_back(new Shader("src/shaders/depth_cube", true, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
+	//this->shaders.push_back(new Shader("src/shaders/text", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MAJOR));
+	//this->shaders.push_back(new Shader("src/shaders/animation", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MAJOR));
 }
 
 void Game::init_lights()
@@ -633,6 +657,8 @@ void Game::render_foreground_animated_models(Shader* shader)
 	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(glm::mat4(1.0f)));
 	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view_matrix_no_translate));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	
 
 	shader->use();
 
