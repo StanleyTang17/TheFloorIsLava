@@ -187,42 +187,35 @@ void Shader::unuse()
 
 void Shader::set_1i(GLint value, const GLchar* name)
 {
-	this->use();
-	glUniform1i(glGetUniformLocation(this->id, name), value);
+	glProgramUniform1i(this->id, glGetUniformLocation(this->id, name), value);
 }
 
 void Shader::set_1f(GLfloat value, const GLchar* name)
 {
-	this->use();
-	glUniform1f(glGetUniformLocation(this->id, name), value);
+	glProgramUniform1f(this->id, glGetUniformLocation(this->id, name), value);
 }
 
 void Shader::set_vec_2f(glm::vec2 value, const GLchar* name)
 {
-	this->use();
-	glUniform2fv(glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
+	glProgramUniform2fv(this->id, glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
 }
 
 void Shader::set_vec_3f(glm::vec3 value, const GLchar* name)
 {
-	this->use();
-	glUniform3fv(glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
+	glProgramUniform3fv(this->id, glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
 }
 
 void Shader::set_vec_4f(glm::vec4 value, const GLchar* name)
 {
-	this->use();
-	glUniform4fv(glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
+	glProgramUniform4fv(this->id, glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
 }
 
 void Shader::set_mat_3fv(glm::mat3 value, const GLchar* name, GLboolean transpose)
 {
-	this->use();
-	glUniformMatrix3fv(glGetUniformLocation(this->id, name), 1, transpose, glm::value_ptr(value));
+	glProgramUniformMatrix3fv(this->id, glGetUniformLocation(this->id, name), 1, transpose, glm::value_ptr(value));
 }
 
 void Shader::set_mat_4fv(glm::mat4 value, const GLchar* name, GLboolean transpose)
 {
-	this->use();
-	glUniformMatrix4fv(glGetUniformLocation(this->id, name), 1, transpose, glm::value_ptr(value));
+	glProgramUniformMatrix4fv(this->id, glGetUniformLocation(this->id, name), 1, transpose, glm::value_ptr(value));
 }

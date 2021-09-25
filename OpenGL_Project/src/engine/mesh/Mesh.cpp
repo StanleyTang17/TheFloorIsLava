@@ -130,7 +130,7 @@ void Mesh::rendor(Shader* shader)
 {
 	this->update_uniform(shader);
 
-	shader->use();
+	// shader->use();
 	glBindVertexArray(this->VAO);
 
 	if (this->num_indices == 0)

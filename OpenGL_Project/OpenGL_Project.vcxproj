@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\engine\shader\ShaderPipeline.cpp" />
     <ClCompile Include="src\gameobject\firearm\Kalashnikov.cpp" />
     <ClCompile Include="src\engine\model\ModelInstance.cpp" />
     <ClCompile Include="src\engine\model\AnimatedBone.cpp" />
@@ -46,6 +47,7 @@
     <ClCompile Include="src\utility\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\engine\shader\ShaderPipeline.h" />
     <ClInclude Include="src\gameobject\firearm\Kalashnikov.h" />
     <ClInclude Include="src\engine\model\ModelInstance.h" />
     <ClInclude Include="src\engine\model\AnimatedBone.h" />

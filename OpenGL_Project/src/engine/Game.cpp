@@ -324,6 +324,8 @@ void Game::init_matrices()
 
 void Game::init_shaders()
 {
+	// INIT SHADERS
+
 	GLenum game_types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
 	std::string game_srcs[] = { "src/shaders/game/vertex.glsl", "src/shaders/game/fragment.glsl" };
 	this->shaders.push_back(new Shader(2, game_types, game_srcs));
@@ -348,12 +350,18 @@ void Game::init_shaders()
 	std::string animation_srcs[] = { "src/shaders/animation/vertex.glsl", "src/shaders/animation/fragment.glsl" };
 	this->shaders.push_back(new Shader(2, animation_types, animation_srcs));
 
-	//this->shaders.push_back(new Shader("src/shaders/game", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
-	//this->shaders.push_back(new Shader("src/shaders/screen", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
-	//this->shaders.push_back(new Shader("src/shaders/skybox", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
-	//this->shaders.push_back(new Shader("src/shaders/depth_cube", true, this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR));
-	//this->shaders.push_back(new Shader("src/shaders/text", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MAJOR));
-	//this->shaders.push_back(new Shader("src/shaders/animation", false, this->GL_VERSION_MAJOR, this->GL_VERSION_MAJOR));
+	// INIT PIPELINES
+
+	Shader* animation_vertex_shader = new Shader(GL_VERTEX_SHADER, "src/shaders/animation/vertex.glsl");
+	Shader* animation_fragment_shader = new Shader(GL_FRAGMENT_SHADER, "src/shaders/game/fragment.glsl");
+	this->shaders.push_back(animation_vertex_shader);
+	this->shaders.push_back(animation_fragment_shader);
+
+	GLbitfield animation_pipeline_stages[] = { GL_VERTEX_SHADER_BIT, GL_FRAGMENT_SHADER_BIT };
+	// Shader* animation_pipeline_shaders[] = { this->shaders[5], this->shaders[0] };
+	Shader* animation_pipeline_shaders[] = { animation_vertex_shader, animation_fragment_shader };
+
+	this->pipelines.push_back(new ShaderPipeline(2, animation_pipeline_stages, animation_pipeline_shaders));
 }
 
 void Game::init_lights()
@@ -453,9 +461,9 @@ void Game::init_uniforms()
 	this->shaders[0]->set_1i(this->depth_cube_FBO->get_texture(), "shadow_cube");
 	this->shaders[0]->set_1f(far, "far_plane");
 
-	this->shaders[5]->set_1f(64.0f, "material.shininess");
-	this->shaders[5]->set_1i(this->depth_cube_FBO->get_texture(), "shadow_cube");
-	this->shaders[5]->set_1f(far, "far_plane");
+	this->shaders[7]->set_1f(64.0f, "material.shininess");
+	this->shaders[7]->set_1i(this->depth_cube_FBO->get_texture(), "shadow_cube");
+	this->shaders[7]->set_1f(far, "far_plane");
 
 	// UNIFORM BUFFER
 
@@ -486,7 +494,7 @@ void Game::update_uniforms()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	this->shaders[0]->set_vec_3f(this->camera->get_position(), "camera_pos");
-	this->shaders[5]->set_vec_3f(this->camera->get_position(), "camera_pos");
+	this->shaders[7]->set_vec_3f(this->camera->get_position(), "camera_pos");
 
 	// LIGHTS
 
@@ -494,9 +502,9 @@ void Game::update_uniforms()
 	this->shaders[0]->set_1i(point_lights.size(), "num_point_lights");
 	this->shaders[0]->set_1i(spot_lights.size(), "num_spot_lights");
 
-	this->shaders[5]->set_1i(dir_lights.size(), "num_dir_lights");
-	this->shaders[5]->set_1i(point_lights.size(), "num_point_lights");
-	this->shaders[5]->set_1i(spot_lights.size(), "num_spot_lights");
+	this->shaders[7]->set_1i(dir_lights.size(), "num_dir_lights");
+	this->shaders[7]->set_1i(point_lights.size(), "num_point_lights");
+	this->shaders[7]->set_1i(spot_lights.size(), "num_spot_lights");
 
 	if (spot_lights.size())
 	{
@@ -507,23 +515,23 @@ void Game::update_uniforms()
 	for (std::size_t i = 0; i < this->dir_lights.size(); ++i)
 	{
 		this->dir_lights[i]->send_to_shader(shaders[0], i);
-		this->dir_lights[i]->send_to_shader(shaders[5], i);
+		this->dir_lights[i]->send_to_shader(shaders[7], i);
 	}
 
 	for (std::size_t i = 0; i < this->point_lights.size(); ++i)
 	{
 		this->point_lights[i]->send_to_shader(shaders[0], i);
-		this->point_lights[i]->send_to_shader(shaders[5], i);
+		this->point_lights[i]->send_to_shader(shaders[7], i);
 	}
 		
 	for (std::size_t i = 0; i < this->spot_lights.size(); ++i)
 	{
 		this->spot_lights[i]->send_to_shader(shaders[0], i);
-		this->spot_lights[i]->send_to_shader(shaders[5], i);
+		this->spot_lights[i]->send_to_shader(shaders[7], i);
 	}
 		
 	this->shaders[0]->set_1f(static_cast<float>(glfwGetTime()), "time");
-	this->shaders[5]->set_1f(static_cast<float>(glfwGetTime()), "time");
+	this->shaders[7]->set_1f(static_cast<float>(glfwGetTime()), "time");
 
 	this->shaders[2]->set_1i(this->show_depth, "show_depth");
 }
@@ -640,16 +648,22 @@ void Game::render_models(Shader* shader)
 
 void Game::render_animated_models(Shader* shader)
 {
-	shader->use();
+	Shader::unuse();
+	this->pipelines[0]->use();
+	//shader->use();
 
 	for (ModelInstance* instance : this->animated_models)
 		instance->render(shader);
 
-	shader->unuse();
+	//shader->unuse();
+	this->pipelines[0]->unuse();
 }
 
 void Game::render_foreground_animated_models(Shader* shader)
 {
+	Shader::unuse();
+	this->pipelines[0]->use();
+
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glm::mat4 view_matrix_no_translate = glm::mat4(glm::mat3(this->camera->get_view_matrix()));
 	glBindBuffer(GL_UNIFORM_BUFFER, this->uniform_buffer);
@@ -658,14 +672,13 @@ void Game::render_foreground_animated_models(Shader* shader)
 	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view_matrix_no_translate));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	
-
-	shader->use();
+	//shader->use();
 
 	for (ModelInstance* instance : this->foreground_animated_models)
 		instance->render(shader);
 
-	shader->unuse();
+	//shader->unuse();
+	this->pipelines[0]->unuse();
 }
 
 void Game::render_screen()
@@ -735,8 +748,10 @@ void Game::render()
 	glActiveTexture(GL_TEXTURE0 + this->depth_cube_FBO->get_texture());
 	glBindTexture(GL_TEXTURE_CUBE_MAP, this->depth_cube_FBO->get_texture());
 	this->render_models(this->shaders[0]);
-	this->render_animated_models(this->shaders[5]);
-	this->render_foreground_animated_models(this->shaders[5]);
+	//this->render_animated_models(this->shaders[5]);
+	//this->render_foreground_animated_models(this->shaders[5]);
+	this->render_animated_models(this->shaders[6]);
+	this->render_foreground_animated_models(this->shaders[6]);
 
 	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	this->multisample_FBO->bind_default(true);

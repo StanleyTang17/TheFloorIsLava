@@ -53,6 +53,7 @@ private:
 
 	// VECTORS
 	std::vector<Shader*> shaders;
+	std::vector<ShaderPipeline*> pipelines;
 	std::vector<ModelInstance*> transparent_models;
 	std::vector<ModelInstance*> static_models;
 	std::vector<ModelInstance*> animated_models;
