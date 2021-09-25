@@ -7,12 +7,6 @@
 #include"libs/ASSIMP.h"
 #include"utility/AssimpToGLM.h"
 
-
-enum class ModelClass
-{
-	Undefined, Ball, Box, GrassPlane, GlassPane, BrickWall, Zombie
-};
-
 class Model
 {
 protected:
@@ -29,7 +23,6 @@ protected:
 	std::vector<Vertex> load_vertices(aiMesh* mesh);
 	std::vector<GLuint> load_indices(aiMesh* mesh);
 	std::vector<Texture2D*> load_textures(aiMesh* mesh, const aiScene* scene);
-	static std::map<std::string, Model*> create_loaded_set();
 
 public:
 	Model();

@@ -1,17 +1,6 @@
 #include "Model.h"
 
-std::map<std::string, Model*> Model::create_loaded_set()
-{
-	if (&LOADED_SET == nullptr)
-	{
-		std::map<std::string, Model*> new_set;
-		return new_set;
-	}
-	else
-		return LOADED_SET;
-}
-
-std::map<std::string, Model*> Model::LOADED_SET = Model::create_loaded_set();
+std::map<std::string, Model*> Model::LOADED_SET = std::map<std::string, Model*>();
 
 void Model::load_model(std::string path)
 {
