@@ -15,16 +15,17 @@ private:
 	int major_version;
 	int minor_version;
 	bool seperable;
+	std::string name;
 
 	std::string load_shader_src(const char* file_name);
 	GLuint load_shader(GLenum type, const char* file_name);
-	void link_program(GLuint vertex_shader, GLuint fragment_shader, GLuint geometry_shader);
 
 	static GLuint CURRENT_SHADER;
+	static std::map<std::string, Shader*> LOADED_SET;
 
 public:
-	Shader(GLenum type, std::string src_path, bool seperable = true, int major = 4, int minor = 4);
-	Shader(std::size_t num_shaders, GLenum types[], std::string src_paths[], bool seperable = false, int major = 4, int minor = 4);
+	Shader(std::string name, GLenum type, std::string src_path, bool seperable = true, int major = 4, int minor = 4);
+	Shader(std::string name, std::size_t num_shaders, GLenum types[], std::string src_paths[], bool seperable = false, int major = 4, int minor = 4);
 	~Shader();
 
 	void use();
@@ -37,6 +38,11 @@ public:
 	void set_vec_4f(glm::vec4 value, const GLchar* name);
 	void set_mat_3fv(glm::mat3 value, const GLchar* name, GLboolean transpose);
 	void set_mat_4fv(glm::mat4 value, const GLchar* name, GLboolean transpose);
+
+	static Shader* load(std::string name, GLenum type, std::string src_path, bool seperable = true, int major = 4, int minor = 4);
+	static Shader* load(std::string name, std::size_t num_shaders, GLenum types[], std::string src_paths[], bool seperable = false, int major = 4, int minor = 4);
+	static Shader* get(std::string name);
+	static bool remove(std::string name);
 
 	inline GLuint get_id() const { return this->id; }
 	inline bool is_seperable() const { return this->seperable; }

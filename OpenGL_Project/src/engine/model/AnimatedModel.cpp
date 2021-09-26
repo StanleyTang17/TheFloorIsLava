@@ -1,6 +1,6 @@
 #include "AnimatedModel.h"
 
-void AnimatedModel::load_model(std::string model_path, std::string split_animation_path)
+void AnimatedModel::load(std::string model_path, std::string split_animation_path)
 {
 	AnimatedModel* model = new AnimatedModel(model_path, split_animation_path);
 	if (LOADED_SET.find(model->name) == LOADED_SET.end())
@@ -18,7 +18,7 @@ AnimatedModel::AnimatedModel(std::string model_path, std::string split_animation
 	for (std::size_t i = 0; i < 100; ++i)
 		this->bone_matrices.push_back(glm::mat4(1.0f));
 
-	this->load(model_path);
+	this->init(model_path);
 
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(model_path, aiProcess_Triangulate);

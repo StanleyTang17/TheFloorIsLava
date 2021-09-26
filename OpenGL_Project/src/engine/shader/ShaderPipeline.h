@@ -9,15 +9,21 @@ class ShaderPipeline
 {
 private:
 	GLuint id;
+	std::string name;
 
 	static GLuint CURRENT_PIPELINE;
+	static std::map<std::string, ShaderPipeline*> LOADED_SET;
 
 public:
-	ShaderPipeline(std::size_t num_programs, GLbitfield stages[], Shader* programs[]);
+	ShaderPipeline(std::string name, std::size_t num_programs, GLbitfield stages[], Shader* programs[]);
 	~ShaderPipeline();
 
 	void use();
-	void unuse();
+	static void unuse();
+
+	static ShaderPipeline* load(std::string name, std::size_t num_programs, GLbitfield stages[], Shader* programs[]);
+	static ShaderPipeline* get(std::string name);
+	static bool remove(std::string name);
 };
 
 #endif

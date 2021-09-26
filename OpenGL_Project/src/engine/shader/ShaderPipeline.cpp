@@ -1,23 +1,49 @@
 #include "ShaderPipeline.h"
 
 GLuint ShaderPipeline::CURRENT_PIPELINE = 0;
+std::map<std::string, ShaderPipeline*> ShaderPipeline::LOADED_SET = std::map<std::string, ShaderPipeline*>();
 
-ShaderPipeline::ShaderPipeline(std::size_t num_programs, GLbitfield stages[], Shader* programs[])
+ShaderPipeline* ShaderPipeline::load(std::string name, std::size_t num_programs, GLbitfield stages[], Shader* programs[])
 {
+	ShaderPipeline* pipeline = new ShaderPipeline(name, num_programs, stages, programs);
+	LOADED_SET[pipeline->name] = pipeline;
+	return pipeline;
+}
+
+ShaderPipeline* ShaderPipeline::get(std::string name)
+{
+	if (LOADED_SET.find(name) != LOADED_SET.end())
+		return LOADED_SET.at(name);
+	return nullptr;
+}
+
+bool ShaderPipeline::remove(std::string name)
+{
+	if (LOADED_SET.find(name) != LOADED_SET.end())
+		return LOADED_SET.erase(name);
+	return false;
+}
+
+ShaderPipeline::ShaderPipeline(std::string name, std::size_t num_programs, GLbitfield stages[], Shader* programs[])
+{
+	this->name = name;
 	glGenProgramPipelines(1, &this->id);
 	
-	std::cout << "setting up program stages" << std::endl;
 	for (std::size_t i = 0; i < num_programs; ++i)
 	{
 		glUseProgramStages(this->id, stages[i], programs[i]->get_id());
-		std::cout << programs[i]->get_id() << std::endl;
 	}
-	std::cout << std::endl;
+	
+	GLint log_length;
+	glGetProgramPipelineiv(this->id, GL_INFO_LOG_LENGTH, &log_length);
 
-	char info_log[512];
-	glGetProgramPipelineInfoLog(this->id, 512, NULL, info_log);
-
-	std::cout << info_log << std::endl;
+	if (log_length > 0)
+	{
+		char info_log[512];
+		glGetProgramPipelineInfoLog(this->id, 512, NULL, info_log);
+		std::cout << "[" << this->name << "] PIPELINE INFO LOG:" << std::endl;
+		std::cout << info_log << std::endl;
+	}
 }
 
 ShaderPipeline::~ShaderPipeline()

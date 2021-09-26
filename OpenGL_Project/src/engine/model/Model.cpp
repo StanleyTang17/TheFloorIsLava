@@ -2,21 +2,21 @@
 
 std::map<std::string, Model*> Model::LOADED_SET = std::map<std::string, Model*>();
 
-void Model::load_model(std::string path)
+Model* Model::load(std::string path)
 {
 	Model* model = new Model(path);
-	if (LOADED_SET.find(model->name) == LOADED_SET.end())
-		LOADED_SET.emplace(model->name, model);
+	LOADED_SET[model->name] = model;
+	return model;
 }
 
-Model* Model::get_loaded_model(std::string model_name)
+Model* Model::get(std::string model_name)
 {
 	if (LOADED_SET.find(model_name) != LOADED_SET.end())
 		return LOADED_SET.at(model_name);
 	return nullptr;
 }
 
-bool Model::remove_loaded_model(std::string model_name)
+bool Model::remove(std::string model_name)
 {
 	if (LOADED_SET.find(model_name) != LOADED_SET.end())
 		return LOADED_SET.erase(model_name);
@@ -33,10 +33,10 @@ Model::Model()
 Model::Model(std::string path)
 {
 	this->animated = false;
-	this->load(path);
+	this->init(path);
 }
 
-void Model::load(std::string path)
+void Model::init(std::string path)
 {
 	std::size_t last_slash_pos = path.find_last_of('/');
 	this->directory = path.substr(0, last_slash_pos);
@@ -159,8 +159,8 @@ void Model::load_mesh(aiMesh* mesh, const aiScene* scene)
 	));
 }
 
-void Model::render(Shader* shader)
+void Model::render(Shader* vertex_shader, Shader* fragment_shader)
 {
 	for (Mesh* mesh : this->meshes)
-		mesh->rendor(shader);
+		mesh->rendor(vertex_shader, fragment_shader);
 }

@@ -57,7 +57,7 @@ public:
 	inline std::map<std::string, Sequence> get_animations() { return this->animations; }
 	inline int get_FPS() const { return this->FPS; }
 
-	static void load_model(std::string model_path, std::string split_animation_path);
+	static void load(std::string model_path, std::string split_animation_path);
 };
 
 #endif

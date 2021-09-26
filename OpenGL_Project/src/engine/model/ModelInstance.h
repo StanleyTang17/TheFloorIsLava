@@ -26,7 +26,7 @@ public:
 	ModelInstance(std::string loaded_model_name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 
 	void update(const float dt);
-	void render(Shader* shader);
+	void render(Shader* vertex_shader, Shader* fragment_shader);
 
 	void play_animation(std::string animation_name);
 	void pause();

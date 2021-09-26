@@ -126,11 +126,10 @@ void Mesh::update_uniform(Shader* shader)
 	}
 }
 
-void Mesh::rendor(Shader* shader)
+void Mesh::rendor(Shader* vertex_shader, Shader* fragment_shader)
 {
-	this->update_uniform(shader);
+	this->update_uniform(fragment_shader);
 
-	// shader->use();
 	glBindVertexArray(this->VAO);
 
 	if (this->num_indices == 0)
