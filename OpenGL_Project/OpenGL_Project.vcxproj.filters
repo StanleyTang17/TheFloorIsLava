@@ -218,6 +218,6 @@
     <None Include="src\shaders\text\vertex.glsl" />
     <None Include="src\shaders\text\fragment.glsl" />
     <None Include="src\shaders\animation\vertex.glsl" />
-    <None Include="src\shaders\animation\fragment.glsl" />
+    <None Include="src\shaders\foreground_animation\vertex.glsl" />
   </ItemGroup>
 </Project>

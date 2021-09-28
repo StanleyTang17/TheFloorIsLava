@@ -4,7 +4,6 @@
 
 // TODO: test point shadow in closed room
 // TODO: add PCF
-// TODO: fix shakey camera
 
 Game::Game(const char* title, const int width, const int height, const int version_major, const int version_minor, GLboolean resizable)
 	:
@@ -86,9 +85,6 @@ Game::~Game()
 	delete this->screen_FBO;
 	glfwDestroyWindow(window);
 	glfwTerminate();
-
-	for (std::size_t i = 0; i < this->shaders.size(); ++i)
-		delete this->shaders[i];
 
 	for (std::size_t i = 0; i < this->dir_lights.size(); ++i)
 		delete this->dir_lights[i];
@@ -328,21 +324,22 @@ void Game::init_shaders()
 
 	Shader* static_vertex_shader = Shader::load("static_vertex", GL_VERTEX_SHADER, "src/shaders/game/vertex.glsl");
 	Shader* animated_vertex_shader = Shader::load("animated_vertex", GL_VERTEX_SHADER, "src/shaders/animation/vertex.glsl");
+	Shader* foreground_animated_vertex_shader = Shader::load("foreground_animated_vertex", GL_VERTEX_SHADER, "src/shaders/foreground_animation/vertex.glsl");
 	Shader* game_fragment_shader = Shader::load("game_fragment", GL_FRAGMENT_SHADER, "src/shaders/game/fragment.glsl");
 
 	GLenum types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
 	std::string screen_srcs[] = { "src/shaders/screen/vertex.glsl", "src/shaders/screen/fragment.glsl" };
-	Shader::load("screen_program", 2, types, screen_srcs);
+	Shader::load("screen", 2, types, screen_srcs);
 
 	std::string skybox_srcs[] = { "src/shaders/skybox/vertex.glsl", "src/shaders/skybox/fragment.glsl" };
-	Shader::load("skybox_program", 2, types, skybox_srcs);
+	Shader::load("skybox", 2, types, skybox_srcs);
 
 	GLenum depth_cube_types[] = { GL_VERTEX_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER };
 	std::string depth_cube_srcs[] = { "src/shaders/depth_cube/vertex.glsl", "src/shaders/depth_cube/geometry.glsl", "src/shaders/depth_cube/fragment.glsl" };
-	Shader::load("depth_cube_program", 3, depth_cube_types, depth_cube_srcs);
+	Shader::load("depth_cube", 3, depth_cube_types, depth_cube_srcs);
 
 	std::string text_srcs[] = { "src/shaders/text/vertex.glsl", "src/shaders/text/fragment.glsl" };
-	Shader::load("text_program", 2, types, text_srcs);
+	Shader::load("text", 2, types, text_srcs);
 
 	// INIT PIPELINES
 
@@ -350,10 +347,10 @@ void Game::init_shaders()
 	
 	Shader* static_pipeline_shaders[] = { static_vertex_shader, game_fragment_shader };
 	Shader* animated_pipeline_shaders[] = { animated_vertex_shader, game_fragment_shader };
+	Shader* foreground_animated_pipeline_shaders[] = { foreground_animated_vertex_shader, game_fragment_shader };
 	ShaderPipeline::load("static_game", 2, pipeline_stages, static_pipeline_shaders);
 	ShaderPipeline::load("animated_game", 2, pipeline_stages, animated_pipeline_shaders);
-
-	//this->pipelines.push_back(new ShaderPipeline(2, animation_pipeline_stages, animation_pipeline_shaders));
+	ShaderPipeline::load("foreground_animated_game", 2, pipeline_stages, foreground_animated_pipeline_shaders);
 }
 
 void Game::init_lights()
@@ -406,7 +403,7 @@ void Game::init_uniforms()
 	// TEXT
 
 	glm::mat4 text_proj = glm::ortho(0.0f, (float)this->WINDOW_WIDTH, 0.0f, (float)this->WINDOW_HEIGHT);
-	Shader::get("text_program")->set_mat_4fv(text_proj, "projection", GL_FALSE);
+	Shader::get("text")->set_mat_4fv(text_proj, "projection", GL_FALSE);
 
 	// SHADOWS
 
@@ -429,7 +426,7 @@ void Game::init_uniforms()
 	shadow_transforms.push_back(shadow_proj * glm::lookAt(light_pos, light_pos + glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3( 0.0f,  0.0f, -1.0f)));
 	shadow_transforms.push_back(shadow_proj * glm::lookAt(light_pos, light_pos + glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3( 0.0f, -1.0f,  0.0f)));
 	shadow_transforms.push_back(shadow_proj * glm::lookAt(light_pos, light_pos + glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3( 0.0f, -1.0f,  0.0f)));
-	Shader* depth_cube_shader = Shader::get("depth_cube_program");
+	Shader* depth_cube_shader = Shader::get("depth_cube");
 	for (unsigned int i = 0; i < 6; ++i) {
 		std::string arr_name = "shadow_transforms[" + std::to_string(i) + "]";
 		depth_cube_shader->set_mat_4fv(shadow_transforms[i], arr_name.c_str(), GL_FALSE);
@@ -439,11 +436,11 @@ void Game::init_uniforms()
 
 	// SKYBOX
 
-	Shader::get("skybox_program")->set_1i(this->skybox_texture->get_id(), "skybox_texture");
+	Shader::get("skybox")->set_1i(this->skybox_texture->get_id(), "skybox_texture");
 
 	// AFTER EFFECTS
 
-	Shader* screen_shader = Shader::get("screen_program");
+	Shader* screen_shader = Shader::get("screen");
 	screen_shader->set_1i(0, "screen_texture");
 	screen_shader->set_1i(1, "depth_texture");
 	screen_shader->set_1i(NONE, "filter_mode");
@@ -508,7 +505,7 @@ void Game::update_uniforms()
 	for (std::size_t i = 0; i < this->spot_lights.size(); ++i)
 		this->spot_lights[i]->send_to_shader(game_fragment_shader, i);
 
-	Shader::get("screen_program")->set_1i(this->show_depth, "show_depth");
+	Shader::get("screen")->set_1i(this->show_depth, "show_depth");
 }
 
 void Game::update_dt()
@@ -635,15 +632,9 @@ void Game::render_animated_models(Shader* vertex_shader, Shader* fragment_shader
 void Game::render_foreground_animated_models(Shader* vertex_shader, Shader* fragment_shader)
 {
 	Shader::unuse();
-	ShaderPipeline::get("animated_game")->use();
+	ShaderPipeline::get("foreground_animated_game")->use();
 
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glm::mat4 view_matrix_no_translate = glm::mat4(glm::mat3(this->camera->get_view_matrix()));
-	glBindBuffer(GL_UNIFORM_BUFFER, this->uniform_buffer);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(this->projection_matrix));
-	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(glm::mat4(1.0f)));
-	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view_matrix_no_translate));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	for (ModelInstance* instance : this->foreground_animated_models)
 		instance->render(vertex_shader, fragment_shader);
@@ -655,7 +646,7 @@ void Game::render_screen()
 {
 	glDisable(GL_DEPTH_TEST);
 
-	Shader::get("screen_program")->use();
+	Shader::get("screen")->use();
 	glBindVertexArray(this->screen_VAO);
 
 	glActiveTexture(GL_TEXTURE0);
@@ -712,8 +703,8 @@ void Game::render()
 	this->update_uniforms();
 
 	this->depth_cube_FBO->bind(true);
-	Shader::get("depth_cube_program")->use();
-	this->render_models(Shader::get("depth_cube_program"), Shader::get("depth_cube_program"));
+	Shader::get("depth_cube")->use();
+	this->render_models(Shader::get("depth_cube"), Shader::get("depth_cube"));
 
 	this->multisample_FBO->bind(true);
 	glActiveTexture(GL_TEXTURE0 + this->depth_cube_FBO->get_texture());
@@ -722,16 +713,16 @@ void Game::render()
 	ShaderPipeline::get("static_game")->use();
 	this->render_models(Shader::get("static_vertex"), Shader::get("game_fragment"));
 	this->render_animated_models(Shader::get("animated_vertex"), Shader::get("game_fragment"));
-	this->render_foreground_animated_models(Shader::get("animated_vertex"), Shader::get("game_fragment"));
+	this->render_foreground_animated_models(Shader::get("foreground_animated_vertex"), Shader::get("game_fragment"));
 
 	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	this->multisample_FBO->bind_default(true);
 
 	this->render_screen();
 
-	this->render_text(Shader::get("text_program"), this->arial_big, "Hit: " + std::to_string(this->hit), 1150.0f, 750.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-	this->render_text(Shader::get("text_program"), this->arial, "Position: " + glm::to_string(this->player->get_position()), 0.0f, 48.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-	this->render_text(Shader::get("text_program"), this->arial, "Frame Rate: " + std::to_string((int)(1.0f / this->dt)), 0.0f, 78.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	this->render_text(Shader::get("text"), this->arial_big, "Hit: " + std::to_string(this->hit), 1150.0f, 750.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	this->render_text(Shader::get("text"), this->arial, "Position: " + glm::to_string(this->player->get_position()), 0.0f, 48.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	this->render_text(Shader::get("text"), this->arial, "Frame Rate: " + std::to_string((int)(1.0f / this->dt)), 0.0f, 78.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 
 	glfwSwapBuffers(this->window);
 	glFlush();
