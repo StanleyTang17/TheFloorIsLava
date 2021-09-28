@@ -13,6 +13,7 @@ private:
 
 	Sequence current_animation;
 	float animation_time;
+	bool repeat;
 	bool stop;
 
 	glm::vec3 position;
@@ -28,7 +29,7 @@ public:
 	void update(const float dt);
 	void render(Shader* vertex_shader, Shader* fragment_shader);
 
-	void play_animation(std::string animation_name);
+	void play_animation(std::string animation_name, bool repeat = false);
 	void pause();
 	void unpause();
 

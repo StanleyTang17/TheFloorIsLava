@@ -1,6 +1,6 @@
 #include "Model.h"
 
-std::map<std::string, Model*> Model::LOADED_SET = std::map<std::string, Model*>();
+std::unordered_map<std::string, Model*> Model::LOADED_SET = std::unordered_map<std::string, Model*>();
 
 Model* Model::load(std::string path)
 {

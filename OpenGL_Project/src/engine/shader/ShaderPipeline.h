@@ -4,6 +4,7 @@
 #define SHADER_PIPELINE_H
 
 #include"engine/shader/Shader.h"
+#include<unordered_map>
 
 class ShaderPipeline
 {
@@ -12,7 +13,7 @@ private:
 	std::string name;
 
 	static GLuint CURRENT_PIPELINE;
-	static std::map<std::string, ShaderPipeline*> LOADED_SET;
+	static std::unordered_map<std::string, ShaderPipeline*> LOADED_SET;
 
 public:
 	ShaderPipeline(std::string name, std::size_t num_programs, GLbitfield stages[], Shader* programs[]);

@@ -1,7 +1,7 @@
 #include "ShaderPipeline.h"
 
 GLuint ShaderPipeline::CURRENT_PIPELINE = 0;
-std::map<std::string, ShaderPipeline*> ShaderPipeline::LOADED_SET = std::map<std::string, ShaderPipeline*>();
+std::unordered_map<std::string, ShaderPipeline*> ShaderPipeline::LOADED_SET = std::unordered_map<std::string, ShaderPipeline*>();
 
 ShaderPipeline* ShaderPipeline::load(std::string name, std::size_t num_programs, GLbitfield stages[], Shader* programs[])
 {

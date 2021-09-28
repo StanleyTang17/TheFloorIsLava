@@ -7,6 +7,7 @@
 #include"libs/OPENGL.h"
 #include"libs/GLM.h"
 #include<fstream>
+#include<unordered_map>
 
 class Shader
 {
@@ -21,7 +22,7 @@ private:
 	GLuint load_shader(GLenum type, const char* file_name);
 
 	static GLuint CURRENT_SHADER;
-	static std::map<std::string, Shader*> LOADED_SET;
+	static std::unordered_map<std::string, Shader*> LOADED_SET;
 
 public:
 	Shader(std::string name, GLenum type, std::string src_path, bool seperable = true, int major = 4, int minor = 4);

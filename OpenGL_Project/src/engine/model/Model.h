@@ -6,11 +6,13 @@
 #include"engine/mesh/Mesh.h"
 #include"libs/ASSIMP.h"
 #include"utility/AssimpToGLM.h"
+#include<map>
+#include<unordered_map>
 
 class Model
 {
 protected:
-	static std::map<std::string, Model*> LOADED_SET;
+	static std::unordered_map<std::string, Model*> LOADED_SET;
 
 	std::vector<Mesh*> meshes;
 	std::vector<Texture2D*> textures_loaded;

@@ -1,7 +1,7 @@
 #include"Shader.h"
 
 GLuint Shader::CURRENT_SHADER = 0;
-std::map<std::string, Shader*> Shader::LOADED_SET = std::map<std::string, Shader*>();
+std::unordered_map<std::string, Shader*> Shader::LOADED_SET = std::unordered_map<std::string, Shader*>();
 
 Shader* Shader::load(std::string name, GLenum type, std::string src_path, bool seperable, int major, int minor)
 {

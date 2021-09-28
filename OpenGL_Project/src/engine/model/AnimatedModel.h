@@ -7,6 +7,7 @@
 #include"AnimatedBone.h"
 #include<fstream>
 #include<sstream>
+#include<map>
 
 struct BoneInfo
 {
