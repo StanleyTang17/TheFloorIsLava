@@ -48,6 +48,7 @@ public:
 	inline GLuint get_id() const { return this->id; }
 	inline bool is_seperable() const { return this->seperable; }
 	inline bool in_use() const { return this->id == CURRENT_SHADER; }
+	inline std::string get_name() const { return this->name; }
 };
 
 #endif

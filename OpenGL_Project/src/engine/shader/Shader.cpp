@@ -112,6 +112,7 @@ Shader::Shader(std::string name, std::size_t num_shaders, GLenum types[], std::s
 Shader::~Shader()
 {
 	glDeleteProgram(this->id);
+	Shader::remove(this->name);
 }
 
 std::string Shader::load_shader_src(const char* file_name)

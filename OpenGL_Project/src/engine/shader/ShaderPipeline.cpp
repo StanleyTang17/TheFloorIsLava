@@ -32,6 +32,7 @@ ShaderPipeline::ShaderPipeline(std::string name, std::size_t num_programs, GLbit
 	for (std::size_t i = 0; i < num_programs; ++i)
 	{
 		glUseProgramStages(this->id, stages[i], programs[i]->get_id());
+		this->staged_shaders.emplace(stages[i], programs[i]);
 	}
 	
 	GLint log_length;
@@ -49,6 +50,14 @@ ShaderPipeline::ShaderPipeline(std::string name, std::size_t num_programs, GLbit
 ShaderPipeline::~ShaderPipeline()
 {
 	glDeleteProgramPipelines(1, &this->id);
+	ShaderPipeline::remove(this->name);
+}
+
+Shader* ShaderPipeline::get_staged_shader(GLbitfield stage)
+{
+	if (this->staged_shaders.find(stage) != this->staged_shaders.end())
+		return this->staged_shaders.at(stage);
+	return nullptr;
 }
 
 void ShaderPipeline::use()
