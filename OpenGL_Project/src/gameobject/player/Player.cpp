@@ -11,7 +11,7 @@ Player::Player(glm::vec3 position, Camera* camera)
 	this->camera = camera;
 
 	this->set_collision_shape(new Collision::Box(&(this->position), &(this->velocity), Collision::Behavior::KINETIC, 1.0f, 1.0f, 1.0f));
-	this->set_graphic_model(new ModelInstance("container", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.5f)));
+	this->set_graphic_model(new ModelInstance("container", "static", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.5f)));
 }
 
 Player::~Player()
@@ -41,6 +41,7 @@ void Player::update_velocity()
 void Player::update()
 {
 	this->camera->set_position(this->position + glm::vec3(0.0f, 2.0f, 0.0f));
+	this->firearm->update();
 }
 
 void Player::update_mouse_input(GLFWwindow* window, int button, int action)
@@ -54,4 +55,9 @@ void Player::update_keyboard_input(GLFWwindow* window, int key, int action)
 	if (this->firearm != nullptr)
 		this->firearm->update_keyboard_input(window, key, action);
 	this->control->update_input(window, key, action);
+}
+
+void Player::equip(Firearm* firearm)
+{
+	this->firearm = firearm;
 }

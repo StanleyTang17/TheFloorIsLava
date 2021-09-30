@@ -32,7 +32,7 @@ void Firearm::fire()
 	if (this->ammo > 0)
 	{
 		this->ammo--;
-		this->model_instance->play_animation("reload");
+		this->model_instance->play_animation("fire");
 	}
 	else
 		this->reload();
@@ -59,12 +59,5 @@ void Firearm::update_mouse_input(GLFWwindow* window, int button, int action)
 
 void Firearm::update()
 {
-	if (this->parent != nullptr)
-	{
-		//glm::mat4 parent_transform = this->parent->get_model_matrix();
-		//glm::vec3 translate = glm::vec3(-1.0f, 1.0f, 0.0f);
-		//glm::vec4 pos = glm::vec4(this->parent->get_position() + translate, 1.0f) * this->offset_from_parent;
-		//this->position = glm::vec3(pos.x, pos.y, pos.z);
-		//this->model_instance->set_rotation(glm::vec3(0.0f, 5.0f, 0.0f));
-	}
+
 }

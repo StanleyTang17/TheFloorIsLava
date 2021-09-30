@@ -1,11 +1,12 @@
 #include "ModelInstance.h"
 
-ModelInstance::ModelInstance(Model* model, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+ModelInstance::ModelInstance(Model* model, std::string render_queue, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
 	this->position = position;
 	this->rotation = rotation;
 	this->scale = scale;
 	this->model = model;
+	this->queue = render_queue;
 	this->stop = false;
 	this->repeat = false;
 	this->animation_time = 0;
@@ -21,12 +22,13 @@ ModelInstance::ModelInstance(Model* model, glm::vec3 position, glm::vec3 rotatio
 	}
 }
 
-ModelInstance::ModelInstance(std::string loaded_model_name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+ModelInstance::ModelInstance(std::string loaded_model_name, std::string render_queue, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
 	this->position = position;
 	this->rotation = rotation;
 	this->scale = scale;
 	this->model = Model::get(loaded_model_name);
+	this->queue = render_queue;
 	this->stop = false;
 	this->repeat = false;
 	this->animation_time = 0;

@@ -63,6 +63,8 @@ Model::~Model()
 
 	for (Texture2D* texture : this->textures_loaded)
 		delete texture;
+
+	Model::remove(this->name);
 }
 
 void Model::load_node(aiNode* node, const aiScene* scene)

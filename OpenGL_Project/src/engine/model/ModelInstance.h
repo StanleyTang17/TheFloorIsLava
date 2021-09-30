@@ -10,6 +10,7 @@ class ModelInstance
 {
 private:
 	Model* model;
+	std::string queue;
 
 	Sequence current_animation;
 	float animation_time;
@@ -23,8 +24,8 @@ private:
 	inline AnimatedModel* get_animated_model() const { return static_cast<AnimatedModel*>(this->model); }
 
 public:
-	ModelInstance(Model* model, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
-	ModelInstance(std::string loaded_model_name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+	ModelInstance(Model* model, std::string render_queue, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+	ModelInstance(std::string loaded_model_name, std::string render_queue, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 
 	void update(const float dt);
 	void render(Shader* vertex_shader, Shader* fragment_shader);
@@ -40,6 +41,7 @@ public:
 	inline void rotate(glm::vec3 rotate) { this->rotation += rotate; }
 	inline void _scale(glm::vec3 scale) { this->scale += scale; }
 	inline bool is_animated() { return this->model->is_animated(); }
+	inline std::string get_queue() const { return this->queue; }
 	glm::vec3 get_position() const { return this->position; }
 	glm::mat4 get_model_matrix();
 };

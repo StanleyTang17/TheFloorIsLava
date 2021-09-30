@@ -351,6 +351,10 @@ void Game::init_shaders()
 	ShaderPipeline::load("static_game", 2, pipeline_stages, static_pipeline_shaders);
 	ShaderPipeline::load("animated_game", 2, pipeline_stages, animated_pipeline_shaders);
 	ShaderPipeline::load("foreground_animated_game", 2, pipeline_stages, foreground_animated_pipeline_shaders);
+
+	RenderQueue::load("static", ShaderPipeline::get("static_game"));
+	RenderQueue::load("animated", ShaderPipeline::get("animated_game"));
+	RenderQueue::load("foreground_animated", ShaderPipeline::get("foreground_animated_game"));
 }
 
 void Game::init_lights()
@@ -377,12 +381,11 @@ void Game::init_models()
 	AnimatedModel::load("res/animations/zombie/zombie2.dae", "res/animations/zombie/split.txt");
 	AnimatedModel::load("res/animations/ak_47/ak_47.dae", "res/animations/ak_47/split.txt");
 
-	this->static_models.push_back(new ModelInstance("grass_plane", glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
-	this->animated_models.push_back(new ModelInstance("zombie2", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f)));
+	RenderQueue::get("static")->add_instance(new ModelInstance("grass_plane", "static", glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
 
-	ModelInstance* ak_instance = new ModelInstance("ak_47", glm::vec3(1.0f, -0.8f, -1.0f), glm::vec3(-0.10f, 70.0f, 0.0f), glm::vec3(0.7f));
-	ak_instance->play_animation("reload");
-	this->foreground_animated_models.push_back(ak_instance);
+	ModelInstance* zombie_instance = new ModelInstance("zombie2", "animated", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+	zombie_instance->play_animation("walk", true);
+	RenderQueue::get("animated")->add_instance(zombie_instance);
 }
 
 void Game::init_game_objects()
@@ -393,6 +396,10 @@ void Game::init_game_objects()
 	this->crate2 = new Crate(glm::vec3(2.0f, 0.0f, 2.0f), Collision::Behavior::KINETIC, 1.0f);
 	this->crate2->set_control(new KeyboardControl(GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_LEFT, GLFW_KEY_RIGHT, GLFW_KEY_ENTER, GLFW_KEY_RIGHT_SHIFT));
 	
+	Kalashnikov* ak = new Kalashnikov();
+	this->player->equip(ak);
+
+	this->add_game_object(ak);
 	this->add_game_object(this->player);
 	this->add_game_object(this->crate);
 	this->add_game_object(this->crate2);
@@ -548,17 +555,6 @@ void Game::update()
 	this->update_dt();
 	this->update_mouse_input();
 	this->update_keyboard_input();
-
-	//this->update_uniforms();
-
-	for (ModelInstance* instance : this->static_models)
-		instance->update(this->dt);
-
-	for (ModelInstance* instance : this->animated_models)
-		instance->update(this->dt);
-
-	for (ModelInstance* instance : this->foreground_animated_models)
-		instance->update(this->dt);
 	
 	for (std::size_t i = 0; i < game_objects.size(); ++i)
 		game_objects[i]->update_velocity();
@@ -596,50 +592,6 @@ void Game::render_skybox(Shader* shader)
 	this->skybox_texture->unbind();
 	shader->unuse();
 	glDepthFunc(GL_LESS);
-}
-
-void Game::render_models(Shader* vertex_shader, Shader* fragment_shader)
-{
-	glEnable(GL_DEPTH_TEST);
-
-	// OBJECTS
-	//shader->use();
-
-	for (ModelInstance* instance : this->static_models)
-		instance->render(vertex_shader, fragment_shader);
-
-	glDepthMask(false);
-	glDisable(GL_CULL_FACE);
-	for (ModelInstance* instance : this->transparent_models)
-		instance->render(vertex_shader, fragment_shader);
-	glDepthMask(true);
-	glEnable(GL_CULL_FACE);
-	
-	//shader->unuse();
-}
-
-void Game::render_animated_models(Shader* vertex_shader, Shader* fragment_shader)
-{
-	Shader::unuse();
-	ShaderPipeline::get("animated_game")->use();
-
-	for (ModelInstance* instance : this->animated_models)
-		instance->render(vertex_shader, fragment_shader);
-
-	ShaderPipeline::unuse();
-}
-
-void Game::render_foreground_animated_models(Shader* vertex_shader, Shader* fragment_shader)
-{
-	Shader::unuse();
-	ShaderPipeline::get("foreground_animated_game")->use();
-
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	for (ModelInstance* instance : this->foreground_animated_models)
-		instance->render(vertex_shader, fragment_shader);
-
-	ShaderPipeline::unuse();
 }
 
 void Game::render_screen()
@@ -703,17 +655,18 @@ void Game::render()
 	this->update_uniforms();
 
 	this->depth_cube_FBO->bind(true);
-	Shader::get("depth_cube")->use();
-	this->render_models(Shader::get("depth_cube"), Shader::get("depth_cube"));
+	glEnable(GL_DEPTH_TEST);
+	RenderQueue::get("static")->set_main_shader(Shader::get("depth_cube"));
+	RenderQueue::get("static")->render(this->dt);
 
 	this->multisample_FBO->bind(true);
 	glActiveTexture(GL_TEXTURE0 + this->depth_cube_FBO->get_texture());
 	glBindTexture(GL_TEXTURE_CUBE_MAP, this->depth_cube_FBO->get_texture());
-	Shader::unuse();
-	ShaderPipeline::get("static_game")->use();
-	this->render_models(Shader::get("static_vertex"), Shader::get("game_fragment"));
-	this->render_animated_models(Shader::get("animated_vertex"), Shader::get("game_fragment"));
-	this->render_foreground_animated_models(Shader::get("foreground_animated_vertex"), Shader::get("game_fragment"));
+	RenderQueue::get("static")->set_main_shader(nullptr);
+	RenderQueue::get("static")->render(this->dt);
+	RenderQueue::get("animated")->render(this->dt);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	RenderQueue::get("foreground_animated")->render(this->dt);
 
 	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	this->multisample_FBO->bind_default(true);
@@ -739,10 +692,8 @@ void Game::add_game_object(GameObject* game_object)
 	ModelInstance* instance = game_object->get_model_instance();
 	if (instance != nullptr)
 	{
-		if (instance->is_animated())
-			this->animated_models.push_back(instance);
-		else
-			this->static_models.push_back(instance);
+		RenderQueue* queue = RenderQueue::get(instance->get_queue());
+		if (queue != nullptr) queue->add_instance(instance);
 	}
 }
 
@@ -754,10 +705,8 @@ void Game::remove_game_object(GameObject* game_object)
 		{
 			game_objects.erase(game_objects.begin() + i);
 
-			std::vector<ModelInstance*>* list = instance->is_animated() ? &(this->animated_models) : &(this->static_models);
-			for (std::size_t j = 0; j < list->size(); ++j)
-				if (list->at(j) == instance)
-					list->erase(list->begin() + j);
+			RenderQueue* queue = RenderQueue::get(instance->get_queue());
+			if (queue != nullptr) queue->remove_instance(instance);
 		}
 }
 

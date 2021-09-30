@@ -5,6 +5,7 @@
 
 #include"libs/ALL.h"
 #include"GlobalDebug.h"
+
 class Game
 {
 private:
@@ -52,10 +53,6 @@ private:
 	int show_depth;
 
 	// VECTORS
-	std::vector<ModelInstance*> transparent_models;
-	std::vector<ModelInstance*> static_models;
-	std::vector<ModelInstance*> animated_models;
-	std::vector<ModelInstance*> foreground_animated_models;
 	std::vector<DirLight*> dir_lights;
 	std::vector<PointLight*> point_lights;
 	std::vector<SpotLight*> spot_lights;
