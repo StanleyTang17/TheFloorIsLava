@@ -676,6 +676,12 @@ void Game::render()
 	this->render_text(Shader::get("text"), this->arial_big, "Hit: " + std::to_string(this->hit), 1150.0f, 750.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 	this->render_text(Shader::get("text"), this->arial, "Position: " + glm::to_string(this->player->get_position()), 0.0f, 48.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 	this->render_text(Shader::get("text"), this->arial, "Frame Rate: " + std::to_string((int)(1.0f / this->dt)), 0.0f, 78.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	Firearm* firearm = this->player->get_firearm();
+	if (firearm != nullptr)
+	{
+		std::string ammo_str = std::to_string(firearm->get_ammo()) + '/' + std::to_string(firearm->get_reserve_ammo());
+		this->render_text(Shader::get("text"), this->arial_big, ammo_str, 1140.0f, 28.0f, 1.0f, glm::vec3(0.0f, 0.0f, 0.0f));
+	}
 
 	glfwSwapBuffers(this->window);
 	glFlush();

@@ -18,7 +18,7 @@ ModelInstance::ModelInstance(Model* model, std::string render_queue, glm::vec3 p
 	}
 	else
 	{
-		this->current_animation = { 0, 0 };
+		this->current_animation = { "", 0, 0 };
 	}
 }
 
@@ -40,7 +40,7 @@ ModelInstance::ModelInstance(std::string loaded_model_name, std::string render_q
 	}
 	else
 	{
-		this->current_animation = { 0, 0 };
+		this->current_animation = { "", 0, 0 };
 	}
 }
 
@@ -61,7 +61,7 @@ void ModelInstance::update(const float dt)
 			else
 			{
 				this->animation_time = this->current_animation.start_time;
-				this->stop = true;
+				this->pause();
 			}
 		}
 	}
@@ -88,6 +88,7 @@ void ModelInstance::play_animation(std::string animation_name, bool repeat)
 	this->current_animation = this->get_animated_model()->get_animations().at(animation_name);
 	this->animation_time = this->current_animation.start_time;
 	this->repeat = repeat;
+	this->unpause();
 }
 
 void ModelInstance::pause()

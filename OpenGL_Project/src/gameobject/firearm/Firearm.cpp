@@ -11,8 +11,7 @@ Firearm::Firearm(ModelInstance* graphics_instance, glm::vec3 position, FiringMod
 	this->reserve_ammo = max_reserve_ammo;
 	this->time_last_fired = 0;
 	this->set_graphic_model(graphics_instance);
-	this->parent = nullptr;
-	this->offset_from_parent = glm::mat4(1.0f);
+	this->trigger_down = false;
 	assert(graphics_instance->is_animated());
 }
 
@@ -20,22 +19,29 @@ void Firearm::reload()
 {
 	if (this->ammo < this->MAX_AMMO && this->reserve_ammo > 0)
 	{
-		int reload_amount = std::min(this->MAX_AMMO, this->reserve_ammo);
-		ammo += reload_amount;
-		reserve_ammo -= reload_amount;
+		int ammo_missing = this->MAX_AMMO - this->ammo;
+		int reload_amount = std::min(ammo_missing, this->reserve_ammo);
+		this->ammo += reload_amount;
+		this->reserve_ammo -= reload_amount;
 		this->model_instance->play_animation("reload");
 	}
 }
 
 void Firearm::fire()
 {
-	if (this->ammo > 0)
+	float current_time = glfwGetTime();
+	if (current_time >= this->time_last_fired + 60.0f / this->rate_of_fire &&
+		!(this->model_instance->get_animation().name == "reload" && !this->model_instance->is_paused()))
 	{
-		this->ammo--;
-		this->model_instance->play_animation("fire");
+		this->time_last_fired = current_time;
+		if (this->ammo > 0)
+		{
+			this->ammo--;
+			this->model_instance->play_animation("fire");
+		}
+		else
+			this->reload();
 	}
-	else
-		this->reload();
 }
 
 void Firearm::update_keyboard_input(GLFWwindow* window, int key, int action)
@@ -46,18 +52,21 @@ void Firearm::update_keyboard_input(GLFWwindow* window, int key, int action)
 
 void Firearm::update_mouse_input(GLFWwindow* window, int button, int action)
 {
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	if (button == GLFW_MOUSE_BUTTON_LEFT)
 	{
-		float current_time = glfwGetTime();
-		if (current_time >= this->time_last_fired + 3600 / this->rate_of_fire)
+		if (action == GLFW_PRESS)
 		{
-			this->time_last_fired = current_time;
-			this->fire();
+			if (this->firing_mode == FiringMode::SEMI_AUTOMATIC)
+				this->fire();
+			this->trigger_down = true;
 		}
+		else if (action == GLFW_RELEASE)
+			this->trigger_down = false;
 	}
 }
 
 void Firearm::update()
 {
-
+	if (this->trigger_down && this->firing_mode == FiringMode::AUTOMATIC)
+		this->fire();
 }

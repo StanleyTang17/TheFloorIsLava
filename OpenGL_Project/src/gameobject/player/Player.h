@@ -25,6 +25,8 @@ public:
 	void update_mouse_input(GLFWwindow* window, int button, int action);
 	void update_keyboard_input(GLFWwindow* window, int key, int action);
 	void equip(Firearm* firearm);
+
+	inline Firearm* get_firearm() { return this->firearm; }
 };
 
 #endif

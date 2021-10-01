@@ -14,9 +14,6 @@ enum class FiringMode
 class Firearm : public GameObject
 {
 private:
-	glm::mat4 offset_from_parent;
-	ModelInstance* parent;
-
 	FiringMode firing_mode;
 	int rate_of_fire; // in RPM
 	float damage;
@@ -25,14 +22,13 @@ private:
 
 	float time_last_fired;
 
+	bool trigger_down;
+
 	const int MAX_AMMO;
 	const int MAX_RESERVE_AMMO;
 
 	void reload();
 	void fire();
-
-protected:
-	inline void set_offset_from_parent(glm::mat4 offset) { this->offset_from_parent = offset; }
 
 public:
 	Firearm(ModelInstance* graphics_instance, glm::vec3 location, FiringMode mode, int rate_of_fire, float damage, int max_ammo, int max_reserve_ammo);
@@ -40,7 +36,8 @@ public:
 	void update() override;
 	void update_mouse_input(GLFWwindow* window, int button, int action);
 	void update_keyboard_input(GLFWwindow* window, int key, int action);
-	inline void set_parent(ModelInstance* parent_instance) { this->parent = parent_instance; }
+	inline int get_ammo() const { return this->ammo; }
+	inline int get_reserve_ammo() const { return this->reserve_ammo; }
 };
 
 #endif

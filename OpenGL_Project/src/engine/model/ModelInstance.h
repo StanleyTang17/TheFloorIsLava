@@ -42,6 +42,8 @@ public:
 	inline void _scale(glm::vec3 scale) { this->scale += scale; }
 	inline bool is_animated() { return this->model->is_animated(); }
 	inline std::string get_queue() const { return this->queue; }
+	inline bool is_paused() { return this->stop; }
+	inline Sequence get_animation() { return this->current_animation; }
 	glm::vec3 get_position() const { return this->position; }
 	glm::mat4 get_model_matrix();
 };

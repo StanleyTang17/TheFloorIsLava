@@ -24,6 +24,7 @@ struct AnimatedNode
 
 struct Sequence
 {
+	std::string name;
 	float start_time;
 	float end_time;
 };

@@ -142,7 +142,7 @@ void AnimatedModel::read_split_animations(std::string split_file)
 			ss >> name;
 			ss >> start_frame;
 			ss >> end_frame;
-			Sequence animation = { stof(start_frame) / this->FPS, stof(end_frame) / this->FPS };
+			Sequence animation = { name, stof(start_frame) / this->FPS, stof(end_frame) / this->FPS };
 			this->animations.emplace(name, animation);
 			std::cout << "Loaded sequence " << name << " " << start_frame << " => " << end_frame << std::endl;
 		}
