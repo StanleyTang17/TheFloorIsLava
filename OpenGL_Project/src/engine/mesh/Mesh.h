@@ -5,6 +5,7 @@
 
 #include"engine/shader/Shader.h"
 #include"engine/texture/Texture.h"
+#include"Primitive.h"
 
 struct Vertex
 {
@@ -23,16 +24,10 @@ struct AnimatedVertex : Vertex
 	float weights[MAX_BONE_INFLUENCE];
 };
 
-class Mesh
+class Mesh : public Primitive
 {
 protected:
 	std::vector<Texture2D*> textures;
-
-	GLuint VAO;
-	GLuint VBO;
-	GLuint EBO;
-	unsigned int num_vertices;
-	unsigned int num_indices;
 	
 	void update_uniform(Shader* shader);
 

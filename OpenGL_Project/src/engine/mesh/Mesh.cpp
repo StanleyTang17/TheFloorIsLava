@@ -1,6 +1,8 @@
 #include"Mesh.h"
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture2D*> textures)
+	:
+	Primitive(0, 0, 0, 0, 0)
 {
 	this->num_vertices = vertices.size();
 	this->num_indices = indices.size();
@@ -41,6 +43,8 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vecto
 }
 
 Mesh::Mesh(std::vector<AnimatedVertex> vertices, std::vector<GLuint> indices, std::vector<Texture2D*> textures)
+	:
+	Primitive(0, 0, 0, 0, 0)
 {
 	this->num_vertices = vertices.size();
 	this->num_indices = indices.size();
@@ -88,10 +92,6 @@ Mesh::Mesh(std::vector<AnimatedVertex> vertices, std::vector<GLuint> indices, st
 
 Mesh::~Mesh()
 {
-	glDeleteVertexArrays(1, &this->VAO);
-	glDeleteBuffers(1, &this->VBO);
-	if(this->num_indices > 0)
-		glDeleteBuffers(1, &this->EBO);
 	for (std::size_t i = 0; i < this->textures.size(); ++i)
 		delete textures[i];
 }
@@ -129,13 +129,7 @@ void Mesh::update_uniform(Shader* shader)
 void Mesh::rendor(Shader* vertex_shader, Shader* fragment_shader)
 {
 	this->update_uniform(fragment_shader);
-
-	glBindVertexArray(this->VAO);
-
-	if (this->num_indices == 0)
-		glDrawArrays(GL_TRIANGLES, 0, this->num_vertices);
-	else
-		glDrawElements(GL_TRIANGLES, this->num_indices, GL_UNSIGNED_INT, 0);
+	this->draw_vertices();
 
 	glBindVertexArray(0);
 	glActiveTexture(GL_TEXTURE0);

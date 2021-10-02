@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\engine\mesh\Primitive.cpp" />
     <ClCompile Include="src\engine\render_queue\RenderQueue.cpp" />
     <ClCompile Include="src\engine\shader\ShaderPipeline.cpp" />
     <ClCompile Include="src\gameobject\firearm\Kalashnikov.cpp" />
@@ -48,6 +49,7 @@
     <ClCompile Include="src\utility\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\engine\mesh\Primitive.h" />
     <ClInclude Include="src\engine\render_queue\RenderQueue.h" />
     <ClInclude Include="src\engine\shader\ShaderPipeline.h" />
     <ClInclude Include="src\gameobject\firearm\Kalashnikov.h" />
