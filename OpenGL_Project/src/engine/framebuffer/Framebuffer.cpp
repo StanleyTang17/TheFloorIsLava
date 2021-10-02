@@ -98,8 +98,6 @@ ScreenFramebuffer::ScreenFramebuffer(int width, int height)
 	this->init();
 }
 
-void ScreenFramebuffer::init_renderbuffer() {}
-
 void ScreenFramebuffer::init_texture()
 {
 	glTexImage2D(this->texture_type, 0, GL_RGBA, this->WIDTH, this->HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -129,8 +127,6 @@ void DepthFramebuffer::init_texture()
 	glReadBuffer(GL_NONE);
 }
 
-void DepthFramebuffer::init_renderbuffer() {}
-
 DepthCubeFramebuffer::DepthCubeFramebuffer(int width, int height)
 	:
 	Framebuffer(GL_TEXTURE_CUBE_MAP, NULL, width, height)
@@ -155,5 +151,3 @@ void DepthCubeFramebuffer::init_texture()
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 }
-
-void DepthCubeFramebuffer::init_renderbuffer() {}

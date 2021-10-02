@@ -19,8 +19,8 @@ protected:
 	GLenum texture_type;
 	GLenum renderbuffer_type;
 
-	virtual void init_texture() = 0;
-	virtual void init_renderbuffer() = 0;
+	virtual void init_texture() {};
+	virtual void init_renderbuffer() {};
 	void init();
 
 public:
@@ -51,7 +51,6 @@ class ScreenFramebuffer : public Framebuffer
 {
 protected:
 	void init_texture();
-	void init_renderbuffer();
 public:
 	ScreenFramebuffer(int width, int height);
 };
@@ -60,7 +59,6 @@ class DepthFramebuffer : public Framebuffer
 {
 protected:
 	void init_texture();
-	void init_renderbuffer();
 public:
 	DepthFramebuffer(int width, int height);
 };
@@ -69,7 +67,6 @@ class DepthCubeFramebuffer : public Framebuffer
 {
 protected:
 	void init_texture();
-	void init_renderbuffer();
 public:
 	DepthCubeFramebuffer(int width, int height);
 };
