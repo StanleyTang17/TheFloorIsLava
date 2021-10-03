@@ -50,14 +50,13 @@ void Texture::tex_parameteri(std::size_t num_params, GLenum param_names[], GLint
 	this->unbind();
 }
 
-Texture2D::Texture2D(std::string type, std::string path, std::string directory)
+Texture2D::Texture2D(std::string type, std::string file_path)
 	:
 	Texture(type, GL_TEXTURE_2D)
 {
 	this->path = path;
-	std::string image_file = directory + "/" + path;
 	int channels;
-	unsigned char* image = SOIL_load_image(image_file.c_str(), &this->width, &this->height, &channels, SOIL_LOAD_AUTO);
+	unsigned char* image = SOIL_load_image(file_path.c_str(), &this->width, &this->height, &channels, SOIL_LOAD_AUTO);
 
 	this->generate();
 
@@ -82,7 +81,7 @@ Texture2D::Texture2D(std::string type, std::string path, std::string directory)
 	}
 	else
 	{
-		std::cout << "FAILED TO LOAD TEXTURE: " << image_file << std::endl;
+		std::cout << "FAILED TO LOAD TEXTURE: " << file_path << std::endl;
 	}
 
 	this->unbind();

@@ -142,7 +142,7 @@ std::vector<Texture2D*> Model::load_textures(aiMesh* mesh, const aiScene* scene)
 				}
 
 			if (!loaded) {
-				texture = new Texture2D(type, str.C_Str(), this->directory);
+				texture = new Texture2D(type, this->directory + '/' + str.C_Str());
 				this->textures_loaded.push_back(texture);
 			}
 

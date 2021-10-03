@@ -51,11 +51,10 @@ Font::Font(std::string font_name, unsigned int size, glm::vec3 color)
 	FT_Done_FreeType(ft);
 }
 
-void Font::render_string(Shader* shader, std::string str, float x, float y, float scale)
+void Font::render_string(Shader* vertex_shader, Shader* fragment_shader, std::string str, float x, float y, float scale)
 {
-	shader->set_1i(0, "font_texture");
-	shader->set_vec_3f(this->color, "font_color");
-	shader->use();
+	fragment_shader->set_1i(0, "font_texture");
+	fragment_shader->set_vec_3f(this->color, "font_color");
 
 	for (std::string::const_iterator c = str.begin(); c != str.end(); ++c)
 	{
@@ -68,7 +67,7 @@ void Font::render_string(Shader* shader, std::string str, float x, float y, floa
 		float h = ch.size.y * scale;
 
 		glm::mat4 model_matrix = Utility::generate_transform(glm::vec3(x_pos, y_pos, 0.0f), glm::vec3(0.0f), glm::vec3(w, h, 1.0f));
-		shader->set_mat_4fv(model_matrix, "model", GL_FALSE);
+		vertex_shader->set_mat_4fv(model_matrix, "model", GL_FALSE);
 
 		ch.texture->bind();
 		char_quad.draw_vertices();
@@ -76,7 +75,6 @@ void Font::render_string(Shader* shader, std::string str, float x, float y, floa
 		x += (ch.advance >> 6) * scale;
 	}
 
-	shader->unuse();
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindVertexArray(0);
 }

@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\engine\mesh\Image.cpp" />
     <ClCompile Include="src\engine\mesh\Primitive.cpp" />
     <ClCompile Include="src\engine\render_queue\RenderQueue.cpp" />
     <ClCompile Include="src\engine\shader\ShaderPipeline.cpp" />
@@ -49,6 +50,7 @@
     <ClCompile Include="src\utility\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\engine\mesh\Image.h" />
     <ClInclude Include="src\engine\mesh\Primitive.h" />
     <ClInclude Include="src\engine\render_queue\RenderQueue.h" />
     <ClInclude Include="src\engine\shader\ShaderPipeline.h" />
@@ -101,12 +103,13 @@
     <None Include="src\shaders\game\fragment.glsl" />
     <None Include="src\shaders\game\geometry.glsl" />
     <None Include="src\shaders\game\vertex.glsl" />
+    <None Include="src\shaders\image\fragment.glsl" />
     <None Include="src\shaders\screen\fragment.glsl" />
     <None Include="src\shaders\screen\vertex.glsl" />
     <None Include="src\shaders\skybox\fragment.glsl" />
     <None Include="src\shaders\skybox\vertex.glsl" />
     <None Include="src\shaders\text\fragment.glsl" />
-    <None Include="src\shaders\text\vertex.glsl" />
+    <None Include="src\shaders\image\vertex.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -72,7 +72,6 @@ void RenderQueue::render(const float dt)
 void RenderQueue::add_instance(ModelInstance* instance)
 {
 	this->instances.push_back(instance);
-	std::cout << this->name << " new instance" << std::endl;
 }
 
 void RenderQueue::remove_instance(ModelInstance* instance)

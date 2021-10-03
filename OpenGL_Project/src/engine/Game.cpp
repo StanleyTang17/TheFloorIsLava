@@ -23,10 +23,6 @@ Game::Game(const char* title, const int width, const int height, const int versi
 	this->cur_time = 0.0f;
 	this->last_time = 0.0f;
 
-	this->forward_movement = 0;
-	this->side_movement = 0;
-	this->vertical_movement = 0;
-
 	this->last_mouse_x = 0.0f;
 	this->last_mouse_y = 0.0f;
 	this->mouse_x = 0.0f;
@@ -294,21 +290,7 @@ void Game::init_others()
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	// TEXT VAO & VBO
-	glGenVertexArrays(1, &this->text_VAO);
-	glBindVertexArray(this->text_VAO);
-
-	glGenBuffers(1, &this->text_VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, this->text_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
-	this->test_texture = new Texture2D("font", "container.png", "res/images/");
+	this->test_texture = new Texture2D("font", "res/images/container.png");
 }
 
 void Game::init_matrices()
@@ -326,6 +308,10 @@ void Game::init_shaders()
 	Shader* animated_vertex_shader = Shader::load("animated_vertex", GL_VERTEX_SHADER, "src/shaders/animation/vertex.glsl");
 	Shader* foreground_animated_vertex_shader = Shader::load("foreground_animated_vertex", GL_VERTEX_SHADER, "src/shaders/foreground_animation/vertex.glsl");
 	Shader* game_fragment_shader = Shader::load("game_fragment", GL_FRAGMENT_SHADER, "src/shaders/game/fragment.glsl");
+	Shader* image_vertex_shader = Shader::load("image_vertex", GL_VERTEX_SHADER, "src/shaders/image/vertex.glsl");
+	Shader* image_fragment_shader = Shader::load("image_fragment", GL_FRAGMENT_SHADER, "src/shaders/image/fragment.glsl");
+	Shader* text_fragment_shader = Shader::load("text_fragment", GL_FRAGMENT_SHADER, "src/shaders/text/fragment.glsl");
+
 
 	GLenum types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
 	std::string screen_srcs[] = { "src/shaders/screen/vertex.glsl", "src/shaders/screen/fragment.glsl" };
@@ -338,9 +324,6 @@ void Game::init_shaders()
 	std::string depth_cube_srcs[] = { "src/shaders/depth_cube/vertex.glsl", "src/shaders/depth_cube/geometry.glsl", "src/shaders/depth_cube/fragment.glsl" };
 	Shader::load("depth_cube", 3, depth_cube_types, depth_cube_srcs);
 
-	std::string text_srcs[] = { "src/shaders/text/vertex.glsl", "src/shaders/text/fragment.glsl" };
-	Shader::load("text", 2, types, text_srcs);
-
 	// INIT PIPELINES
 
 	GLbitfield pipeline_stages[] = { GL_VERTEX_SHADER_BIT, GL_FRAGMENT_SHADER_BIT };
@@ -348,9 +331,13 @@ void Game::init_shaders()
 	Shader* static_pipeline_shaders[] = { static_vertex_shader, game_fragment_shader };
 	Shader* animated_pipeline_shaders[] = { animated_vertex_shader, game_fragment_shader };
 	Shader* foreground_animated_pipeline_shaders[] = { foreground_animated_vertex_shader, game_fragment_shader };
+	Shader* image_pipeline_shaders[] = { image_vertex_shader, image_fragment_shader };
+	Shader* text_pipeline_shaders[] = { image_vertex_shader, text_fragment_shader };
 	ShaderPipeline::load("static_game", 2, pipeline_stages, static_pipeline_shaders);
 	ShaderPipeline::load("animated_game", 2, pipeline_stages, animated_pipeline_shaders);
 	ShaderPipeline::load("foreground_animated_game", 2, pipeline_stages, foreground_animated_pipeline_shaders);
+	ShaderPipeline::load("image", 2, pipeline_stages, image_pipeline_shaders);
+	ShaderPipeline::load("text", 2, pipeline_stages, text_pipeline_shaders);
 
 	RenderQueue::load("static", ShaderPipeline::get("static_game"));
 	RenderQueue::load("animated", ShaderPipeline::get("animated_game"));
@@ -386,6 +373,14 @@ void Game::init_models()
 	ModelInstance* zombie_instance = new ModelInstance("zombie2", "animated", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 	zombie_instance->play_animation("walk", true);
 	RenderQueue::get("animated")->add_instance(zombie_instance);
+
+	crosshair = new Image(
+		"res/images/crosshair_white.png",
+		this->WINDOW_WIDTH / 2 - 20 / 2,
+		this->WINDOW_HEIGHT / 2 - 20 / 2,
+		20,
+		20
+	);
 }
 
 void Game::init_game_objects()
@@ -409,8 +404,8 @@ void Game::init_uniforms()
 {
 	// TEXT
 
-	glm::mat4 text_proj = glm::ortho(0.0f, (float)this->WINDOW_WIDTH, 0.0f, (float)this->WINDOW_HEIGHT);
-	Shader::get("text")->set_mat_4fv(text_proj, "projection", GL_FALSE);
+	glm::mat4 flat_proj = glm::ortho(0.0f, (float)this->WINDOW_WIDTH, 0.0f, (float)this->WINDOW_HEIGHT);
+	Shader::get("image_vertex")->set_mat_4fv(flat_proj, "projection", GL_FALSE);
 
 	// SHADOWS
 
@@ -610,46 +605,6 @@ void Game::render_screen()
 	Shader::unuse();
 }
 
-//void Game::render_text(Shader* shader, Font* font, std::string text, float x, float y, float scale, glm::vec3 color)
-//{
-//	shader->set_1i(0, "font_texture");
-//	shader->set_vec_3f(color, "font_color");
-//	shader->use();
-//	glBindVertexArray(this->text_VAO);
-//	
-//	for (std::string::const_iterator c = text.begin(); c != text.end(); ++c)
-//	{
-//		Character ch = font->get_character(*c);
-//
-//		float x_pos = x + ch.bearing.x * scale;
-//		float y_pos = y + (ch.bearing.y - ch.size.y) * scale;
-//
-//		float w = ch.size.x * scale;
-//		float h = ch.size.y * scale;
-//
-//		float vertices[6][4] = {
-//			{ x_pos,     y_pos + h,   0.0f, 0.0f },
-//			{ x_pos,     y_pos,       0.0f, 1.0f },
-//			{ x_pos + w, y_pos,       1.0f, 1.0f },
-//
-//			{ x_pos,     y_pos + h,   0.0f, 0.0f },
-//			{ x_pos + w, y_pos,       1.0f, 1.0f },
-//			{ x_pos + w, y_pos + h,   1.0f, 0.0f }
-//		};
-//
-//		glBindBuffer(GL_ARRAY_BUFFER, this->text_VBO);
-//		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-//		glBindBuffer(GL_ARRAY_BUFFER, 0);
-//		ch.texture->bind();
-//		glDrawArrays(GL_TRIANGLES, 0, 6);
-//		x += (ch.advance >> 6) * scale;
-//	}
-//
-//	shader->unuse();
-//	glBindTexture(GL_TEXTURE_2D, 0);
-//	glBindVertexArray(0);
-//}
-
 void Game::render()
 {
 	this->update_uniforms();
@@ -673,16 +628,20 @@ void Game::render()
 
 	this->render_screen();
 
-	this->arial_big->render_string(Shader::get("text"), "Hit: " + std::to_string(this->hit), 1150.0f, 750.0f, 1.0f);
-	this->arial->render_string(Shader::get("text"), "Position: " + glm::to_string(this->player->get_position()), 0.0f, 48.0f, 1.0f);
-	this->arial->render_string(Shader::get("text"), "Frame Rate: " + std::to_string((int)(1.0f / this->dt)), 0.0f, 78.0f, 1.0f);
-
+	Shader::unuse();
+	ShaderPipeline::get("text")->use();
+	this->arial_big->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Hit: " + std::to_string(this->hit), 1150.0f, 750.0f, 1.0f);
+	this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Position: " + glm::to_string(this->player->get_position()), 0.0f, 48.0f, 1.0f);
+	this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Frame Rate: " + std::to_string((int)(1.0f / this->dt)), 0.0f, 78.0f, 1.0f);
 	Firearm* firearm = this->player->get_firearm();
 	if (firearm != nullptr)
 	{
 		std::string ammo_str = std::to_string(firearm->get_ammo()) + '/' + std::to_string(firearm->get_reserve_ammo());
-		this->arial_big->render_string(Shader::get("text"), "AMMO: " + ammo_str, 0.0f, 103.0f, 1.0f);
+		this->arial_big->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "AMMO: " + ammo_str, 0.0f, 103.0f, 1.0f);
 	}
+
+	ShaderPipeline::get("image")->use();
+	this->crosshair->render(Shader::get("image_vertex"), Shader::get("image_fragment"));
 
 	glfwSwapBuffers(this->window);
 	glFlush();

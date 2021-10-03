@@ -99,6 +99,9 @@
     <ClCompile Include="src\engine\mesh\Primitive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\engine\mesh\Image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\framebuffer\Framebuffer.h">
@@ -209,6 +212,9 @@
     <ClInclude Include="src\engine\mesh\Primitive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\engine\mesh\Image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc142-mt.dll" />
@@ -227,9 +233,10 @@
     <None Include="src\shaders\screen\vertex.glsl" />
     <None Include="src\shaders\skybox\fragment.glsl" />
     <None Include="src\shaders\skybox\vertex.glsl" />
-    <None Include="src\shaders\text\vertex.glsl" />
+    <None Include="src\shaders\image\vertex.glsl" />
     <None Include="src\shaders\text\fragment.glsl" />
     <None Include="src\shaders\animation\vertex.glsl" />
     <None Include="src\shaders\foreground_animation\vertex.glsl" />
+    <None Include="src\shaders\image\fragment.glsl" />
   </ItemGroup>
 </Project>

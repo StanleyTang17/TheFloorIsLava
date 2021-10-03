@@ -27,7 +27,7 @@ private:
 
 public:
 	Font(std::string font_name, unsigned int size, glm::vec3 color);
-	void render_string(Shader* shader, std::string str, float x, float y, float scale);
+	void render_string(Shader* vertex_shader, Shader* fragment_shader, std::string str, float x, float y, float scale);
 };
 
 #endif

@@ -37,9 +37,11 @@ private:
 	int height;
 	std::string path;
 public:
-	Texture2D(std::string type, std::string path, std::string directory);
+	Texture2D(std::string type, std::string path);
 	Texture2D(std::string type, GLenum format, int width, int height, const void* pixels, std::size_t num_params, GLenum params[], GLint values[]);
-	std::string get_path() const { return this->path; }
+	inline std::string get_path() const { return this->path; }
+	inline int get_width() const { return this->width; }
+	inline int get_height() const { return this->height; }
 };
 
 class TextureCube : public Texture

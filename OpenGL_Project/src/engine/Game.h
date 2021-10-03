@@ -22,11 +22,6 @@ private:
 	float last_time;
 	const int FPS = 60;
 
-	// KEYBOARD INPUT
-	int forward_movement;
-	int side_movement;
-	int vertical_movement;
-
 	// MOUSE INPUT
 	double last_mouse_x;
 	double last_mouse_y;
@@ -66,8 +61,6 @@ private:
 	// OTHER VAOs and VBOs;
 
 	GLuint screen_VAO;
-	GLuint text_VAO;
-	GLuint text_VBO;
 	Texture2D* test_texture;
 
 	GLuint uniform_buffer;
@@ -91,6 +84,10 @@ private:
 	Font* arial;
 	Font* arial_big;
 
+	// MENU
+
+	Image* crosshair;
+
 	// INITIALIZE
 	void init_GLFW();
 	void init_window(const char* title, GLboolean resizable);
@@ -106,7 +103,6 @@ private:
 	void init_uniforms();
 	void init_fonts();
 
-
 	// UPDATE
 	void update_uniforms();
 	void update_dt();
@@ -116,7 +112,6 @@ private:
 	// DRAW
 	void render_skybox(Shader* shader);
 	void render_screen();
-	//void render_text(Shader* shader, Font* font, std::string text, float x, float y, float scale, glm::vec3 color);
 
 public:
 	// CONSTRUCTOR / DESTRUCTOR
