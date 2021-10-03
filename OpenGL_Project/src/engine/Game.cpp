@@ -471,8 +471,8 @@ void Game::init_uniforms()
 
 void Game::init_fonts()
 {
-	this->arial = new Font("arial", 24);
-	this->arial_big = new Font("arial", 48);
+	this->arial = new Font("arial", 24, glm::vec3(1.0f));
+	this->arial_big = new Font("arial", 48, glm::vec3(1.0f));
 }
 
 void Game::update_uniforms()
@@ -610,45 +610,45 @@ void Game::render_screen()
 	Shader::unuse();
 }
 
-void Game::render_text(Shader* shader, Font* font, std::string text, float x, float y, float scale, glm::vec3 color)
-{
-	shader->set_1i(0, "font_texture");
-	shader->set_vec_3f(color, "font_color");
-	shader->use();
-	glBindVertexArray(this->text_VAO);
-	
-	for (std::string::const_iterator c = text.begin(); c != text.end(); ++c)
-	{
-		Character ch = font->get_character(*c);
-
-		float x_pos = x + ch.bearing.x * scale;
-		float y_pos = y + (ch.bearing.y - ch.size.y) * scale;
-
-		float w = ch.size.x * scale;
-		float h = ch.size.y * scale;
-
-		float vertices[6][4] = {
-			{ x_pos,     y_pos + h,   0.0f, 0.0f },
-			{ x_pos,     y_pos,       0.0f, 1.0f },
-			{ x_pos + w, y_pos,       1.0f, 1.0f },
-
-			{ x_pos,     y_pos + h,   0.0f, 0.0f },
-			{ x_pos + w, y_pos,       1.0f, 1.0f },
-			{ x_pos + w, y_pos + h,   1.0f, 0.0f }
-		};
-
-		glBindBuffer(GL_ARRAY_BUFFER, this->text_VBO);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		ch.texture->bind();
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		x += (ch.advance >> 6) * scale;
-	}
-
-	shader->unuse();
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindVertexArray(0);
-}
+//void Game::render_text(Shader* shader, Font* font, std::string text, float x, float y, float scale, glm::vec3 color)
+//{
+//	shader->set_1i(0, "font_texture");
+//	shader->set_vec_3f(color, "font_color");
+//	shader->use();
+//	glBindVertexArray(this->text_VAO);
+//	
+//	for (std::string::const_iterator c = text.begin(); c != text.end(); ++c)
+//	{
+//		Character ch = font->get_character(*c);
+//
+//		float x_pos = x + ch.bearing.x * scale;
+//		float y_pos = y + (ch.bearing.y - ch.size.y) * scale;
+//
+//		float w = ch.size.x * scale;
+//		float h = ch.size.y * scale;
+//
+//		float vertices[6][4] = {
+//			{ x_pos,     y_pos + h,   0.0f, 0.0f },
+//			{ x_pos,     y_pos,       0.0f, 1.0f },
+//			{ x_pos + w, y_pos,       1.0f, 1.0f },
+//
+//			{ x_pos,     y_pos + h,   0.0f, 0.0f },
+//			{ x_pos + w, y_pos,       1.0f, 1.0f },
+//			{ x_pos + w, y_pos + h,   1.0f, 0.0f }
+//		};
+//
+//		glBindBuffer(GL_ARRAY_BUFFER, this->text_VBO);
+//		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+//		glBindBuffer(GL_ARRAY_BUFFER, 0);
+//		ch.texture->bind();
+//		glDrawArrays(GL_TRIANGLES, 0, 6);
+//		x += (ch.advance >> 6) * scale;
+//	}
+//
+//	shader->unuse();
+//	glBindTexture(GL_TEXTURE_2D, 0);
+//	glBindVertexArray(0);
+//}
 
 void Game::render()
 {
@@ -673,14 +673,15 @@ void Game::render()
 
 	this->render_screen();
 
-	this->render_text(Shader::get("text"), this->arial_big, "Hit: " + std::to_string(this->hit), 1150.0f, 750.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-	this->render_text(Shader::get("text"), this->arial, "Position: " + glm::to_string(this->player->get_position()), 0.0f, 48.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-	this->render_text(Shader::get("text"), this->arial, "Frame Rate: " + std::to_string((int)(1.0f / this->dt)), 0.0f, 78.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	this->arial_big->render_string(Shader::get("text"), "Hit: " + std::to_string(this->hit), 1150.0f, 750.0f, 1.0f);
+	this->arial->render_string(Shader::get("text"), "Position: " + glm::to_string(this->player->get_position()), 0.0f, 48.0f, 1.0f);
+	this->arial->render_string(Shader::get("text"), "Frame Rate: " + std::to_string((int)(1.0f / this->dt)), 0.0f, 78.0f, 1.0f);
+
 	Firearm* firearm = this->player->get_firearm();
 	if (firearm != nullptr)
 	{
 		std::string ammo_str = std::to_string(firearm->get_ammo()) + '/' + std::to_string(firearm->get_reserve_ammo());
-		this->render_text(Shader::get("text"), this->arial_big, ammo_str, 1140.0f, 28.0f, 1.0f, glm::vec3(0.0f, 0.0f, 0.0f));
+		this->arial_big->render_string(Shader::get("text"), "AMMO: " + ammo_str, 0.0f, 103.0f, 1.0f);
 	}
 
 	glfwSwapBuffers(this->window);

@@ -115,11 +115,8 @@ private:
 
 	// DRAW
 	void render_skybox(Shader* shader);
-	void render_models(Shader* vertex_shader, Shader* fragment_shader);
-	void render_animated_models(Shader* vertex_shader, Shader* fragment_shader);
-	void render_foreground_animated_models(Shader* vertex_shader, Shader* fragment_shader);
 	void render_screen();
-	void render_text(Shader* shader, Font* font, std::string text, float x, float y, float scale, glm::vec3 color);
+	//void render_text(Shader* shader, Font* font, std::string text, float x, float y, float scale, glm::vec3 color);
 
 public:
 	// CONSTRUCTOR / DESTRUCTOR

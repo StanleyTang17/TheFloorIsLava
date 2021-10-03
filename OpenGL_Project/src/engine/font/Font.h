@@ -6,8 +6,9 @@
 #include<ft2build.h>
 #include FT_FREETYPE_H
 #include"engine/texture/Texture.h"
-#include"libs/GLM.h"
-#include<map>
+#include"engine/mesh/Primitive.h"
+#include"engine/shader/Shader.h"
+#include"utility/Utility.h"
 
 struct Character
 {
@@ -20,10 +21,13 @@ struct Character
 class Font
 {
 private:
-	std::map<char, Character> characters;
+	std::unordered_map<char, Character> characters;
+	glm::vec3 color;
+	Quad2D char_quad;
+
 public:
-	Font(std::string font_name, unsigned int size);
-	Character get_character(char c) const { return characters.at(c); };
+	Font(std::string font_name, unsigned int size, glm::vec3 color);
+	void render_string(Shader* shader, std::string str, float x, float y, float scale);
 };
 
 #endif
