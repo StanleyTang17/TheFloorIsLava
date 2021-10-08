@@ -324,6 +324,9 @@ void Game::init_shaders()
 	std::string depth_cube_srcs[] = { "src/shaders/depth_cube/vertex.glsl", "src/shaders/depth_cube/geometry.glsl", "src/shaders/depth_cube/fragment.glsl" };
 	Shader::load("depth_cube", 3, depth_cube_types, depth_cube_srcs);
 
+	std::string line_srcs[] = { "src/shaders/line/vertex.glsl", "src/shaders/line/fragment.glsl" };
+	Shader::load("line", 2, types, line_srcs);
+
 	// INIT PIPELINES
 
 	GLbitfield pipeline_stages[] = { GL_VERTEX_SHADER_BIT, GL_FRAGMENT_SHADER_BIT };
@@ -372,7 +375,7 @@ void Game::init_models()
 
 	ModelInstance* zombie_instance = new ModelInstance("zombie2", "animated", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 	zombie_instance->play_animation("walk", true);
-	RenderQueue::get("animated")->add_instance(zombie_instance);
+	//RenderQueue::get("animated")->add_instance(zombie_instance);
 
 	crosshair = new Image(
 		"res/images/crosshair_white.png",
@@ -628,12 +631,18 @@ void Game::render()
 
 	this->render_screen();
 
+	Firearm* firearm = this->player->get_firearm();
+	if (firearm != nullptr)
+	{
+		Shader::get("line")->use();
+		firearm->render_bullet(Shader::get("line"));
+	}
+
 	Shader::unuse();
 	ShaderPipeline::get("text")->use();
 	this->arial_big->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Hit: " + std::to_string(this->hit), 1150.0f, 750.0f, 1.0f);
 	this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Position: " + glm::to_string(this->player->get_position()), 0.0f, 48.0f, 1.0f);
 	this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Frame Rate: " + std::to_string((int)(1.0f / this->dt)), 0.0f, 78.0f, 1.0f);
-	Firearm* firearm = this->player->get_firearm();
 	if (firearm != nullptr)
 	{
 		std::string ammo_str = std::to_string(firearm->get_ammo()) + '/' + std::to_string(firearm->get_reserve_ammo());

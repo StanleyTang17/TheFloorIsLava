@@ -102,6 +102,9 @@
     <ClCompile Include="src\engine\mesh\Image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\engine\polygon\Ray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\framebuffer\Framebuffer.h">
@@ -215,6 +218,9 @@
     <ClInclude Include="src\engine\mesh\Image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\engine\polygon\Ray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc142-mt.dll" />
@@ -238,5 +244,7 @@
     <None Include="src\shaders\animation\vertex.glsl" />
     <None Include="src\shaders\foreground_animation\vertex.glsl" />
     <None Include="src\shaders\image\fragment.glsl" />
+    <None Include="src\shaders\line\vertex.glsl" />
+    <None Include="src\shaders\line\fragment.glsl" />
   </ItemGroup>
 </Project>

@@ -8,6 +8,8 @@ Player::Player(glm::vec3 position, Camera* camera)
 	this->control = new KeyboardControl();
 	this->velocity = glm::vec3(0.0f);
 
+	this->firearm = nullptr;
+
 	this->camera = camera;
 
 	this->set_collision_shape(new Collision::Box(&(this->position), &(this->velocity), Collision::Behavior::KINETIC, 1.0f, 1.0f, 1.0f));
@@ -60,4 +62,5 @@ void Player::update_keyboard_input(GLFWwindow* window, int key, int action)
 void Player::equip(Firearm* firearm)
 {
 	this->firearm = firearm;
+	this->firearm->attach_camera(this->camera);
 }

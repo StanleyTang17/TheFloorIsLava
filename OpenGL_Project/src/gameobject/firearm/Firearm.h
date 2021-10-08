@@ -3,8 +3,10 @@
 #ifndef FIREARM_H
 #define FIREARM_H
 
-#include"libs/OPENGL.h"
+#include"engine/polygon/Ray.h"
+#include"engine/camera/Camera.h"
 #include"gameobject/GameObject.h"
+
 
 enum class FiringMode
 {
@@ -19,6 +21,9 @@ private:
 	float damage;
 	int ammo;
 	int reserve_ammo;
+
+	Camera* camera;
+	Ray bullet_ray;
 
 	float time_last_fired;
 
@@ -38,6 +43,9 @@ public:
 	void update_keyboard_input(GLFWwindow* window, int key, int action);
 	inline int get_ammo() const { return this->ammo; }
 	inline int get_reserve_ammo() const { return this->reserve_ammo; }
+	void render_bullet(Shader* fragment_shader);
+	inline void attach_camera(Camera* camera) { this->camera = camera; }
+	bool is_firing();
 };
 
 #endif

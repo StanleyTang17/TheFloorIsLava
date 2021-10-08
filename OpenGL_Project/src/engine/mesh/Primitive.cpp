@@ -17,14 +17,14 @@ Primitive::~Primitive()
 		glDeleteBuffers(1, &this->EBO);
 }
 
-void Primitive::draw_vertices()
+void Primitive::draw_vertices(GLenum mode)
 {
 	glBindVertexArray(this->VAO);
 
 	if (this->num_indices == 0)
-		glDrawArrays(GL_TRIANGLES, 0, this->num_vertices);
+		glDrawArrays(mode, 0, this->num_vertices);
 	else
-		glDrawElements(GL_TRIANGLES, this->num_indices, GL_UNSIGNED_INT, 0);
+		glDrawElements(mode, this->num_indices, GL_UNSIGNED_INT, 0);
 
 	glBindVertexArray(0);
 }

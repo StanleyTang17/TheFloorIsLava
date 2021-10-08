@@ -20,7 +20,7 @@ protected:
 	~Primitive();
 
 public:
-	void draw_vertices();
+	void draw_vertices(GLenum mode = GL_TRIANGLES);
 	inline GLuint get_VAO() const { return this->VAO; }
 	inline GLuint get_VBO() const { return this->VBO; }
 };

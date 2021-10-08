@@ -77,6 +77,11 @@ const glm::vec3 Camera::get_world_up() const
 	return this->world_up;
 }
 
+const glm::vec3 Camera::get_camera_up() const
+{
+	return glm::normalize(glm::cross(this->right, this->front));
+}
+
 void Camera::set_position(glm::vec3 position)
 {
 	this->position = position;

@@ -2,7 +2,7 @@
 
 Firearm::Firearm(ModelInstance* graphics_instance, glm::vec3 position, FiringMode mode, int rate_of_fire, float damage, int max_ammo, int max_reserve_ammo)
 	:
-	GameObject(position), MAX_AMMO(max_ammo), MAX_RESERVE_AMMO(max_reserve_ammo)
+	GameObject(position), MAX_AMMO(max_ammo), MAX_RESERVE_AMMO(max_reserve_ammo), bullet_ray(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-1.0f, -1.0f, 1.0f), glm::vec3(1.0f))
 {
 	this->firing_mode = mode;
 	this->rate_of_fire = rate_of_fire;
@@ -12,6 +12,7 @@ Firearm::Firearm(ModelInstance* graphics_instance, glm::vec3 position, FiringMod
 	this->time_last_fired = 0;
 	this->set_graphic_model(graphics_instance);
 	this->trigger_down = false;
+	this->camera = nullptr;
 	assert(graphics_instance->is_animated());
 }
 
@@ -38,6 +39,7 @@ void Firearm::fire()
 		{
 			this->ammo--;
 			this->model_instance->play_animation("fire");
+			
 		}
 		else
 			this->reload();
@@ -69,4 +71,27 @@ void Firearm::update()
 {
 	if (this->trigger_down && this->firing_mode == FiringMode::AUTOMATIC)
 		this->fire();
+}
+
+bool Firearm::is_firing() {
+	Sequence animation = this->model_instance->get_animation();
+	return animation.name == "fire" && !this->model_instance->is_paused();
+}
+
+void Firearm::render_bullet(Shader* fragment_shader)
+{
+	float current_time = glfwGetTime();
+	Sequence anim = this->model_instance->get_animation();
+	if (!this->model_instance->is_paused() && anim.name == "fire" && current_time < this->time_last_fired + 10.0f / this->rate_of_fire)
+	{
+		this->camera->update_camera_vectors();
+		this->bullet_ray.set_position(
+			this->camera->get_position() + this->camera->get_front() * 0.07f
+			+ this->camera->get_right() * 0.045f
+			+ this->camera->get_camera_up() * -0.012f,
+
+			this->camera->get_position() + this->camera->get_front() * 5.0f
+		);
+		this->bullet_ray.render(fragment_shader);
+	}
 }

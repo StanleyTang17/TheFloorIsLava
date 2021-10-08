@@ -9,6 +9,6 @@ Kalashnikov::Kalashnikov()
 		600,
 		1.0f,
 		30,
-		90
+		900
 	)
 {}
