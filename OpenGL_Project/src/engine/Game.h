@@ -43,8 +43,6 @@ private:
 	glm::mat4 projection_matrix;
 	glm::mat4 light_space_matrix;
 
-	Camera* camera;
-
 	int show_depth;
 
 	// VECTORS
@@ -74,10 +72,11 @@ private:
 
 	// GAMEOBJECTS
 
-	Player* player;
 	Crate* crate;
 	Crate* crate2;
 	bool hit;
+	Level* level;
+	Cube3D* cube_mesh_test;
 
 	// FONTS
 

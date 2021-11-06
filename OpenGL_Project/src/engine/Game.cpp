@@ -90,9 +90,6 @@ Game::~Game()
 
 	for (std::size_t i = 0; i < this->spot_lights.size(); ++i)
 		delete this->spot_lights[i];
-
-	delete this->camera;
-	delete this->player;
 }
 
 void Game::framebuffer_resize_callback(GLFWwindow* window, int frame_buffer_width, int frame_buffer_height)
@@ -109,9 +106,7 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
 		return;
 	}
 
-	game->player->update_keyboard_input(window, key, action);
-	game->crate2->get_keyboard_control()->update_input(window, key, action);
-	game->crate->get_keyboard_control()->update_input(window, key, action);
+	game->level->handle_key_input(window, key, action);
 }
 
 void Game::scroll_callback(GLFWwindow* window, double x_offset, double y_offset)
@@ -122,7 +117,6 @@ void Game::scroll_callback(GLFWwindow* window, double x_offset, double y_offset)
 void Game::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	Game* game = static_cast<Game*>(glfwGetWindowUserPointer(window));
-	game->player->update_mouse_input(window, button, action);
 }
 
 void Game::init_GLFW()
@@ -291,6 +285,8 @@ void Game::init_others()
 	glEnableVertexAttribArray(1);
 
 	this->test_texture = new Texture2D("font", "res/images/container.png");
+
+	this->cube_mesh_test = new Cube3D();
 }
 
 void Game::init_matrices()
@@ -326,6 +322,9 @@ void Game::init_shaders()
 
 	std::string line_srcs[] = { "src/shaders/line/vertex.glsl", "src/shaders/line/fragment.glsl" };
 	Shader::load("line", 2, types, line_srcs);
+
+	std::string cube_srcs[] = { "src/shaders/cube/vertex.glsl", "src/shaders/line/fragment.glsl" };
+	Shader::load("cube", 2, types, cube_srcs);
 
 	// INIT PIPELINES
 
@@ -371,10 +370,10 @@ void Game::init_models()
 	AnimatedModel::load("res/animations/zombie/zombie2.dae", "res/animations/zombie/split.txt");
 	AnimatedModel::load("res/animations/ak_47/ak_47.dae", "res/animations/ak_47/split.txt");
 
-	RenderQueue::get("static")->add_instance(new ModelInstance("grass_plane", "static", glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
+	RenderQueue::get("static")->add_instance(new ModelInstance("grass_plane", "static", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
 
-	ModelInstance* zombie_instance = new ModelInstance("zombie2", "animated", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-	zombie_instance->play_animation("walk", true);
+	//ModelInstance* zombie_instance = new ModelInstance("zombie2", "animated", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+	//zombie_instance->play_animation("walk", true);
 	//RenderQueue::get("animated")->add_instance(zombie_instance);
 
 	crosshair = new Image(
@@ -388,19 +387,22 @@ void Game::init_models()
 
 void Game::init_game_objects()
 {
-	this->camera = new Camera(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	this->player = new Player(glm::vec3(0.0f, 0.0f, 0.0f), this->camera);
-	this->crate = new Crate(glm::vec3(3.0f, 2.5f, 6.0f), Collision::Behavior::STATIC, 2.0f);
-	this->crate2 = new Crate(glm::vec3(2.0f, 0.0f, 2.0f), Collision::Behavior::KINETIC, 1.0f);
+	this->crate = new Crate(glm::vec3(3.0f, 2.5f, 6.0f), 2.0f);
+	this->crate2 = new Crate(glm::vec3(2.0f, 2.0f, 2.0f), 1.0f);
 	this->crate2->set_control(new KeyboardControl(GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_LEFT, GLFW_KEY_RIGHT, GLFW_KEY_ENTER, GLFW_KEY_RIGHT_SHIFT));
 	
-	Kalashnikov* ak = new Kalashnikov();
-	this->player->equip(ak);
+	//Kalashnikov* ak = new Kalashnikov();
+	//this->player->equip(ak);
 
-	this->add_game_object(ak);
-	this->add_game_object(this->player);
-	this->add_game_object(this->crate);
-	this->add_game_object(this->crate2);
+	//this->add_game_object(ak);
+	//this->add_game_object(this->crate);
+	//this->add_game_object(this->crate2);
+
+	this->level = new Level(4, 4, 10, "static");
+	
+	for (int i = 0; i < 4; ++i)
+		for (int j = 0; j < 4; ++j)
+			this->level->queue_block(i, j, 3.0f);
 }
 
 void Game::init_uniforms()
@@ -465,6 +467,8 @@ void Game::init_uniforms()
 	glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->uniform_buffer);
+
+	Shader::get("cube")->set_vec_3f(glm::vec3(1.0f, 0.0f, 0.0f), "color");
 }
 
 void Game::init_fonts()
@@ -475,19 +479,21 @@ void Game::init_fonts()
 
 void Game::update_uniforms()
 {
+	Camera camera = this->level->get_camera();
+
 	// MATRICES
 	glfwGetFramebufferSize(this->window, &this->frame_buffer_width, &this->frame_buffer_height);
 	this->projection_matrix = glm::perspective(glm::radians(this->FOV), (float)this->frame_buffer_width / (float)this->frame_buffer_height, this->near_plane, this->far_plane);
 
-	glm::mat4 view_matrix_no_translate = glm::mat4(glm::mat3(this->camera->get_view_matrix()));
+	glm::mat4 view_matrix_no_translate = glm::mat4(glm::mat3(camera.get_view_matrix()));
 	glBindBuffer(GL_UNIFORM_BUFFER, this->uniform_buffer);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(this->projection_matrix));
-	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(this->camera->get_view_matrix()));
+	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera.get_view_matrix()));
 	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view_matrix_no_translate));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	Shader* game_fragment_shader = Shader::get("game_fragment");
-	game_fragment_shader->set_vec_3f(this->camera->get_position(), "camera_pos");
+	game_fragment_shader->set_vec_3f(camera.get_position(), "camera_pos");
 
 	// LIGHTS
 
@@ -497,8 +503,8 @@ void Game::update_uniforms()
 
 	if (spot_lights.size())
 	{
-		this->spot_lights[0]->set_direction(this->camera->get_front());
-		this->spot_lights[0]->set_position(this->camera->get_position());
+		this->spot_lights[0]->set_direction(camera.get_front());
+		this->spot_lights[0]->set_position(camera.get_position());
 	}
 
 	for (std::size_t i = 0; i < this->dir_lights.size(); ++i)
@@ -537,7 +543,7 @@ void Game::update_mouse_input()
 	this->last_mouse_x = this->mouse_x;
 	this->last_mouse_y = this->mouse_y;
 
-	this->camera->update_mouse_input(this->dt, this->mouse_offset_x, this->mouse_offset_y);
+	this->level->handle_mouse_move_input(this->dt, this->mouse_offset_x, this->mouse_offset_y);
 }
 
 void Game::update_keyboard_input()
@@ -553,28 +559,8 @@ void Game::update()
 	this->update_dt();
 	this->update_mouse_input();
 	this->update_keyboard_input();
-	
-	for (std::size_t i = 0; i < game_objects.size(); ++i)
-		game_objects[i]->update_velocity();
 
-	this->hit = false;
-	for (std::size_t i = 0; i < game_objects.size(); ++i)
-	{
-		for (std::size_t j = i + 1; j < game_objects.size(); ++j)
-		{
-			if (game_objects[i]->check_collision(game_objects[j], this->dt))
-				this->hit = true;
-		}
-		game_objects[i]->move(this->dt);
-		game_objects[i]->update();
-	}
-
-	//glm::vec3 cam_position = this->camera->get_position();
-	//std::sort(transparent_models.begin(), transparent_models.end(),
-	//	[&cam_position](const Model* obj1, const Model* obj2) {
-	//		return glm::length(cam_position - obj1->get_position()) > glm::length(cam_position - obj2->get_position());
-	//	}
-	//);
+	this->level->update(this->dt);
 }
 
 void Game::render_skybox(Shader* shader)
@@ -620,9 +606,27 @@ void Game::render()
 	this->multisample_FBO->bind(true);
 	glActiveTexture(GL_TEXTURE0 + this->depth_cube_FBO->get_texture());
 	glBindTexture(GL_TEXTURE_CUBE_MAP, this->depth_cube_FBO->get_texture());
+
+	
 	RenderQueue::get("static")->set_main_shader(nullptr);
 	RenderQueue::get("static")->render(this->dt);
 	RenderQueue::get("animated")->render(this->dt);
+
+	Shader::get("cube")->use();
+	Shader::get("cube")->set_mat_4fv(Utility::generate_transform(
+		level->get_player_pos(),
+		glm::vec3(0.0f),
+		global::size)
+	, "model_matrix", GL_FALSE);
+	this->cube_mesh_test->draw_vertices();
+	//hitbox = crate2->get_hitbox();
+	//Shader::get("cube")->set_mat_4fv(Utility::generate_transform(
+	//	hitbox.get_position(),
+	//	glm::vec3(0.0f),
+	//	hitbox.get_size())
+	//	, "model_matrix", GL_FALSE);
+	//this->cube_mesh_test->draw_vertices();
+
 	glClear(GL_DEPTH_BUFFER_BIT);
 	RenderQueue::get("foreground_animated")->render(this->dt);
 
@@ -631,23 +635,13 @@ void Game::render()
 
 	this->render_screen();
 
-	Firearm* firearm = this->player->get_firearm();
-	if (firearm != nullptr)
-	{
-		Shader::get("line")->use();
-		firearm->render_bullet(Shader::get("line"));
-	}
-
 	Shader::unuse();
 	ShaderPipeline::get("text")->use();
-	this->arial_big->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Hit: " + std::to_string(this->hit), 1150.0f, 750.0f, 1.0f);
-	this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Position: " + glm::to_string(this->player->get_position()), 0.0f, 48.0f, 1.0f);
-	this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Frame Rate: " + std::to_string((int)(1.0f / this->dt)), 0.0f, 78.0f, 1.0f);
-	if (firearm != nullptr)
-	{
-		std::string ammo_str = std::to_string(firearm->get_ammo()) + '/' + std::to_string(firearm->get_reserve_ammo());
-		this->arial_big->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "AMMO: " + ammo_str, 0.0f, 103.0f, 1.0f);
-	}
+	this->arial_big->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Collision: " + glm::to_string(global::collision), 0.0f, 750.0f, 1.0f);
+	this->arial_big->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Over bound: " + glm::to_string(global::over_bound), 0.0f, 700.0f, 1.0f);
+	this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Position: " + glm::to_string(global::position), 0.0f, 670.0f, 1.0f);
+	//this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Velocity: " + glm::to_string(global::velocity), 0.0f, 18.0f, 1.0f);
+	//this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Frame Rate: " + std::to_string((int)(1.0f / this->dt)), 0.0f, 78.0f, 1.0f);
 
 	ShaderPipeline::get("image")->use();
 	this->crosshair->render(Shader::get("image_vertex"), Shader::get("image_fragment"));

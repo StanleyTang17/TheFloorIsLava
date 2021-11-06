@@ -26,6 +26,7 @@ public:
 	void remove_instance(ModelInstance* instance);
 	inline void set_main_shader(Shader* shader) { this->main_shader = shader; }
 	inline void set_pipeline(ShaderPipeline* pipeline) { this->pipeline = pipeline; }
+	inline std::string get_name() const { return this->name; }
 
 	static RenderQueue* load(std::string name, Shader* single_main_shader);
 	static RenderQueue* load(std::string name, ShaderPipeline* pipeline);

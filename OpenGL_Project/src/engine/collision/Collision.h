@@ -45,14 +45,16 @@ private:
 	
 	glm::vec3* position;
 	glm::vec3* velocity;
+	glm::vec3 offset;
+
 public:
-	Shape(glm::vec3* position_ref, glm::vec3* velocity_ref, Collision::ShapeType type, Collision::Behavior behavior);
+	Shape(glm::vec3* position_ref, glm::vec3* velocity_ref, glm::vec3 offset, Collision::ShapeType type, Collision::Behavior behavior);
 
 	Collision::ShapeType get_type() const { return this->type; }
 	Collision::Behavior get_behavior() const { return this->behavior; }
-	glm::vec3 get_position() const { return *position; }
+	glm::vec3 get_position() const { return *position + offset; }
 	glm::vec3 get_velocity() const { return *velocity; }
-	void set_position(glm::vec3 position) { *(this->position) = position; }
+	void set_position(glm::vec3 position) { *(this->position) = position - offset; }
 	void set_velocity(glm::vec3 velocity) { *(this->velocity) = velocity; }
 };
 
@@ -61,7 +63,7 @@ class Collision::Sphere : public Collision::Shape
 protected:
 	float radius;
 public:
-	Sphere(glm::vec3* position_ref, glm::vec3* velocity_ref, Collision::Behavior behavior, float radius);
+	Sphere(glm::vec3* position_ref, glm::vec3* velocity_ref, glm::vec3 offset, Collision::Behavior behavior, float radius);
 
 	float get_radius() const { return this->radius; }
 };
@@ -73,7 +75,7 @@ protected:
 	float width;
 	float height;
 public:
-	Box(glm::vec3* position_ref, glm::vec3* velocity_ref, Collision::Behavior behavior, float length, float width, float height);
+	Box(glm::vec3* position_ref, glm::vec3* velocity_ref, glm::vec3 offset, Collision::Behavior behavior, float length, float width, float height);
 
 	void set_length(float length) { this->length = length; }
 	void set_width(float width) { this->width = width; }

@@ -36,7 +36,7 @@ void Camera::update_camera_vectors()
 	this->up = glm::normalize(glm::cross(this->right, this->front));
 }
 
-void Camera::update_mouse_input(const float& dt, const double& offset_x, const double& offset_y)
+void Camera::handle_mouse_move_input(const float dt, const double offset_x, const double offset_y)
 {
 	this->pitch += static_cast<GLfloat>(offset_y) * this->sensitivity * dt;
 	this->yaw += static_cast<GLfloat>(offset_x) * this->sensitivity * dt;

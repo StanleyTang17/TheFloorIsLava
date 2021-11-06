@@ -5,12 +5,13 @@
 
 #include"libs/OPENGL.h"
 #include"libs/GLM.h"
+#include"engine/input/MouseMoveInput.h"
 
 #include<math.h>
 
 enum direction { FORWARD = 0, LEFT = 1, BACK = 2, RIGHT = 3 };
 
-class Camera
+class Camera : public MouseMoveInput
 {
 private:
 	glm::mat4 view_matrix;
@@ -31,7 +32,7 @@ public:
 	Camera(glm::vec3 position, glm::vec3 direction, glm::vec3 world_up);
 	~Camera();
 
-	void update_mouse_input(const float& dt, const double& offset_x, const double& offset_y);
+	void handle_mouse_move_input(const float dt, const double offset_x, const double offset_y) override;
 	void update_camera_vectors();
 
 	const glm::mat4 get_view_matrix();

@@ -3,30 +3,36 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include"GlobalDebug.h"
 #include"engine/camera/Camera.h"
-#include"engine/control/KeyboardControl.h"
-#include"gameobject/firearm/Firearm.h"
+#include"engine/hitbox/Hitbox.h"
+#include"engine/input/KeyInput.h"
+#include"gameobject/GameObject.h"
 #include"libs/NATIVE.h"
 
-class Player : public GameObject
+class Player : public GameObject, public KeyInput
 {
 private:
 	float speed = 5.0f;
-	Camera* camera;
-	KeyboardControl* control;
-	Firearm* firearm;
+	float jump_speed = 10.0f;
+
+	// MOVEMENT CONTROL
+	int front_movement;
+	int side_movement;
+	bool jump_movement;
+
+	glm::vec3 front;
+	glm::vec3 right;
 
 public:
-	Player(glm::vec3 position, Camera* camera);
+	Player(glm::vec3 position);
 	~Player();
 
-	void update_velocity();
+	void update_direction(glm::vec3 front, glm::vec3 right);
+	void update_velocity(const float dt) override;
 	void update();
-	void update_mouse_input(GLFWwindow* window, int button, int action);
-	void update_keyboard_input(GLFWwindow* window, int key, int action);
-	void equip(Firearm* firearm);
-
-	inline Firearm* get_firearm() { return this->firearm; }
+	void handle_key_input(GLFWwindow* window, int key, int action) override;
+	
 };
 
 #endif

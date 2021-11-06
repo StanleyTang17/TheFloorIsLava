@@ -4,29 +4,41 @@ GameObject::GameObject(glm::vec3 position)
 {
 	this->position = position;
 	this->model_instance = nullptr;
-	this->collision_shape = nullptr;
+	this->hitbox = nullptr;
 	this->velocity = glm::vec3(0.0f);
+	this->in_air = false;
 }
 
 GameObject::~GameObject()
 {
 	if (model_instance != nullptr)
 		delete model_instance;
-	if (collision_shape != nullptr)
-		delete collision_shape;
+	if (hitbox != nullptr)
+		delete hitbox;
 }
 
-void GameObject::set_collision_shape(Collision::Shape* shape)
+void GameObject::apply_gravity(const float dt)
 {
-	if (shape == nullptr)
-	{
-		delete this->collision_shape;
-		this->collision_shape = nullptr;
-	}
-	else
-	{
-		this->collision_shape = shape;
-	}
+	if (this->in_air)
+		this->velocity.y += GameObject::GRAVITY * dt;
+}
+
+void GameObject::update_velocity(const float dt)
+{
+	this->apply_gravity(dt);
+}
+
+void GameObject::update_hitbox()
+{
+	if (hitbox != nullptr)
+		hitbox->set_center(this->position);
+}
+
+void GameObject::set_hitbox(Hitbox* hitbox)
+{
+	if (this->hitbox != nullptr)
+		delete this->hitbox;
+	this->hitbox = hitbox;
 }
 
 void GameObject::set_graphic_model(ModelInstance* model_instance)
@@ -35,16 +47,21 @@ void GameObject::set_graphic_model(ModelInstance* model_instance)
 	this->model_instance = model_instance;
 }
 
-bool GameObject::check_collision(GameObject* other, const float dt) {
-	bool hit = false;
-	if (this->collision_shape != nullptr && other->collision_shape != nullptr)
-		hit = Collision::check(this->collision_shape, other->collision_shape, dt);
-	return hit;
-}
-
 void GameObject::move(const float dt)
 {
 	this->position += this->velocity * dt;
 	if (this->model_instance != nullptr)
 		this->model_instance->set_position(this->position);
+}
+
+void GameObject::get_hitbox_vertices(Face face, glm::vec3 vertices[4])
+{
+	if (this->hitbox != nullptr)
+		this->hitbox->get_vertices(face, vertices);
+}
+
+glm::vec3 GameObject::get_hitbox_size()
+{
+	if (this->hitbox != nullptr)
+		return this->hitbox->get_size();
 }

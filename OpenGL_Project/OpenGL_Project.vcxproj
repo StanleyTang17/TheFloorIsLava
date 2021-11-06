@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\engine\hitbox\Hitbox.cpp" />
+    <ClCompile Include="src\level\Level.cpp" />
     <ClCompile Include="src\engine\polygon\Ray.cpp" />
     <ClCompile Include="src\engine\mesh\Image.cpp" />
     <ClCompile Include="src\engine\mesh\Primitive.cpp" />
@@ -32,7 +34,6 @@
     <ClCompile Include="src\utility\AssimpToGLM.cpp" />
     <ClCompile Include="src\engine\control\KeyboardControl.cpp" />
     <ClCompile Include="src\engine\math\Math.cpp" />
-    <ClCompile Include="src\gameobject\ball\Ball.cpp" />
     <ClCompile Include="src\engine\camera\Camera.cpp" />
     <ClCompile Include="src\engine\collision\Collision.cpp" />
     <ClCompile Include="src\engine\font\Font.cpp" />
@@ -51,6 +52,11 @@
     <ClCompile Include="src\utility\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\engine\input\KeyInput.h" />
+    <ClInclude Include="src\engine\hitbox\Hitbox.h" />
+    <ClInclude Include="src\engine\input\MouseInput.h" />
+    <ClInclude Include="src\engine\input\MouseMoveInput.h" />
+    <ClInclude Include="src\level\Level.h" />
     <ClInclude Include="src\engine\polygon\Ray.h" />
     <ClInclude Include="src\engine\mesh\Image.h" />
     <ClInclude Include="src\engine\mesh\Primitive.h" />
@@ -64,7 +70,6 @@
     <ClInclude Include="src\utility\AssimpToGLM.h" />
     <ClInclude Include="src\engine\control\KeyboardControl.h" />
     <ClInclude Include="src\engine\math\Math.h" />
-    <ClInclude Include="src\gameobject\ball\Ball.h" />
     <ClInclude Include="src\engine\camera\Camera.h" />
     <ClInclude Include="src\engine\collision\Collision.h" />
     <ClInclude Include="src\engine\font\Font.h" />
@@ -96,6 +101,7 @@
     <None Include="glew32.dll" />
     <None Include="glfw3.dll" />
     <None Include="src\shaders\animation\vertex.glsl" />
+    <None Include="src\shaders\cube\vertex.glsl" />
     <None Include="src\shaders\depth_buffer\fragment.glsl" />
     <None Include="src\shaders\depth_buffer\vertex.glsl" />
     <None Include="src\shaders\depth_cube\fragment.glsl" />
@@ -221,8 +227,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32.lib;soil2-debug.lib;assimp-vc142-mt.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32.lib;soil2-debug.lib;assimp-vc140-mt.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

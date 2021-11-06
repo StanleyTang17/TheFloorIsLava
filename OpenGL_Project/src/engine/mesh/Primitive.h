@@ -41,4 +41,10 @@ public:
 	inline float get_height() const { return this->height; }
 };
 
+class Cube3D : public Primitive
+{
+public:
+	Cube3D();
+};
+
 #endif

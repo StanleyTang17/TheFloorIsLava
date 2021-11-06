@@ -1,27 +1,26 @@
 #include"Collision.h"
 
-glm::vec3 global::set_back = glm::vec3(0.0f);
-
 using namespace Collision;
 
-Shape::Shape(glm::vec3* position_ref, glm::vec3* velocity_ref, ShapeType type, Collision::Behavior behavior)
+Shape::Shape(glm::vec3* position_ref, glm::vec3* velocity_ref, glm::vec3 offset, ShapeType type, Collision::Behavior behavior)
 {
 	this->type = type;
 	this->behavior = behavior;
 	this->position = position_ref;
 	this->velocity = velocity_ref;
+	this->offset = offset;
 }
 
-Sphere::Sphere(glm::vec3* position_ref, glm::vec3* velocity_ref, Collision::Behavior behavior, float radius)
+Sphere::Sphere(glm::vec3* position_ref, glm::vec3* velocity_ref, glm::vec3 offset, Collision::Behavior behavior, float radius)
 	:
-	Shape(position_ref, velocity_ref, ShapeType::SPHERE, behavior)
+	Shape(position_ref, velocity_ref, offset, ShapeType::SPHERE, behavior)
 {
 	this->radius = radius;
 }
 
-Box::Box(glm::vec3* position_ref, glm::vec3* velocity_ref, Collision::Behavior behavior, float length, float width, float height)
+Box::Box(glm::vec3* position_ref, glm::vec3* velocity_ref, glm::vec3 offset, Collision::Behavior behavior, float length, float width, float height)
 	:
-	Shape(position_ref, velocity_ref, ShapeType::BOX, behavior)
+	Shape(position_ref, velocity_ref, offset, ShapeType::BOX, behavior)
 {
 	this->length = length;
 	this->width = width;
