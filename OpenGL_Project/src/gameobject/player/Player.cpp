@@ -8,17 +8,9 @@ Player::Player(glm::vec3 position)
 	:
 	GameObject(position)
 {
-	this->position = position;
-	this->velocity = glm::vec3(0.0f);
+	this->reset(position);
 
 	this->set_hitbox(new Hitbox(this->position, glm::vec3(1.0f, 2.0f, 1.0f)));
-
-	this->front_movement = 0;
-	this->side_movement = 0;
-	this->in_air = false;
-
-	this->front = glm::vec3(0.0f, 0.0f, 1.0f);
-	this->right = glm::vec3(1.0f, 0.0f, 0.0f);
 
 	global::size = this->hitbox->get_size();
 }
@@ -132,4 +124,17 @@ void Player::handle_key_input(GLFWwindow* window, int key, int action)
 		else if (action == GLFW_RELEASE)
 			this->speed = 5.0f;
 	}
+}
+
+void Player::reset(glm::vec3 position)
+{
+	this->position = position;
+	this->velocity = glm::vec3(0.0f);
+
+	this->front_movement = 0;
+	this->side_movement = 0;
+	this->in_air = false;
+
+	this->front = glm::vec3(0.0f, 0.0f, 1.0f);
+	this->right = glm::vec3(1.0f, 0.0f, 0.0f);
 }

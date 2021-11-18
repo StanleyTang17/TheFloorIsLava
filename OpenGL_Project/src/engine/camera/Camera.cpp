@@ -86,3 +86,10 @@ void Camera::set_position(glm::vec3 position)
 {
 	this->position = position;
 }
+
+void Camera::set_front(glm::vec3 front)
+{
+	this->front = glm::normalize(front);
+	this->right = glm::normalize(glm::cross(this->front, this->world_up));
+	this->up = glm::normalize(glm::cross(this->right, this->front));
+}

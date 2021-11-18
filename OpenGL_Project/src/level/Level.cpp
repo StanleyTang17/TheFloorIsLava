@@ -12,18 +12,45 @@ Level::Level(const int rows, const int cols, const int height, std::string queue
 	camera(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f))
 {
 	int num_tiles = rows * cols;
-	this->height_map = new unsigned int[num_tiles];
+	this->height_map = new int[num_tiles];
+	this->queue_map = new bool[num_tiles];
 	this->render_queue = queue;
 
 	for (int i = 0; i < num_tiles; ++i)
+	{
 		this->height_map[i] = 0;
+		this->queue_map[i] = false;
+	}
 
 	this->gameobjects.push_back(&this->player);
+
+	RenderQueue::get("static")->add_instance(new ModelInstance(
+		"container_reverse",
+		"static",
+		glm::vec3(rows * GRID_SIZE / 2 - GRID_SIZE, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2 - GRID_SIZE),
+		glm::vec3(0.0f),
+		glm::vec3(rows * GRID_SIZE / 2, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2)
+	));
+
+	this->lava_instance = new ModelInstance(
+		"lava_plane",
+		"static",
+		glm::vec3(this->ROWS * GRID_SIZE / 2 - GRID_SIZE, -1.0f, this->COLS * GRID_SIZE / 2 - GRID_SIZE),
+		glm::vec3(0.0f),
+		glm::vec3(this->ROWS * GRID_SIZE / 2, MAX_HEIGHT * GRID_SIZE / 2, this->COLS * GRID_SIZE / 2)
+	);
+	this->has_lava = false;
+	RenderQueue::get("static")->add_instance(this->lava_instance);
+
+	this->game_over = false;
+	this->time_survived = 0;
 }
 
 Level::~Level()
 {
 	delete[] this->height_map;
+	delete[] this->queue_map;
+	delete this->lava_instance;
 	for (GameObject* object : this->gameobjects)
 		delete object;
 }
@@ -32,21 +59,61 @@ void Level::queue_block(int row, int col, float time_til_landing)
 {
 	QueuedBlock block { row, col, glfwGetTime() + time_til_landing };
 	this->queued_blocks.push_back(block);
+	this->set_tile_queued(row, col, true);
+	glm::vec3 position = glm::vec3(
+		block.row * GRID_SIZE - GRID_SIZE / 2,
+		(float)this->get_height(row, col) * GRID_SIZE + 0.0001f,
+		block.col * GRID_SIZE - GRID_SIZE / 2
+	);
+	InstancedModel::get("container_plane")->add_instance(new ModelInstance("container_plane", this->render_queue, position, glm::vec3(0.0f), glm::vec3(1.0f)));
+	InstancedModel::get("container_plane")->init_instances();
 }
 
 void Level::update(const float dt)
 {
-	//camera.set_position(player.get_position() + glm::vec3(0.0f, 2.0f, 0.0f));
-	//camera.update_camera_vectors();
-	player.update_direction(camera.get_front(), camera.get_right());
+	this->particles.update(dt, this->camera.get_view_matrix(), this->camera.get_position());
 
+	if (this->game_over)
+		return;
+
+	this->timer.tick();
+	this->drop_blocks();
+	this->queue_blocks();
+	this->update_gameobjects(dt);
+	this->update_lava(dt);
+
+	this->time_survived = this->timer.get_total_time_elapsed();
+}
+
+void Level::queue_blocks()
+{
+	while (this->queued_blocks.size() < NUM_QUEUED_BLOCKS)
+	{
+		int row = 0;
+		int col = 0;
+
+		do {
+			row = this->random.rand_int(0, this->ROWS - 1);
+			col = this->random.rand_int(0, this->COLS - 1);
+		} while (this->is_tile_queued(row, col));
+
+		this->queue_block(row, col, this->queued_blocks.size() * QUEUE_TIME_PER_BLOCK);
+	}
+}
+
+void Level::drop_blocks()
+{
+	bool hit = false;
+	bool has_new_blocks = false;
 	std::list<QueuedBlock>::iterator block_it = this->queued_blocks.begin();
 	while (block_it != this->queued_blocks.end())
 	{
 		if (glfwGetTime() >= block_it->landing_time)
 		{
+			has_new_blocks = true;
 			int index = this->get_index(block_it->row, block_it->col);
 			this->height_map[index] += 1;
+			this->set_tile_queued(block_it->row, block_it->col, false);
 
 			glm::vec3 position = glm::vec3(
 				block_it->row * GRID_SIZE - GRID_SIZE / 2,
@@ -54,13 +121,41 @@ void Level::update(const float dt)
 				block_it->col * GRID_SIZE - GRID_SIZE / 2
 			);
 			ModelInstance* box_instance = new ModelInstance("container", this->render_queue, position, glm::vec3(0.0f), glm::vec3(1.0f));
-			RenderQueue::get(this->render_queue)->add_instance(box_instance);
+			InstancedModel::get("container")->add_instance(box_instance);
+
+			//position.y -= GRID_SIZE / 2;
+			//this->particles.generate(position, glm::vec3(0.1), 500, 0.5f);
+
+			// Check if block hit player
+			glm::vec3 vertices[4];
+			this->player.get_hitbox_vertices(Face::BOTTOM, vertices);
+
+			for (glm::vec3 vertex : vertices)
+			{
+				glm::ivec3 grid_pos = this->get_grid_pos(vertex);
+				if (grid_pos.x == block_it->row && grid_pos.z == block_it->col && grid_pos.y >= this->get_height(block_it->row, block_it->col))
+				{
+					hit = true;
+					break;
+				}
+			}
 
 			block_it = this->queued_blocks.erase(block_it);
 		}
 		else
 			++block_it;
 	}
+
+	if (has_new_blocks)
+		InstancedModel::get("container")->init_instances();
+
+	if (hit)
+		this->terminate();
+}
+
+void Level::update_gameobjects(const float dt)
+{
+	player.update_direction(camera.get_front(), camera.get_right());
 
 	std::list<GameObject*>::iterator object_it = this->gameobjects.begin();
 	while (object_it != this->gameobjects.end())
@@ -73,9 +168,12 @@ void Level::update(const float dt)
 		object->update();
 		++object_it;
 	}
-	
+
 	camera.set_position(player.get_position() + glm::vec3(0.0f, 2.0f, 0.0f));
 	camera.update_camera_vectors();
+
+	if (player.get_position().y - player.get_hitbox_size().y / 2 <= this->lava_instance->get_position().y)
+		this->terminate();
 }
 
 glm::ivec3 Level::get_grid_pos(glm::vec3 position)
@@ -89,11 +187,24 @@ glm::ivec3 Level::get_grid_pos(glm::vec3 position)
 
 void Level::handle_key_input(GLFWwindow* window, int key, int action)
 {
+	if (this->game_over)
+	{
+		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+			this->restart();
+		return;
+	}
+
 	this->player.handle_key_input(window, key, action);
+
+	if (key == GLFW_KEY_P && action == GLFW_PRESS)
+		this->particles.generate(this->player.get_position(), glm::vec3(0.1f), 1000, 1.0f);
 }
 
 void Level::handle_mouse_move_input(const float dt, const double offset_x, const double offset_y)
 {
+	if (this->game_over)
+		return;
+
 	this->camera.handle_mouse_move_input(dt, offset_x, offset_y);
 }
 
@@ -303,4 +414,64 @@ void Level::add_gameobject(GameObject* object)
 {
 	this->gameobjects.push_back(object);
 	RenderQueue::get(this->render_queue)->add_instance(object->get_model_instance());
+}
+
+void Level::terminate()
+{
+	this->game_over = true;
+	this->time_survived = this->timer.get_total_time_elapsed();
+	this->particles.generate(this->player.get_position(), glm::vec3(0.1f), 1000, 1.0f);
+}
+
+void Level::restart()
+{
+	int num_tiles = this->ROWS * this->COLS;
+	for (int i = 0; i < num_tiles; ++i)
+	{
+		this->height_map[i] = 0;
+		this->queue_map[i] = false;
+	}
+
+	this->queued_blocks.clear();
+
+	for (GameObject* object : this->gameobjects)
+		if (object != &this->player)
+			delete object;
+
+	this->particles.clear();
+	this->gameobjects.clear();
+	this->gameobjects.push_back(&this->player);
+
+	this->player.reset(glm::vec3(this->ROWS * GRID_SIZE / 2, 5.0f, this->COLS * GRID_SIZE / 2));
+	this->camera.set_front(glm::vec3(0.0f, 0.0f, 1.0f));
+	this->lava_instance->set_position(glm::vec3(this->ROWS * GRID_SIZE / 2 - GRID_SIZE, -10.0f, this->COLS * GRID_SIZE / 2 - GRID_SIZE));
+	
+	this->timer.set_ticks(0);
+	this->timer.reset_total_time();
+	this->has_lava = false;
+	this->game_over = false;
+
+	InstancedModel::get("container")->clear_instances();
+	InstancedModel::get("container_plane")->clear_instances();
+}
+
+void Level::update_lava(const float dt)
+{
+	if (this->timer.get_ticks() == 10 && !this->has_lava)
+	{
+		this->lava_instance->set_position(glm::vec3(this->ROWS * GRID_SIZE / 2 - GRID_SIZE, 0.1f, this->COLS * GRID_SIZE / 2 - GRID_SIZE));
+		this->has_lava = true;
+	}
+
+	if (this->has_lava)
+	{
+		glm::vec3 pos = this->lava_instance->get_position();
+		pos.y += this->lava_speed * dt;
+		this->lava_instance->set_position(pos);
+	}
+}
+
+void Level::render_particles()
+{
+	this->particles.render();
 }

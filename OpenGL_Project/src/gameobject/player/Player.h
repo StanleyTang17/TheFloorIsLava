@@ -13,8 +13,8 @@
 class Player : public GameObject, public KeyInput
 {
 private:
-	float speed = 5.0f;
-	float jump_speed = 10.0f;
+	float speed = 7.0f;
+	float jump_speed = 15.0f;
 
 	// MOVEMENT CONTROL
 	int front_movement;
@@ -32,6 +32,7 @@ public:
 	void update_velocity(const float dt) override;
 	void update();
 	void handle_key_input(GLFWwindow* window, int key, int action) override;
+	void reset(glm::vec3 position);
 	
 };
 

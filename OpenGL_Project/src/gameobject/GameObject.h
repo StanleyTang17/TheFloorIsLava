@@ -18,7 +18,7 @@ protected:
 	void apply_gravity(const float dt);
 
 public:
-	const float GRAVITY = -19.6f;
+	const float GRAVITY = -38.4f;
 
 	GameObject(glm::vec3 position);
 	~GameObject();

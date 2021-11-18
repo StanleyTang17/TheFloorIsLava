@@ -126,10 +126,19 @@ void Mesh::update_uniform(Shader* shader)
 	}
 }
 
-void Mesh::rendor(Shader* vertex_shader, Shader* fragment_shader)
+void Mesh::rendor(Shader* vertex_shader, Shader* fragment_shader, int instances)
 {
 	this->update_uniform(fragment_shader);
-	this->draw_vertices();
+	if (instances > 0)
+	{
+		glBindVertexArray(this->VAO);
+		if (this->num_indices > 0)
+			glDrawElementsInstanced(GL_TRIANGLES, this->num_indices, GL_UNSIGNED_INT, 0, instances);
+		else
+			glDrawArraysInstanced(GL_TRIANGLES, 0, this->num_vertices, instances);
+	}
+	else
+		this->draw_vertices();
 
 	glBindVertexArray(0);
 	glActiveTexture(GL_TEXTURE0);

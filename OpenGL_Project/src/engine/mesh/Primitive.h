@@ -23,6 +23,7 @@ public:
 	void draw_vertices(GLenum mode = GL_TRIANGLES);
 	inline GLuint get_VAO() const { return this->VAO; }
 	inline GLuint get_VBO() const { return this->VBO; }
+	inline unsigned int get_num_vertices() const { return this->num_vertices; }
 };
 
 class Quad2D : public Primitive
@@ -45,6 +46,12 @@ class Cube3D : public Primitive
 {
 public:
 	Cube3D();
+};
+
+class Quad3D : public Primitive
+{
+public:
+	Quad3D(glm::vec3 position, glm::vec3 normal, float width, float height);
 };
 
 #endif

@@ -35,7 +35,7 @@ public:
 	Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture2D*> textures);
 	Mesh(std::vector<AnimatedVertex> vertices, std::vector<GLuint> indices, std::vector<Texture2D*> textures);
 	~Mesh();
-	void rendor(Shader* vertex_shader, Shader* fragment_shader);
+	void rendor(Shader* vertex_shader, Shader* fragment_shader, int instances = 0);
 };
 
 #endif

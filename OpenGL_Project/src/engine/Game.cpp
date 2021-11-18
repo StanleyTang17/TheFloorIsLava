@@ -302,6 +302,7 @@ void Game::init_shaders()
 
 	Shader* static_vertex_shader = Shader::load("static_vertex", GL_VERTEX_SHADER, "src/shaders/game/vertex.glsl");
 	Shader* animated_vertex_shader = Shader::load("animated_vertex", GL_VERTEX_SHADER, "src/shaders/animation/vertex.glsl");
+	Shader* instanced_vertex_shader = Shader::load("instanced_vertex", GL_VERTEX_SHADER, "src/shaders/game_instanced/vertex.glsl");
 	Shader* foreground_animated_vertex_shader = Shader::load("foreground_animated_vertex", GL_VERTEX_SHADER, "src/shaders/foreground_animation/vertex.glsl");
 	Shader* game_fragment_shader = Shader::load("game_fragment", GL_FRAGMENT_SHADER, "src/shaders/game/fragment.glsl");
 	Shader* image_vertex_shader = Shader::load("image_vertex", GL_VERTEX_SHADER, "src/shaders/image/vertex.glsl");
@@ -326,23 +327,29 @@ void Game::init_shaders()
 	std::string cube_srcs[] = { "src/shaders/cube/vertex.glsl", "src/shaders/line/fragment.glsl" };
 	Shader::load("cube", 2, types, cube_srcs);
 
+	std::string particles_srcs[] = { "src/shaders/particles/vertex.glsl", "src/shaders/particles/fragment.glsl" };
+	Shader::load("particles", 2, types, particles_srcs);
+
 	// INIT PIPELINES
 
 	GLbitfield pipeline_stages[] = { GL_VERTEX_SHADER_BIT, GL_FRAGMENT_SHADER_BIT };
 	
 	Shader* static_pipeline_shaders[] = { static_vertex_shader, game_fragment_shader };
 	Shader* animated_pipeline_shaders[] = { animated_vertex_shader, game_fragment_shader };
+	Shader* instanced_pipeline_shaders[] = { instanced_vertex_shader, game_fragment_shader };
 	Shader* foreground_animated_pipeline_shaders[] = { foreground_animated_vertex_shader, game_fragment_shader };
 	Shader* image_pipeline_shaders[] = { image_vertex_shader, image_fragment_shader };
 	Shader* text_pipeline_shaders[] = { image_vertex_shader, text_fragment_shader };
 	ShaderPipeline::load("static_game", 2, pipeline_stages, static_pipeline_shaders);
 	ShaderPipeline::load("animated_game", 2, pipeline_stages, animated_pipeline_shaders);
+	ShaderPipeline::load("instanced_game", 2, pipeline_stages, instanced_pipeline_shaders);
 	ShaderPipeline::load("foreground_animated_game", 2, pipeline_stages, foreground_animated_pipeline_shaders);
 	ShaderPipeline::load("image", 2, pipeline_stages, image_pipeline_shaders);
 	ShaderPipeline::load("text", 2, pipeline_stages, text_pipeline_shaders);
 
 	RenderQueue::load("static", ShaderPipeline::get("static_game"));
 	RenderQueue::load("animated", ShaderPipeline::get("animated_game"));
+	RenderQueue::load("instanced", ShaderPipeline::get("instanced_game"));
 	RenderQueue::load("foreground_animated", ShaderPipeline::get("foreground_animated_game"));
 }
 
@@ -356,21 +363,31 @@ void Game::init_lights()
 	//this->point_lights.push_back(point_light);
 	this->point_lights.push_back(point_light2);
 
-	DirLight* dir_light = new DirLight(glm::vec3(1.5f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
+	DirLight* dir_light = new DirLight(glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
 	this->dir_lights.push_back(dir_light);
 }
 
 void Game::init_models()
 {
 	Model::load("res/models/grass_plane/grass_plane.obj");
-	Model::load("res/models/container/container.obj");
 	Model::load("res/models/glass_pane/glass_pane.obj");
-	Model::load("res/models/ball/ball.obj");
+	Model::load("res/models/container_reverse/container_reverse.obj");
+	Model::load("res/models/lava_plane/lava_plane.obj");
 	
 	AnimatedModel::load("res/animations/zombie/zombie2.dae", "res/animations/zombie/split.txt");
 	AnimatedModel::load("res/animations/ak_47/ak_47.dae", "res/animations/ak_47/split.txt");
 
-	RenderQueue::get("static")->add_instance(new ModelInstance("grass_plane", "static", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
+	InstancedModel::load("res/models/container/container.obj");
+	InstancedModel::load("res/models/container_plane/container_plane.obj");
+
+	//ModelInstance* test_instance = new ModelInstance("container", "instanced", glm::vec3(2.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+	//InstancedModel::get("container")->add_instance(test_instance);
+	//InstancedModel::get("container")->add_instance(new ModelInstance("container", "instanced", glm::vec3(3.0f), glm::vec3(0.0f), glm::vec3(1.0f)));
+	//InstancedModel::get("container")->add_instance(new ModelInstance("container", "instanced", glm::vec3(4.0f), glm::vec3(0.0f), glm::vec3(1.0f)));
+	//InstancedModel::get("container")->init_instances();
+	//test_instance->set_position(glm::vec3(0.0f));
+
+	//RenderQueue::get("static")->add_instance(new ModelInstance("grass_plane", "static", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
 
 	//ModelInstance* zombie_instance = new ModelInstance("zombie2", "animated", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 	//zombie_instance->play_animation("walk", true);
@@ -398,11 +415,7 @@ void Game::init_game_objects()
 	//this->add_game_object(this->crate);
 	//this->add_game_object(this->crate2);
 
-	this->level = new Level(4, 4, 10, "static");
-	
-	for (int i = 0; i < 4; ++i)
-		for (int j = 0; j < 4; ++j)
-			this->level->queue_block(i, j, 3.0f);
+	this->level = new Level(10, 10, 10, "static");
 }
 
 void Game::init_uniforms()
@@ -606,19 +619,31 @@ void Game::render()
 	this->multisample_FBO->bind(true);
 	glActiveTexture(GL_TEXTURE0 + this->depth_cube_FBO->get_texture());
 	glBindTexture(GL_TEXTURE_CUBE_MAP, this->depth_cube_FBO->get_texture());
-
 	
 	RenderQueue::get("static")->set_main_shader(nullptr);
 	RenderQueue::get("static")->render(this->dt);
 	RenderQueue::get("animated")->render(this->dt);
 
-	Shader::get("cube")->use();
-	Shader::get("cube")->set_mat_4fv(Utility::generate_transform(
-		level->get_player_pos(),
-		glm::vec3(0.0f),
-		global::size)
-	, "model_matrix", GL_FALSE);
-	this->cube_mesh_test->draw_vertices();
+	ShaderPipeline* instanced_pipeline = ShaderPipeline::get("instanced_game");
+	Shader* vertex = instanced_pipeline->get_staged_shader(GL_VERTEX_SHADER_BIT);
+	Shader* fragment = instanced_pipeline->get_staged_shader(GL_FRAGMENT_SHADER_BIT);
+	Shader::unuse();
+	instanced_pipeline->use();
+	InstancedModel::get("container")->render(vertex, fragment);
+	InstancedModel::get("container_plane")->render(vertex, fragment);
+
+	Shader::get("particles")->use();
+	glDepthMask(GL_FALSE);
+	this->level->render_particles();
+	glDepthMask(GL_TRUE);
+
+	//Shader::get("cube")->use();
+	//Shader::get("cube")->set_mat_4fv(Utility::generate_transform(
+	//	level->get_player_pos(),
+	//	glm::vec3(0.0f),
+	//	global::size)
+	//, "model_matrix", GL_FALSE);
+	//this->cube_mesh_test->draw_vertices();
 	//hitbox = crate2->get_hitbox();
 	//Shader::get("cube")->set_mat_4fv(Utility::generate_transform(
 	//	hitbox.get_position(),
@@ -637,11 +662,9 @@ void Game::render()
 
 	Shader::unuse();
 	ShaderPipeline::get("text")->use();
-	this->arial_big->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Collision: " + glm::to_string(global::collision), 0.0f, 750.0f, 1.0f);
-	this->arial_big->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Over bound: " + glm::to_string(global::over_bound), 0.0f, 700.0f, 1.0f);
-	this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Position: " + glm::to_string(global::position), 0.0f, 670.0f, 1.0f);
-	//this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Velocity: " + glm::to_string(global::velocity), 0.0f, 18.0f, 1.0f);
-	//this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Frame Rate: " + std::to_string((int)(1.0f / this->dt)), 0.0f, 78.0f, 1.0f);
+	if (this->level->is_game_over())
+		this->arial_big->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "GAME OVER", 500.0f, 400.0f, 1.0f);
+	this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Time Survived: " + Utility::float_to_str(this->level->get_time_survived(), 2) + "s", 0.0f, 780.0f, 1.0f);
 
 	ShaderPipeline::get("image")->use();
 	this->crosshair->render(Shader::get("image_vertex"), Shader::get("image_fragment"));

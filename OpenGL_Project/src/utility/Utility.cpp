@@ -10,3 +10,12 @@ glm::mat4 Utility::generate_transform(const glm::vec3 translation, const glm::ve
 	matrix = glm::scale(matrix, scale);
 	return matrix;
 }
+
+std::string Utility::float_to_str(float number, unsigned int precision)
+{
+	float power = std::pow(number, precision);
+	number = (int)(number * power) / power;
+	std::string str = std::to_string(number);
+	std::size_t period_index = str.find_first_of('.');
+	return str.substr(0, period_index + 1 + precision);
+}

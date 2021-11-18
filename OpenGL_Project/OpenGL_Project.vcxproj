@@ -19,6 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\engine\particles\ParticleEffect.cpp" />
+    <ClCompile Include="src\utility\Random.cpp" />
+    <ClCompile Include="src\engine\model\InstancedModel.cpp" />
     <ClCompile Include="src\engine\hitbox\Hitbox.cpp" />
     <ClCompile Include="src\level\Level.cpp" />
     <ClCompile Include="src\engine\polygon\Ray.cpp" />
@@ -50,8 +53,12 @@
     <ClCompile Include="src\gameobject\player\Player.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\utility\Utility.cpp" />
+    <ClCompile Include="src\utility\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\engine\particles\ParticleEffect.h" />
+    <ClInclude Include="src\utility\Random.h" />
+    <ClInclude Include="src\engine\model\InstancedModel.h" />
     <ClInclude Include="src\engine\input\KeyInput.h" />
     <ClInclude Include="src\engine\hitbox\Hitbox.h" />
     <ClInclude Include="src\engine\input\MouseInput.h" />
@@ -94,12 +101,15 @@
     <ClInclude Include="src\libs\NATIVE.h" />
     <ClInclude Include="src\libs\OPENGL.h" />
     <ClInclude Include="src\utility\Utility.h" />
+    <ClInclude Include="src\utility\Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc142-mt.dll" />
     <None Include="freetype.dll" />
     <None Include="glew32.dll" />
     <None Include="glfw3.dll" />
+    <None Include="src\shaders\animated_particles\fragment.glsl" />
+    <None Include="src\shaders\animated_particles\vertex.glsl" />
     <None Include="src\shaders\animation\vertex.glsl" />
     <None Include="src\shaders\cube\vertex.glsl" />
     <None Include="src\shaders\depth_buffer\fragment.glsl" />
@@ -111,9 +121,12 @@
     <None Include="src\shaders\game\fragment.glsl" />
     <None Include="src\shaders\game\geometry.glsl" />
     <None Include="src\shaders\game\vertex.glsl" />
+    <None Include="src\shaders\game_instanced\vertex.glsl" />
     <None Include="src\shaders\image\fragment.glsl" />
     <None Include="src\shaders\line\fragment.glsl" />
     <None Include="src\shaders\line\vertex.glsl" />
+    <None Include="src\shaders\particles\fragment.glsl" />
+    <None Include="src\shaders\particles\vertex.glsl" />
     <None Include="src\shaders\screen\fragment.glsl" />
     <None Include="src\shaders\screen\vertex.glsl" />
     <None Include="src\shaders\skybox\fragment.glsl" />

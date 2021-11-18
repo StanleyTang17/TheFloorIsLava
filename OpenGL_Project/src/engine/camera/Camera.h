@@ -43,6 +43,7 @@ public:
 	const glm::vec3 get_camera_up() const;
 
 	void set_position(glm::vec3 position);
+	void set_front(glm::vec3 front);
 };
 
 #endif
