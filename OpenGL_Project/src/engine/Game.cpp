@@ -330,6 +330,9 @@ void Game::init_shaders()
 	std::string particles_srcs[] = { "src/shaders/particles/vertex.glsl", "src/shaders/particles/fragment.glsl" };
 	Shader::load("particles", 2, types, particles_srcs);
 
+	std::string animated_particles_srcs[] = { "src/shaders/animated_particles/vertex.glsl", "src/shaders/animated_particles/fragment.glsl" };
+	Shader::load("animated_particles", 2, types, animated_particles_srcs);
+
 	// INIT PIPELINES
 
 	GLbitfield pipeline_stages[] = { GL_VERTEX_SHADER_BIT, GL_FRAGMENT_SHADER_BIT };
@@ -632,9 +635,9 @@ void Game::render()
 	InstancedModel::get("container")->render(vertex, fragment);
 	InstancedModel::get("container_plane")->render(vertex, fragment);
 
-	Shader::get("particles")->use();
+	Shader::get("animated_particles")->use();
 	glDepthMask(GL_FALSE);
-	this->level->render_particles();
+	this->level->render_particles(Shader::get("animated_particles"));
 	glDepthMask(GL_TRUE);
 
 	//Shader::get("cube")->use();
@@ -643,13 +646,6 @@ void Game::render()
 	//	glm::vec3(0.0f),
 	//	global::size)
 	//, "model_matrix", GL_FALSE);
-	//this->cube_mesh_test->draw_vertices();
-	//hitbox = crate2->get_hitbox();
-	//Shader::get("cube")->set_mat_4fv(Utility::generate_transform(
-	//	hitbox.get_position(),
-	//	glm::vec3(0.0f),
-	//	hitbox.get_size())
-	//	, "model_matrix", GL_FALSE);
 	//this->cube_mesh_test->draw_vertices();
 
 	glClear(GL_DEPTH_BUFFER_BIT);

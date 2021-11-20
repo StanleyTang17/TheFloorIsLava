@@ -42,7 +42,7 @@ private:
 	Camera camera;
 
 	Random random;
-	ParticleEffect particles;
+	ParticleEffect* particles;
 
 	std::list<GameObject*> gameobjects;
 	std::list<QueuedBlock> queued_blocks;
@@ -75,7 +75,7 @@ public:
 	static const int GRID_SIZE = 2;
 
 	void update(const float dt);
-	void render_particles();
+	void render_particles(Shader* fragment_shader);
 	void queue_block(int row, int col, float time_til_landing);
 	void handle_key_input(GLFWwindow* window, int key, int action) override;
 	void handle_mouse_move_input(const float dt, const double offset_x, const double offset_y) override;

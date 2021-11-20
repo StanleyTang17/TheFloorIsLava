@@ -44,6 +44,19 @@ public:
 	inline int get_height() const { return this->height; }
 };
 
+class TextureAtlas2D : public Texture2D
+{
+private:
+	int rows;
+	int cols;
+	int num_sprites;
+public:
+	TextureAtlas2D(std::string type, std::string path, int rows, int cols, int num_sprites = -1);
+	inline int get_rows() const { return this->rows; }
+	inline int get_cols() const { return this->cols; }
+	inline int get_num_sprites() const { return this->num_sprites; }
+};
+
 class TextureCube : public Texture
 {
 public:

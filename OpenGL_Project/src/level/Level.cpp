@@ -42,6 +42,9 @@ Level::Level(const int rows, const int cols, const int height, std::string queue
 	this->has_lava = false;
 	RenderQueue::get("static")->add_instance(this->lava_instance);
 
+	TextureAtlas2D* particle_texture = new TextureAtlas2D("texture_diffuse", "res/images/particles/smoke.png", 8, 8, 5 * 8);
+	this->particles = new ParticleEffect(particle_texture);
+
 	this->game_over = false;
 	this->time_survived = 0;
 }
@@ -51,6 +54,7 @@ Level::~Level()
 	delete[] this->height_map;
 	delete[] this->queue_map;
 	delete this->lava_instance;
+	delete this->particles;
 	for (GameObject* object : this->gameobjects)
 		delete object;
 }
@@ -71,7 +75,7 @@ void Level::queue_block(int row, int col, float time_til_landing)
 
 void Level::update(const float dt)
 {
-	this->particles.update(dt, this->camera.get_view_matrix(), this->camera.get_position());
+	this->particles->update(dt, this->camera.get_view_matrix(), this->camera.get_position());
 
 	if (this->game_over)
 		return;
@@ -123,8 +127,8 @@ void Level::drop_blocks()
 			ModelInstance* box_instance = new ModelInstance("container", this->render_queue, position, glm::vec3(0.0f), glm::vec3(1.0f));
 			InstancedModel::get("container")->add_instance(box_instance);
 
-			//position.y -= GRID_SIZE / 2;
-			//this->particles.generate(position, glm::vec3(0.1), 500, 0.5f);
+			position.y -= GRID_SIZE / 2;
+			this->particles->generate(position, glm::vec3(1.0f), 200, 1.0);
 
 			// Check if block hit player
 			glm::vec3 vertices[4];
@@ -197,7 +201,7 @@ void Level::handle_key_input(GLFWwindow* window, int key, int action)
 	this->player.handle_key_input(window, key, action);
 
 	if (key == GLFW_KEY_P && action == GLFW_PRESS)
-		this->particles.generate(this->player.get_position(), glm::vec3(0.1f), 1000, 1.0f);
+		this->particles->generate(this->player.get_position(), glm::vec3(1.0f), 30, 1.0f);
 }
 
 void Level::handle_mouse_move_input(const float dt, const double offset_x, const double offset_y)
@@ -420,7 +424,7 @@ void Level::terminate()
 {
 	this->game_over = true;
 	this->time_survived = this->timer.get_total_time_elapsed();
-	this->particles.generate(this->player.get_position(), glm::vec3(0.1f), 1000, 1.0f);
+	this->particles->generate(this->player.get_position(), glm::vec3(0.1f), 1000, 1.0f);
 }
 
 void Level::restart()
@@ -438,7 +442,7 @@ void Level::restart()
 		if (object != &this->player)
 			delete object;
 
-	this->particles.clear();
+	this->particles->clear();
 	this->gameobjects.clear();
 	this->gameobjects.push_back(&this->player);
 
@@ -471,7 +475,7 @@ void Level::update_lava(const float dt)
 	}
 }
 
-void Level::render_particles()
+void Level::render_particles(Shader* fragment_shader)
 {
-	this->particles.render();
+	this->particles->render(fragment_shader);
 }

@@ -149,3 +149,15 @@ TextureCube::TextureCube(std::vector<std::string> paths, std::string directory)
 
 	this->unbind();
 }
+
+TextureAtlas2D::TextureAtlas2D(std::string type, std::string path, int rows, int cols, int num_sprites)
+	:
+	Texture2D(type, path)
+{
+	this->rows = rows;
+	this->cols = cols;
+	if (num_sprites == -1)
+		this->num_sprites = rows * cols;
+	else
+		this->num_sprites = num_sprites;
+}
