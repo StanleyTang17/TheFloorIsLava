@@ -641,9 +641,6 @@ void Game::render()
 	InstancedModel::get("container")->render(vertex, fragment);
 	InstancedModel::get("container_plane")->render(vertex, fragment);
 
-	Shader::get("block")->use();
-	this->level->render_blocks(Shader::get("block"), Shader::get("block"));
-
 	Shader::get("animated_particles")->use();
 	glDepthMask(GL_FALSE);
 	this->level->render_particles(Shader::get("animated_particles"));
