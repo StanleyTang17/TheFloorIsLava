@@ -34,7 +34,8 @@ public:
 	void render(Shader* vertex_shader, Shader* fragment_shader);
 	bool is_animated() const { return this->animated; }
 	std::string get_name() const { return this->name; }
-	
+	std::vector<Mesh*> get_meshes() { return this->meshes; }
+
 	static Model* get(std::string model_name);
 	static bool remove(std::string model_name);
 	static Model* load(std::string path);

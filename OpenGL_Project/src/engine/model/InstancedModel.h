@@ -8,7 +8,7 @@
 
 class InstancedModel : public Model
 {
-private:
+protected:
 	std::vector<ModelInstance*> instances;
 	GLuint instance_buffer;
 
@@ -20,8 +20,8 @@ public:
 	void remove_instance(ModelInstance* instance);
 	void clear_instances();
 	void load_mesh(aiMesh* mesh, const aiScene* scene) override;
-	void init_instances();
-	void update_instances();
+	virtual void init_instances();
+	virtual void update_instances();
 	void render(Shader* vertex_shader, Shader* fragment_shader);
 
 	static void load(std::string model_path);

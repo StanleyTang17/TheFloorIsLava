@@ -40,10 +40,12 @@ void InstancedModel::init_instances()
 	glBindBuffer(GL_ARRAY_BUFFER, this->instance_buffer);
 	glBufferData(GL_ARRAY_BUFFER, matrices.size() * sizeof(glm::mat4), matrices.data(), GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+	
 	for (Mesh* new_mesh : this->meshes)
 	{
+		
 		glBindVertexArray(new_mesh->get_VAO());
+		//new_mesh->init_instanced_mat4(5, this->instance_buffer);
 		glBindBuffer(GL_ARRAY_BUFFER, this->instance_buffer);
 
 		std::size_t vec4_size = sizeof(glm::vec4);
