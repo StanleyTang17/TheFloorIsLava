@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\level\BlockModel.cpp" />
     <ClCompile Include="src\engine\particles\ParticleEffect.cpp" />
     <ClCompile Include="src\utility\Random.cpp" />
     <ClCompile Include="src\engine\model\InstancedModel.cpp" />
@@ -56,6 +57,7 @@
     <ClCompile Include="src\utility\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\level\BlockModel.h" />
     <ClInclude Include="src\engine\particles\ParticleEffect.h" />
     <ClInclude Include="src\utility\Random.h" />
     <ClInclude Include="src\engine\model\InstancedModel.h" />
@@ -133,6 +135,8 @@
     <None Include="src\shaders\skybox\vertex.glsl" />
     <None Include="src\shaders\text\fragment.glsl" />
     <None Include="src\shaders\image\vertex.glsl" />
+    <None Include="src\shaders\warning_block\fragment.glsl" />
+    <None Include="src\shaders\warning_block\vertex.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

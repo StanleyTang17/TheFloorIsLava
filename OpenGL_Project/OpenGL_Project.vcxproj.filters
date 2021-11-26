@@ -120,6 +120,9 @@
     <ClCompile Include="src\engine\particles\ParticleEffect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\level\BlockModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\framebuffer\Framebuffer.h">
@@ -260,6 +263,9 @@
     <ClInclude Include="src\engine\particles\ParticleEffect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\level\BlockModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc142-mt.dll" />
@@ -291,5 +297,7 @@
     <None Include="src\shaders\particles\fragment.glsl" />
     <None Include="src\shaders\animated_particles\vertex.glsl" />
     <None Include="src\shaders\animated_particles\fragment.glsl" />
+    <None Include="src\shaders\warning_block\fragment.glsl" />
+    <None Include="src\shaders\warning_block\vertex.glsl" />
   </ItemGroup>
 </Project>

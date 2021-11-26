@@ -11,6 +11,14 @@ ParticleEffect::ParticleEffect(TextureAtlas2D* texture_atlas)
 	
 	this->texture = texture_atlas;
 	this->texture->set_unit(GL_TEXTURE0);
+
+	// configurations
+	this->upper_vel_bound = glm::vec3(1.0f);
+	this->lower_vel_bound = glm::vec3(-1.0f);
+	this->upper_scale_bound = glm::vec3(1.5f);
+	this->lower_scale_bound = glm::vec3(0.5f);
+	this->deceleration = 0.0f;
+	this->FPS = 24;
 }
 
 ParticleEffect::~ParticleEffect()
@@ -36,6 +44,7 @@ void ParticleEffect::update(const float dt, glm::mat4 view_matrix, glm::vec3 cam
 
 		if (particle_it->atlas_index < num_sprites)
 		{
+			particle_it->velocity += this->deceleration * dt * glm::normalize(particle_it->velocity);
 			particle_it->position += particle_it->velocity * dt;
 			++particle_it;
 		}
@@ -89,7 +98,12 @@ void ParticleEffect::init_instances()
 	this->generate_particle_data(matrices, indices);
 
 	glBindVertexArray(this->quad.get_VAO());
-
+	
+	//this->quad.init_instanced_mat4(3, matrix_VBO, sizeof(glm::mat4) * matrices.size(), matrices.data(), GL_DYNAMIC_DRAW);
+	//this->quad.init_instanced_float(7, index_VBO, sizeof(float) * indices.size(), indices.data(), GL_DYNAMIC_DRAW);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//glBindVertexArray(0);
+	
 	glBindBuffer(GL_ARRAY_BUFFER, this->matrix_VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * matrices.size(), matrices.data(), GL_DYNAMIC_DRAW);
 
@@ -119,16 +133,13 @@ void ParticleEffect::init_instances()
 	glBindVertexArray(0);
 }
 
-void ParticleEffect::generate(glm::vec3 position, glm::vec3 scale, unsigned int count, float duration)
+void ParticleEffect::generate(glm::vec3 position, unsigned int count)
 {
 	float current_time = glfwGetTime();
 	for (unsigned int i = 0; i < count; ++i)
 	{
-		glm::vec3 velocity(
-			this->random.rand_float(-5.0f, 5.0f),
-			this->random.rand_float(-0.5f, 0.5f),
-			this->random.rand_float(-5.0f, 5.0f)
-		);
+		glm::vec3 velocity = this->random.rand_vec3(this->lower_vel_bound, this->upper_vel_bound);
+		glm::vec3 scale = this->random.rand_vec3(this->lower_scale_bound, this->upper_scale_bound);
 
 		Particle particle = {
 			position,

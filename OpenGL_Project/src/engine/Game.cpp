@@ -308,6 +308,7 @@ void Game::init_shaders()
 	Shader* image_vertex_shader = Shader::load("image_vertex", GL_VERTEX_SHADER, "src/shaders/image/vertex.glsl");
 	Shader* image_fragment_shader = Shader::load("image_fragment", GL_FRAGMENT_SHADER, "src/shaders/image/fragment.glsl");
 	Shader* text_fragment_shader = Shader::load("text_fragment", GL_FRAGMENT_SHADER, "src/shaders/text/fragment.glsl");
+	//Shader* block_fragment_shader = Shader::load("block_fragment", GL_FRAGMENT_SHADER, "src/shaders/warning_block/fragment.glsl");
 
 
 	GLenum types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
@@ -333,6 +334,9 @@ void Game::init_shaders()
 	std::string animated_particles_srcs[] = { "src/shaders/animated_particles/vertex.glsl", "src/shaders/animated_particles/fragment.glsl" };
 	Shader::load("animated_particles", 2, types, animated_particles_srcs);
 
+	std::string block_srcs[] = { "src/shaders/warning_block/vertex.glsl", "src/shaders/warning_block/fragment.glsl" };
+	Shader::load("block", 2, types, block_srcs);
+
 	// INIT PIPELINES
 
 	GLbitfield pipeline_stages[] = { GL_VERTEX_SHADER_BIT, GL_FRAGMENT_SHADER_BIT };
@@ -343,12 +347,14 @@ void Game::init_shaders()
 	Shader* foreground_animated_pipeline_shaders[] = { foreground_animated_vertex_shader, game_fragment_shader };
 	Shader* image_pipeline_shaders[] = { image_vertex_shader, image_fragment_shader };
 	Shader* text_pipeline_shaders[] = { image_vertex_shader, text_fragment_shader };
+	//Shader* block_pipeline_shaders[] = { instanced_vertex_shader, block_fragment_shader };
 	ShaderPipeline::load("static_game", 2, pipeline_stages, static_pipeline_shaders);
 	ShaderPipeline::load("animated_game", 2, pipeline_stages, animated_pipeline_shaders);
 	ShaderPipeline::load("instanced_game", 2, pipeline_stages, instanced_pipeline_shaders);
 	ShaderPipeline::load("foreground_animated_game", 2, pipeline_stages, foreground_animated_pipeline_shaders);
 	ShaderPipeline::load("image", 2, pipeline_stages, image_pipeline_shaders);
 	ShaderPipeline::load("text", 2, pipeline_stages, text_pipeline_shaders);
+	//ShaderPipeline::load("block", 2, pipeline_stages, block_pipeline_shaders);
 
 	RenderQueue::load("static", ShaderPipeline::get("static_game"));
 	RenderQueue::load("animated", ShaderPipeline::get("animated_game"));
@@ -634,6 +640,9 @@ void Game::render()
 	instanced_pipeline->use();
 	InstancedModel::get("container")->render(vertex, fragment);
 	InstancedModel::get("container_plane")->render(vertex, fragment);
+
+	Shader::get("block")->use();
+	this->level->render_blocks(Shader::get("block"), Shader::get("block"));
 
 	Shader::get("animated_particles")->use();
 	glDepthMask(GL_FALSE);

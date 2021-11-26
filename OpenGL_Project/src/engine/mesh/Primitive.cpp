@@ -29,6 +29,36 @@ void Primitive::draw_vertices(GLenum mode)
 	glBindVertexArray(0);
 }
 
+void Primitive::init_instanced_mat4(GLuint position, GLuint instanced_VBO, GLsizeiptr data_size, glm::mat4* data, GLenum usage)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, instanced_VBO);
+	
+	if (data_size > 0 && data != nullptr)
+		glBufferData(GL_VERTEX_ARRAY, data_size, data, usage);
+
+	std::size_t vec4_size = sizeof(glm::vec4);
+	for (GLuint i = 0; i < 4; ++i)
+	{
+		glEnableVertexAttribArray(position + i);
+		glVertexAttribPointer(position + i, 4, GL_FLOAT, GL_FALSE, 4 * vec4_size, (GLvoid*)(i * vec4_size));
+		glVertexAttribDivisor(position + i, 1);
+	}
+}
+
+void Primitive::init_instanced_float(GLuint position, GLuint instanced_VBO, GLsizeiptr data_size, float* data, GLenum usage)
+{
+	std::cout << position << std::endl;
+	glBindBuffer(GL_ARRAY_BUFFER, instanced_VBO);
+
+	if (data_size > 0 && data != nullptr)
+		glBufferData(GL_ARRAY_BUFFER, data_size, data, usage);
+
+	glEnableVertexAttribArray(position);
+	glVertexAttribPointer(position, 1, GL_FLOAT, GL_FALSE, sizeof(float), (GLvoid*)0);
+	glVertexAttribDivisor(position, 1);
+}
+
+
 Quad2D::Quad2D(float x, float y, float w, float h)
 	:
 	Primitive(0, 0, 0, 0, 0)

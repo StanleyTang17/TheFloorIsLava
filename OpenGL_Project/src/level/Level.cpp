@@ -9,7 +9,10 @@ Level::Level(const int rows, const int cols, const int height, std::string queue
 	:
 	ROWS(rows), COLS(cols), MAX_HEIGHT(height),
 	player(glm::vec3(rows * GRID_SIZE / 2, 5.0f, cols * GRID_SIZE / 2)),
-	camera(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f))
+	camera(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
+	chunk(rows, cols, height, GRID_SIZE),
+	block_model("res/models/container/container.obj"),
+	warning_texture("diffuse_texture", "res/images/warning_square.png")
 {
 	int num_tiles = rows * cols;
 	this->height_map = new int[num_tiles];
@@ -42,11 +45,20 @@ Level::Level(const int rows, const int cols, const int height, std::string queue
 	this->has_lava = false;
 	RenderQueue::get("static")->add_instance(this->lava_instance);
 
+	float vel = 10.0;
 	TextureAtlas2D* particle_texture = new TextureAtlas2D("texture_diffuse", "res/images/particles/smoke.png", 8, 8, 5 * 8);
 	this->particles = new ParticleEffect(particle_texture);
+	this->particles->set_vel_range(glm::vec3(-vel, -0.5f, -vel), glm::vec3(vel, 0.5f, vel));
+	this->particles->set_scale_range(glm::vec3(0.8f), glm::vec3(1.2f));
+	this->particles->set_FPS(80);
+	this->particles->set_deceleration(-2 * vel);
 
 	this->game_over = false;
 	this->time_survived = 0;
+
+	std::vector<Mesh*> meshes = block_model.get_meshes();
+	for (Mesh* mesh : meshes)
+		chunk.init_VAO(mesh->get_VAO(), 5);
 }
 
 Level::~Level()
@@ -69,8 +81,16 @@ void Level::queue_block(int row, int col, float time_til_landing)
 		(float)this->get_height(row, col) * GRID_SIZE + 0.0001f,
 		block.col * GRID_SIZE - GRID_SIZE / 2
 	);
-	InstancedModel::get("container_plane")->add_instance(new ModelInstance("container_plane", this->render_queue, position, glm::vec3(0.0f), glm::vec3(1.0f)));
-	InstancedModel::get("container_plane")->init_instances();
+	//InstancedModel::get("container_plane")->add_instance(new ModelInstance("container_plane", this->render_queue, position, glm::vec3(0.0f), glm::vec3(1.0f)));
+	//InstancedModel::get("container_plane")->init_instances();
+	if (this->get_height(row, col) > 1)
+	{
+		BlockInfo info = this->chunk.get_info(block.row, block.col, this->get_height(row, col));
+		info.top_block_landing_time = block.landing_time;
+		this->chunk.set_info(block.row, block.col, this->get_height(row, col), info);
+
+		this->chunk.update_VBO(this->chunk.get_index(block.row, block.col, this->get_height(row, col)));
+	}
 }
 
 void Level::update(const float dt)
@@ -84,7 +104,7 @@ void Level::update(const float dt)
 	this->drop_blocks();
 	this->queue_blocks();
 	this->update_gameobjects(dt);
-	this->update_lava(dt);
+	//this->update_lava(dt);
 
 	this->time_survived = this->timer.get_total_time_elapsed();
 }
@@ -124,11 +144,16 @@ void Level::drop_blocks()
 				this->height_map[index] * GRID_SIZE - GRID_SIZE / 2,
 				block_it->col * GRID_SIZE - GRID_SIZE / 2
 			);
-			ModelInstance* box_instance = new ModelInstance("container", this->render_queue, position, glm::vec3(0.0f), glm::vec3(1.0f));
-			InstancedModel::get("container")->add_instance(box_instance);
+			//ModelInstance* box_instance = new ModelInstance("container", this->render_queue, position, glm::vec3(0.0f), glm::vec3(1.0f));
+			//InstancedModel::get("container")->add_instance(box_instance);
+			
+			BlockInfo info = this->chunk.get_info(block_it->row, block_it->col, this->height_map[index]);
+			info.enabled = true;
+			this->chunk.set_info(block_it->row, block_it->col, this->height_map[index], info);
+			this->chunk.update_VBO(this->chunk.get_index(block_it->row, block_it->col, this->height_map[index]));
 
 			position.y -= GRID_SIZE / 2;
-			this->particles->generate(position, glm::vec3(1.0f), 200, 1.0);
+			this->particles->generate(position, 200);
 
 			// Check if block hit player
 			glm::vec3 vertices[4];
@@ -201,7 +226,7 @@ void Level::handle_key_input(GLFWwindow* window, int key, int action)
 	this->player.handle_key_input(window, key, action);
 
 	if (key == GLFW_KEY_P && action == GLFW_PRESS)
-		this->particles->generate(this->player.get_position(), glm::vec3(1.0f), 30, 1.0f);
+		this->particles->generate(this->player.get_position(), 30);
 }
 
 void Level::handle_mouse_move_input(const float dt, const double offset_x, const double offset_y)
@@ -424,7 +449,7 @@ void Level::terminate()
 {
 	this->game_over = true;
 	this->time_survived = this->timer.get_total_time_elapsed();
-	this->particles->generate(this->player.get_position(), glm::vec3(0.1f), 1000, 1.0f);
+	this->particles->generate(this->player.get_position(), 100);
 }
 
 void Level::restart()
@@ -478,4 +503,17 @@ void Level::update_lava(const float dt)
 void Level::render_particles(Shader* fragment_shader)
 {
 	this->particles->render(fragment_shader);
+}
+
+void Level::render_blocks(Shader* vertex_shader, Shader* fragment_shader)
+{
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, this->warning_texture.get_id());
+
+	fragment_shader->set_1i(2, "warning_texture");
+	fragment_shader->set_1f(glfwGetTime(), "current_time");
+
+	std::vector<Mesh*> meshes = block_model.get_meshes();
+	for (Mesh* mesh : meshes)
+		mesh->rendor(vertex_shader, fragment_shader, ROWS * COLS * MAX_HEIGHT);
 }

@@ -26,12 +26,19 @@ private:
 	GLuint matrix_VBO;
 	GLuint index_VBO;
 	TextureAtlas2D* texture;
-	int FPS = 48;
 
 	glm::mat4 view_matrix;
 	glm::vec3 camera_position;
 
 	Random random;
+
+	// configurations
+	glm::vec3 lower_vel_bound;
+	glm::vec3 upper_vel_bound;
+	glm::vec3 lower_scale_bound;
+	glm::vec3 upper_scale_bound;
+	float deceleration;
+	int FPS;
 
 	void init_instances();
 	void update_instances();
@@ -42,9 +49,15 @@ public:
 	~ParticleEffect();
 
 	void update(const float dt, glm::mat4 view_matrix, glm::vec3 camera_position);
-	void generate(glm::vec3 position, glm::vec3 scale, unsigned int count, float duration);
+	void generate(glm::vec3 position, unsigned int count);
 	void render(Shader* fragment_shader);
 	void clear();
+
+	// configurations
+	inline void set_vel_range(glm::vec3 lower_vel, glm::vec3 upper_vel) { this->lower_vel_bound = lower_vel; this->upper_vel_bound = upper_vel; }
+	inline void set_scale_range(glm::vec3 lower_scale, glm::vec3 upper_scale) { this->lower_scale_bound = lower_scale; this->upper_scale_bound = upper_scale; }
+	inline void set_deceleration(float deceleration) { this->deceleration = deceleration; }
+	inline void set_FPS(int FPS) { this->FPS = FPS; }
 };
 
 #endif

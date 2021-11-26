@@ -14,8 +14,14 @@ void main()
 	int col = int(mod(index, atlas_cols));
 
 	vec2 offset = vec2(1.0 / atlas_cols * col, 1.0 / atlas_rows * row);
-
 	vec2 texcoord = vec2(vs_texcoord.x / atlas_rows, vs_texcoord.y / atlas_cols) + offset;
 
-	fs_color = texture(texture_atlas, texcoord) * vec4(0.1, 0.1, 0.1, 1.0);
+	vec4 tex_color = texture(texture_atlas, texcoord);
+	vec4 color_enhancer = vec4(50.0, 50.0, 50.0, 1.0);
+
+	float fade = 0.75 / (atlas_rows * atlas_cols) * index;
+	tex_color.a -= fade;
+
+	fs_color = tex_color * color_enhancer;
+	
 }

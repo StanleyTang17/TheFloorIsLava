@@ -24,6 +24,8 @@ public:
 	inline GLuint get_VAO() const { return this->VAO; }
 	inline GLuint get_VBO() const { return this->VBO; }
 	inline unsigned int get_num_vertices() const { return this->num_vertices; }
+	void init_instanced_mat4(GLuint position, GLuint instanced_VBO, GLsizeiptr data_size = 0, glm::mat4* data = nullptr, GLenum usage = GL_STATIC_DRAW);
+	void init_instanced_float(GLuint position, GLuint instanced_VBO, GLsizeiptr data_size = 0, float* data = nullptr, GLenum usage = GL_STATIC_DRAW);
 };
 
 class Quad2D : public Primitive
