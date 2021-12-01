@@ -284,7 +284,8 @@ void Game::init_others()
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	this->test_texture = new Texture2D("font", "res/images/container.png");
+	this->lava_image = new Image("res/images/lava.jpg", 50, 50, 700, 700);
+	this->flowmap_texture = new Texture2D("texture_flowmap", "res/images/flowmap_2.png");
 
 	this->cube_mesh_test = new Cube3D();
 }
@@ -337,6 +338,9 @@ void Game::init_shaders()
 	std::string block_srcs[] = { "src/shaders/warning_block/vertex.glsl", "src/shaders/warning_block/fragment.glsl" };
 	Shader::load("block", 2, types, block_srcs);
 
+	std::string flowmap_srcs[] = { "src/shaders/image/vertex.glsl", "src/shaders/flowmap/fragment.glsl" };
+	Shader::load("flowmap", 2, types, flowmap_srcs);
+
 	// INIT PIPELINES
 
 	GLbitfield pipeline_stages[] = { GL_VERTEX_SHADER_BIT, GL_FRAGMENT_SHADER_BIT };
@@ -383,8 +387,9 @@ void Game::init_models()
 	Model::load("res/models/container_reverse/container_reverse.obj");
 	Model::load("res/models/lava_plane/lava_plane.obj");
 	
-	AnimatedModel::load("res/animations/zombie/zombie2.dae", "res/animations/zombie/split.txt");
-	AnimatedModel::load("res/animations/ak_47/ak_47.dae", "res/animations/ak_47/split.txt");
+	//AnimatedModel::load("res/animations/zombie/zombie2.dae", "res/animations/zombie/split.txt");
+	//AnimatedModel::load("res/animations/ak_47/ak_47.dae", "res/animations/ak_47/split.txt");
+	AnimatedModel::load("res/animations/animated_container/animated_container.dae", "res/animations/animated_container/split.txt");
 
 	InstancedModel::load("res/models/container/container.obj");
 	InstancedModel::load("res/models/container_plane/container_plane.obj");
@@ -433,6 +438,8 @@ void Game::init_uniforms()
 
 	glm::mat4 flat_proj = glm::ortho(0.0f, (float)this->WINDOW_WIDTH, 0.0f, (float)this->WINDOW_HEIGHT);
 	Shader::get("image_vertex")->set_mat_4fv(flat_proj, "projection", GL_FALSE);
+
+	Shader::get("flowmap")->set_mat_4fv(flat_proj, "projection", GL_FALSE);
 
 	// SHADOWS
 
@@ -670,6 +677,15 @@ void Game::render()
 
 	ShaderPipeline::get("image")->use();
 	this->crosshair->render(Shader::get("image_vertex"), Shader::get("image_fragment"));
+
+	float alpha = this->cur_time - std::floor(this->cur_time);
+	Shader::get("flowmap")->use();
+	Shader::get("flowmap")->set_1i(1, "flowmap_texture");
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, this->flowmap_texture->get_id());
+	Shader::get("flowmap")->set_1f(this->cur_time, "time");
+	Shader::get("flowmap")->set_1f(alpha, "alpha");
+	this->lava_image->render(Shader::get("flowmap"), Shader::get("flowmap"));
 
 	glfwSwapBuffers(this->window);
 	glFlush();

@@ -9,6 +9,7 @@ ModelInstance::ModelInstance(Model* model, std::string render_queue, glm::vec3 p
 	this->queue = render_queue;
 	this->stop = false;
 	this->repeat = false;
+	this->invisible = false;
 	this->animation_time = 0;
 
 	if (this->model->is_animated())
@@ -69,6 +70,9 @@ void ModelInstance::update(const float dt)
 
 void ModelInstance::render(Shader* vertex_shader, Shader* fragment_shader)
 {
+	if (this->invisible)
+		return;
+
 	if (this->model->is_animated())
 	{
 		std::vector<glm::mat4> bone_matrices = this->get_animated_model()->get_bone_matrices(this->animation_time);

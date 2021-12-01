@@ -16,6 +16,7 @@ private:
 	float animation_time;
 	bool repeat;
 	bool stop;
+	bool invisible;
 
 	glm::vec3 position;
 	glm::vec3 rotation;
@@ -37,12 +38,14 @@ public:
 	inline void set_position(glm::vec3 position) { this->position = position; }
 	inline void set_rotation(glm::vec3 rotation) { this->rotation = rotation; }
 	inline void set_scale(glm::vec3 scale) { this->scale = scale; }
+	inline void set_invisible(bool invisible) { this->invisible = invisible; }
 	inline void move(glm::vec3 translate) { this->position += translate; }
 	inline void rotate(glm::vec3 rotate) { this->rotation += rotate; }
 	inline void _scale(glm::vec3 scale) { this->scale += scale; }
 	inline bool is_animated() { return this->model->is_animated(); }
 	inline std::string get_queue() const { return this->queue; }
-	inline bool is_paused() { return this->stop; }
+	inline bool is_paused() const { return this->stop; }
+	inline bool is_invisible() const { return this->invisible; }
 	inline Sequence get_animation() { return this->current_animation; }
 	glm::vec3 get_position() const { return this->position; }
 	glm::mat4 get_model_matrix();

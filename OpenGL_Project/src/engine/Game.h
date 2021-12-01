@@ -59,7 +59,8 @@ private:
 	// OTHER VAOs and VBOs;
 
 	GLuint screen_VAO;
-	Texture2D* test_texture;
+	Image* lava_image;
+	Texture2D* flowmap_texture;
 
 	GLuint uniform_buffer;
 

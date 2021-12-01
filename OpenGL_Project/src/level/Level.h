@@ -19,6 +19,7 @@ struct QueuedBlock
 	int row;
 	int col;
 	float landing_time;
+	ModelInstance* graphic_instance;
 };
 
 class Level : public KeyInput, public MouseMoveInput
@@ -26,6 +27,9 @@ class Level : public KeyInput, public MouseMoveInput
 private:
 	const float QUEUE_TIME_PER_BLOCK = 0.25f;
 	const int NUM_QUEUED_BLOCKS = 20;
+	const float DROP_ACCELERATION = 80.0f;
+	const int DROP_HEIGHT_OFFSET = 10;
+	const float DROP_DURATION;
 
 	int* height_map;
 	bool* queue_map;
@@ -46,6 +50,7 @@ private:
 
 	std::list<GameObject*> gameobjects;
 	std::list<QueuedBlock> queued_blocks;
+	std::vector<ModelInstance*> falling_block_animations;
 	std::string render_queue;
 	
 	inline int get_index(int row, int col) const { return row * COLS + col; }

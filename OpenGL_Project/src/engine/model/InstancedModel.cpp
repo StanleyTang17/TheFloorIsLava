@@ -5,6 +5,7 @@ InstancedModel::InstancedModel(std::string model_path)
 	Model(model_path)
 {
 	glGenBuffers(1, &this->instance_buffer);
+	this->last_rendered_instances = 0;
 }
 
 InstancedModel::~InstancedModel()
@@ -26,7 +27,13 @@ void InstancedModel::load_mesh(aiMesh* mesh, const aiScene* scene)
 
 void InstancedModel::render(Shader* vertex_shader, Shader* fragment_shader)
 {
-	this->update_instances();
+	if (this->last_rendered_instances == this->instances.size())
+		this->update_instances();
+	else
+		this->init_instances();
+
+	this->last_rendered_instances = this->instances.size();
+
 	for (Mesh* mesh : this->meshes)
 		mesh->rendor(vertex_shader, fragment_shader, this->instances.size());
 }
@@ -82,6 +89,7 @@ void InstancedModel::update_instances()
 void InstancedModel::add_instance(ModelInstance* instance)
 {
 	this->instances.push_back(instance);
+	this->init_instances();
 }
 
 void InstancedModel::remove_instance(ModelInstance* instance)

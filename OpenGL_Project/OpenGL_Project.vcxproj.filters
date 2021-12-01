@@ -299,5 +299,7 @@
     <None Include="src\shaders\animated_particles\fragment.glsl" />
     <None Include="src\shaders\warning_block\fragment.glsl" />
     <None Include="src\shaders\warning_block\vertex.glsl" />
+    <None Include="src\shaders\flowmap\fragment.glsl" />
+    <None Include="src\shaders\flowmap_3d\fragment.glsl" />
   </ItemGroup>
 </Project>

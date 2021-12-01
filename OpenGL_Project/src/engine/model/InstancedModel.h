@@ -11,6 +11,7 @@ class InstancedModel : public Model
 protected:
 	std::vector<ModelInstance*> instances;
 	GLuint instance_buffer;
+	int last_rendered_instances;
 
 public:
 	InstancedModel(std::string model_path);
