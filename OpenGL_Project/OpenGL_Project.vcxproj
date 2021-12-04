@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -19,27 +19,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\level\BlockModel.cpp" />
+    <ClCompile Include="src\engine\polygon\Ray.cpp" />
+    <ClCompile Include="src\level\models\LavaModel.cpp" />
     <ClCompile Include="src\engine\particles\ParticleEffect.cpp" />
     <ClCompile Include="src\utility\Random.cpp" />
     <ClCompile Include="src\engine\model\InstancedModel.cpp" />
     <ClCompile Include="src\engine\hitbox\Hitbox.cpp" />
     <ClCompile Include="src\level\Level.cpp" />
-    <ClCompile Include="src\engine\polygon\Ray.cpp" />
     <ClCompile Include="src\engine\mesh\Image.cpp" />
     <ClCompile Include="src\engine\mesh\Primitive.cpp" />
     <ClCompile Include="src\engine\render_queue\RenderQueue.cpp" />
     <ClCompile Include="src\engine\shader\ShaderPipeline.cpp" />
-    <ClCompile Include="src\gameobject\firearm\Kalashnikov.cpp" />
     <ClCompile Include="src\engine\model\ModelInstance.cpp" />
     <ClCompile Include="src\engine\model\AnimatedBone.cpp" />
     <ClCompile Include="src\engine\model\AnimatedModel.cpp" />
-    <ClCompile Include="src\gameobject\firearm\Firearm.cpp" />
     <ClCompile Include="src\utility\AssimpToGLM.cpp" />
-    <ClCompile Include="src\engine\control\KeyboardControl.cpp" />
     <ClCompile Include="src\engine\math\Math.cpp" />
     <ClCompile Include="src\engine\camera\Camera.cpp" />
-    <ClCompile Include="src\engine\collision\Collision.cpp" />
     <ClCompile Include="src\engine\font\Font.cpp" />
     <ClCompile Include="src\engine\framebuffer\Framebuffer.cpp" />
     <ClCompile Include="src\engine\Game.cpp" />
@@ -49,15 +45,16 @@
     <ClCompile Include="src\engine\model\Model.cpp" />
     <ClCompile Include="src\engine\shader\Shader.cpp" />
     <ClCompile Include="src\engine\texture\Texture.cpp" />
-    <ClCompile Include="src\gameobject\crate\Crate.cpp" />
     <ClCompile Include="src\gameobject\GameObject.cpp" />
     <ClCompile Include="src\gameobject\player\Player.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\utility\Utility.cpp" />
     <ClCompile Include="src\utility\Timer.cpp" />
+    <ClCompile Include="src\level\models\WarehouseModel.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\level\BlockModel.h" />
+    <ClInclude Include="src\engine\polygon\Ray.h" />
+    <ClInclude Include="src\level\models\LavaModel.h" />
     <ClInclude Include="src\engine\particles\ParticleEffect.h" />
     <ClInclude Include="src\utility\Random.h" />
     <ClInclude Include="src\engine\model\InstancedModel.h" />
@@ -66,21 +63,16 @@
     <ClInclude Include="src\engine\input\MouseInput.h" />
     <ClInclude Include="src\engine\input\MouseMoveInput.h" />
     <ClInclude Include="src\level\Level.h" />
-    <ClInclude Include="src\engine\polygon\Ray.h" />
     <ClInclude Include="src\engine\mesh\Image.h" />
     <ClInclude Include="src\engine\mesh\Primitive.h" />
     <ClInclude Include="src\engine\render_queue\RenderQueue.h" />
     <ClInclude Include="src\engine\shader\ShaderPipeline.h" />
-    <ClInclude Include="src\gameobject\firearm\Kalashnikov.h" />
     <ClInclude Include="src\engine\model\ModelInstance.h" />
     <ClInclude Include="src\engine\model\AnimatedBone.h" />
     <ClInclude Include="src\engine\model\AnimatedModel.h" />
-    <ClInclude Include="src\gameobject\firearm\Firearm.h" />
     <ClInclude Include="src\utility\AssimpToGLM.h" />
-    <ClInclude Include="src\engine\control\KeyboardControl.h" />
     <ClInclude Include="src\engine\math\Math.h" />
     <ClInclude Include="src\engine\camera\Camera.h" />
-    <ClInclude Include="src\engine\collision\Collision.h" />
     <ClInclude Include="src\engine\font\Font.h" />
     <ClInclude Include="src\engine\framebuffer\Framebuffer.h" />
     <ClInclude Include="src\engine\Game.h" />
@@ -93,7 +85,6 @@
     <ClInclude Include="src\engine\model\Model.h" />
     <ClInclude Include="src\engine\shader\Shader.h" />
     <ClInclude Include="src\engine\texture\Texture.h" />
-    <ClInclude Include="src\gameobject\crate\Crate.h" />
     <ClInclude Include="src\gameobject\GameObject.h" />
     <ClInclude Include="src\gameobject\player\Player.h" />
     <ClInclude Include="src\libs\ASSIMP.h" />
@@ -104,6 +95,7 @@
     <ClInclude Include="src\libs\OPENGL.h" />
     <ClInclude Include="src\utility\Utility.h" />
     <ClInclude Include="src\utility\Timer.h" />
+    <ClInclude Include="src\level\models\WarehouseModel.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc142-mt.dll" />
@@ -137,8 +129,6 @@
     <None Include="src\shaders\skybox\vertex.glsl" />
     <None Include="src\shaders\text\fragment.glsl" />
     <None Include="src\shaders\image\vertex.glsl" />
-    <None Include="src\shaders\warning_block\fragment.glsl" />
-    <None Include="src\shaders\warning_block\vertex.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

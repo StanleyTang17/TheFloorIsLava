@@ -2,20 +2,18 @@
 
 // TODO implement power ups
 
-glm::ivec3 global::over_bound = glm::ivec3(0, 0, 0);
-glm::ivec3 global::collision = glm::ivec3(0, 0, 0);
-
-Level::Level(const int rows, const int cols, const int height, std::string queue)
+Level::Level(const int rows, const int cols, const int height)
 	:
-	ROWS(rows), COLS(cols), MAX_HEIGHT(height), DROP_DURATION(std::sqrt(2.0 * DROP_HEIGHT_OFFSET * GRID_SIZE / DROP_ACCELERATION)),
+	ROWS(rows),
+	COLS(cols),
+	MAX_HEIGHT(height),
+	DROP_DURATION(std::sqrt(2.0 * DROP_HEIGHT_OFFSET * GRID_SIZE / DROP_ACCELERATION)),
 	player(glm::vec3(rows * GRID_SIZE / 2, 5.0f, cols * GRID_SIZE / 2)),
 	camera(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f))
 {
-	std::cout << this->DROP_DURATION << std::endl;
 	int num_tiles = rows * cols;
 	this->height_map = new int[num_tiles];
 	this->queue_map = new bool[num_tiles];
-	this->render_queue = queue;
 	this->game_over = false;
 	this->time_survived = 0;
 
@@ -31,7 +29,6 @@ Level::Level(const int rows, const int cols, const int height, std::string queue
 
 	WarehouseModel* warehouse_model = new WarehouseModel(glm::vec3(rows * GRID_SIZE / 2, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2));
 	Model::add(warehouse_model);
-
 	RenderQueue::get("static")->add_instance(new ModelInstance(
 		warehouse_model->get_name(),
 		"static",
@@ -82,7 +79,7 @@ void Level::queue_block(int row, int col, float time_til_landing)
 		(float)this->get_height(row, col) * GRID_SIZE + 0.0001f,
 		block.col * GRID_SIZE - GRID_SIZE / 2
 	);
-	InstancedModel::get("container_plane")->add_instance(new ModelInstance("container_plane", this->render_queue, position, glm::vec3(0.0f), glm::vec3(1.0f)));
+	InstancedModel::get("container_plane")->add_instance(new ModelInstance("container_plane", "static", position, glm::vec3(0.0f), glm::vec3(1.0f)));
 	InstancedModel::get("container_plane")->init_instances();
 }
 
@@ -175,7 +172,7 @@ void Level::drop_blocks()
 					drop_height,
 					block_it->col * GRID_SIZE - GRID_SIZE / 2
 				);
-				ModelInstance* instance = new ModelInstance("container", this->render_queue, position, glm::vec3(0.0f), glm::vec3(1.0f));
+				ModelInstance* instance = new ModelInstance("container", "static", position, glm::vec3(0.0f), glm::vec3(1.0f));
 				block_it->graphic_instance = instance;
 				InstancedModel::get("container")->add_instance(block_it->graphic_instance);
 			}
@@ -255,8 +252,6 @@ void Level::handle_mouse_move_input(const float dt, const double offset_x, const
 
 void Level::check_collision(GameObject *object, const float dt)
 {
-	global::over_bound = glm::ivec3(0, 0, 0);
-	global::collision = glm::ivec3(0, 0, 0);
 	glm::vec3 vel = object->get_velocity();
 
 	if (vel.x != 0)
@@ -285,8 +280,6 @@ void Level::check_y_collision(GameObject *object, const float dt)
 		object->set_velocity(vel);
 		object->set_in_air(false);
 
-		global::over_bound.y = 1;
-
 		return;
 	}
 
@@ -308,8 +301,6 @@ void Level::check_y_collision(GameObject *object, const float dt)
 			object->set_position(pos);
 			object->set_velocity(vel);
 			object->set_in_air(false);
-
-			global::collision = grid_pos;
 
 			return;
 		}
@@ -336,8 +327,6 @@ void Level::check_x_collision(GameObject *object, const float dt)
 			object->set_position(pos);
 			object->set_velocity(vel);
 
-			global::over_bound.x = 1;
-
 			return;
 		}
 	}
@@ -351,8 +340,6 @@ void Level::check_x_collision(GameObject *object, const float dt)
 
 			object->set_position(pos);
 			object->set_velocity(vel);
-
-			global::over_bound.x = 1;
 
 			return;
 		}
@@ -380,8 +367,6 @@ void Level::check_x_collision(GameObject *object, const float dt)
 			object->set_position(pos);
 			object->set_velocity(vel);
 
-			global::collision = grid_pos;
-
 			break;
 		}
 	}
@@ -404,8 +389,6 @@ void Level::check_z_collision(GameObject *object, const float dt)
 			object->set_position(pos);
 			object->set_velocity(vel);
 
-			global::over_bound.z = 1;
-
 			return;
 		}
 	}
@@ -419,8 +402,6 @@ void Level::check_z_collision(GameObject *object, const float dt)
 
 			object->set_position(pos);
 			object->set_velocity(vel);
-
-			global::over_bound.z = 1;
 
 			return;
 		}
@@ -448,8 +429,6 @@ void Level::check_z_collision(GameObject *object, const float dt)
 			object->set_position(pos);
 			object->set_velocity(vel);
 
-			global::collision = grid_pos;
-
 			break;
 		}
 	}
@@ -458,7 +437,7 @@ void Level::check_z_collision(GameObject *object, const float dt)
 void Level::add_gameobject(GameObject* object)
 {
 	this->gameobjects.push_back(object);
-	RenderQueue::get(this->render_queue)->add_instance(object->get_model_instance());
+	RenderQueue::get("static")->add_instance(object->get_model_instance());
 }
 
 void Level::terminate()

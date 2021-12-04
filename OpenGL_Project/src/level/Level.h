@@ -54,7 +54,6 @@ private:
 	std::list<GameObject*> gameobjects;
 	std::list<QueuedBlock> queued_blocks;
 	std::vector<ModelInstance*> falling_block_animations;
-	std::string render_queue;
 	
 	inline int get_index(int row, int col) const { return row * COLS + col; }
 	inline int get_height(int row, int col) { return this->height_map[this->get_index(row, col)]; }
@@ -77,7 +76,7 @@ public:
 	const int COLS;
 	const int MAX_HEIGHT;
 
-	Level(const int rows, const int cols, const int height, std::string queue);
+	Level(const int rows, const int cols, const int height);
 	~Level();
 
 	static const int GRID_SIZE = 2;

@@ -62,8 +62,8 @@ Game::Game(const char* title, const int width, const int height, const int versi
 	this->init_models();
 	std::cout << "Initialized Models" << std::endl;
 
-	this->init_game_objects();
-	std::cout << "Initialized GameObjects" << std::endl;
+	this->init_level();
+	std::cout << "Initialized Level" << std::endl;
 
 	this->init_lights();
 	std::cout << "Initialized Lights" << std::endl;
@@ -182,10 +182,6 @@ void Game::init_OpenGL_options()
 	// DEPTH TEST
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-
-	//glEnable(GL_STENCIL_TEST);
-	//glStencilFunc(GL_EQUAL, 1, 0xFF);
-	//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 }
 
 void Game::init_framebuffers()
@@ -332,9 +328,6 @@ void Game::init_shaders()
 	std::string animated_particles_srcs[] = { "src/shaders/animated_particles/vertex.glsl", "src/shaders/animated_particles/fragment.glsl" };
 	Shader::load("animated_particles", 2, types, animated_particles_srcs);
 
-	std::string block_srcs[] = { "src/shaders/warning_block/vertex.glsl", "src/shaders/warning_block/fragment.glsl" };
-	Shader::load("block", 2, types, block_srcs);
-
 	// INIT PIPELINES
 
 	GLbitfield pipeline_stages[] = { GL_VERTEX_SHADER_BIT, GL_FRAGMENT_SHADER_BIT };
@@ -362,13 +355,8 @@ void Game::init_shaders()
 
 void Game::init_lights()
 {
-	//SpotLight* spot_light = new SpotLight(glm::vec3(0.0f), glm::vec3(6.0f), glm::vec3(0.5f), this->camera->get_position(), this->camera->get_front(), 1.0f, 0.28f, 0.06f, 15.0f, 45.0f);
-	//this->spot_lights.push_back(spot_light);
-
-	//PointLight* point_light = new PointLight(glm::vec3(0.0f), glm::vec3(1.5f), glm::vec3(0.5f), glm::vec3(0.0f, 2.0f, 0.0f), 1.0f, 0.28f, 0.06f);
-	PointLight* point_light2 = new PointLight(glm::vec3(0.5f), glm::vec3(1.5f), glm::vec3(0.5f), glm::vec3(4.0f, 5.0f, 4.0f), 1.0f, 0.045f, 0.006f);
-	//this->point_lights.push_back(point_light);
-	this->point_lights.push_back(point_light2);
+	PointLight* point_light1 = new PointLight(glm::vec3(0.5f), glm::vec3(1.5f), glm::vec3(0.5f), glm::vec3(4.0f, 5.0f, 4.0f), 1.0f, 0.045f, 0.006f);
+	this->point_lights.push_back(point_light1);
 
 	DirLight* dir_light = new DirLight(glm::vec3(1.5f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
 	this->dir_lights.push_back(dir_light);
@@ -378,27 +366,9 @@ void Game::init_models()
 {
 	Model::load("res/models/grass_plane/grass_plane.obj");
 	Model::load("res/models/glass_pane/glass_pane.obj");
-	//Model::load("res/models/container_reverse/container_reverse.obj");
-	//Model::load("res/models/lava_plane/lava_plane.obj");
-	
-	//AnimatedModel::load("res/animations/zombie/zombie2.dae", "res/animations/zombie/split.txt");
-	//AnimatedModel::load("res/animations/ak_47/ak_47.dae", "res/animations/ak_47/split.txt");
 
 	InstancedModel::load("res/models/container/container.obj");
 	InstancedModel::load("res/models/container_plane/container_plane.obj");
-
-	//ModelInstance* test_instance = new ModelInstance("container", "instanced", glm::vec3(2.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-	//InstancedModel::get("container")->add_instance(test_instance);
-	//InstancedModel::get("container")->add_instance(new ModelInstance("container", "instanced", glm::vec3(3.0f), glm::vec3(0.0f), glm::vec3(1.0f)));
-	//InstancedModel::get("container")->add_instance(new ModelInstance("container", "instanced", glm::vec3(4.0f), glm::vec3(0.0f), glm::vec3(1.0f)));
-	//InstancedModel::get("container")->init_instances();
-	//test_instance->set_position(glm::vec3(0.0f));
-
-	//RenderQueue::get("static")->add_instance(new ModelInstance("grass_plane", "static", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
-
-	//ModelInstance* zombie_instance = new ModelInstance("zombie2", "animated", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-	//zombie_instance->play_animation("walk", true);
-	//RenderQueue::get("animated")->add_instance(zombie_instance);
 
 	crosshair = new Image(
 		"res/images/crosshair_white.png",
@@ -409,20 +379,9 @@ void Game::init_models()
 	);
 }
 
-void Game::init_game_objects()
+void Game::init_level()
 {
-	this->crate = new Crate(glm::vec3(3.0f, 2.5f, 6.0f), 2.0f);
-	this->crate2 = new Crate(glm::vec3(2.0f, 2.0f, 2.0f), 1.0f);
-	this->crate2->set_control(new KeyboardControl(GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_LEFT, GLFW_KEY_RIGHT, GLFW_KEY_ENTER, GLFW_KEY_RIGHT_SHIFT));
-	
-	//Kalashnikov* ak = new Kalashnikov();
-	//this->player->equip(ak);
-
-	//this->add_game_object(ak);
-	//this->add_game_object(this->crate);
-	//this->add_game_object(this->crate2);
-
-	this->level = new Level(10, 10, 10, "static");
+	this->level = new Level(10, 10, 10);
 }
 
 void Game::init_uniforms()
@@ -566,11 +525,6 @@ void Game::update_mouse_input()
 	this->level->handle_mouse_move_input(this->dt, this->mouse_offset_x, this->mouse_offset_y);
 }
 
-void Game::update_keyboard_input()
-{
-
-}
-
 void Game::update()
 {
 	// UPDATE INPUT
@@ -578,7 +532,6 @@ void Game::update()
 
 	this->update_dt();
 	this->update_mouse_input();
-	this->update_keyboard_input();
 
 	this->level->update(this->dt);
 }
@@ -598,6 +551,44 @@ void Game::render_skybox(Shader* shader)
 	glDepthFunc(GL_LESS);
 }
 
+void Game::render_shadow_map()
+{
+	this->depth_cube_FBO->bind(true);
+	glEnable(GL_DEPTH_TEST);
+	RenderQueue::get("static")->set_main_shader(Shader::get("depth_cube"));
+	RenderQueue::get("static")->render(this->dt);
+}
+
+void Game::render_level()
+{
+	// LAVA
+	Shader::unuse();
+	ShaderPipeline::get("flowmap")->use();
+	this->level->render_lava(Shader::get("static_vertex"), Shader::get("flowmap_fragment"));
+
+	// STATIC OBJECTS
+	RenderQueue::get("static")->set_main_shader(nullptr);
+	RenderQueue::get("static")->render(this->dt);
+
+	// ANIMATED OBJECTS
+	RenderQueue::get("animated")->render(this->dt);
+
+	// INSTANCED OBJECTS
+	ShaderPipeline* instanced_pipeline = ShaderPipeline::get("instanced_game");
+	Shader* vertex = instanced_pipeline->get_staged_shader(GL_VERTEX_SHADER_BIT);
+	Shader* fragment = instanced_pipeline->get_staged_shader(GL_FRAGMENT_SHADER_BIT);
+	Shader::unuse();
+	instanced_pipeline->use();
+	InstancedModel::get("container")->render(vertex, fragment);
+	InstancedModel::get("container_plane")->render(vertex, fragment);
+
+	// PARTICLES
+	Shader::get("animated_particles")->use();
+	glDepthMask(GL_FALSE);
+	this->level->render_particles(Shader::get("animated_particles"));
+	glDepthMask(GL_TRUE);
+}
+
 void Game::render_screen()
 {
 	glDisable(GL_DEPTH_TEST);
@@ -614,65 +605,47 @@ void Game::render_screen()
 	Shader::unuse();
 }
 
-void Game::render()
+void Game::render_text()
 {
-	this->update_uniforms();
-
-	this->depth_cube_FBO->bind(true);
-	glEnable(GL_DEPTH_TEST);
-	RenderQueue::get("static")->set_main_shader(Shader::get("depth_cube"));
-	RenderQueue::get("static")->render(this->dt);
-
-	this->multisample_FBO->bind(true);
-	glActiveTexture(GL_TEXTURE0 + this->depth_cube_FBO->get_texture());
-	glBindTexture(GL_TEXTURE_CUBE_MAP, this->depth_cube_FBO->get_texture());
-
-	Shader::unuse();
-	ShaderPipeline::get("flowmap")->use();
-	this->level->render_lava(Shader::get("static_vertex"), Shader::get("flowmap_fragment"));
-	
-	RenderQueue::get("static")->set_main_shader(nullptr);
-	RenderQueue::get("static")->render(this->dt);
-	RenderQueue::get("animated")->render(this->dt);
-
-	ShaderPipeline* instanced_pipeline = ShaderPipeline::get("instanced_game");
-	Shader* vertex = instanced_pipeline->get_staged_shader(GL_VERTEX_SHADER_BIT);
-	Shader* fragment = instanced_pipeline->get_staged_shader(GL_FRAGMENT_SHADER_BIT);
-	Shader::unuse();
-	instanced_pipeline->use();
-	InstancedModel::get("container")->render(vertex, fragment);
-	InstancedModel::get("container_plane")->render(vertex, fragment);
-
-	Shader::get("animated_particles")->use();
-	glDepthMask(GL_FALSE);
-	this->level->render_particles(Shader::get("animated_particles"));
-	glDepthMask(GL_TRUE);
-
-	//Shader::get("cube")->use();
-	//Shader::get("cube")->set_mat_4fv(Utility::generate_transform(
-	//	level->get_player_pos(),
-	//	glm::vec3(0.0f),
-	//	global::size)
-	//, "model_matrix", GL_FALSE);
-	//this->cube_mesh_test->draw_vertices();
-
-	glClear(GL_DEPTH_BUFFER_BIT);
-	RenderQueue::get("foreground_animated")->render(this->dt);
-
-	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	this->multisample_FBO->bind_default(true);
-
-	this->render_screen();
-
 	Shader::unuse();
 	ShaderPipeline::get("text")->use();
 	if (this->level->is_game_over())
 		this->arial_big->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "GAME OVER", 500.0f, 400.0f, 1.0f);
 	this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Time Survived: " + Utility::float_to_str(this->level->get_time_survived(), 2) + "s", 0.0f, 780.0f, 1.0f);
+}
 
+void Game::render()
+{
+	this->update_uniforms();
+
+	// RENDER SHADOW MAP
+	this->render_shadow_map();
+
+	// SWITCH TO MULTI-SAMPLE FRAMEBUFFER
+	this->multisample_FBO->bind(true);
+	glActiveTexture(GL_TEXTURE0 + this->depth_cube_FBO->get_texture());
+	glBindTexture(GL_TEXTURE_CUBE_MAP, this->depth_cube_FBO->get_texture());
+
+	// RENDER IN GAME SCENE
+	this->render_level();
+
+	// RENDER FOREGROUND
+	glClear(GL_DEPTH_BUFFER_BIT);
+	RenderQueue::get("foreground_animated")->render(this->dt);
+
+	// RENDER SCREEN
+	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	this->multisample_FBO->bind_default(true);
+	this->render_screen();
+
+	// RENDER TEXT
+	this->render_text();
+
+	// RENDER CROSSHAIR
 	ShaderPipeline::get("image")->use();
 	this->crosshair->render(Shader::get("image_vertex"), Shader::get("image_fragment"));
 
+	// CLEAN UP
 	glfwSwapBuffers(this->window);
 	glFlush();
 
@@ -680,30 +653,6 @@ void Game::render()
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
-}
-
-void Game::add_game_object(GameObject* game_object)
-{
-	this->game_objects.push_back(game_object);
-	ModelInstance* instance = game_object->get_model_instance();
-	if (instance != nullptr)
-	{
-		RenderQueue* queue = RenderQueue::get(instance->get_queue());
-		if (queue != nullptr) queue->add_instance(instance);
-	}
-}
-
-void Game::remove_game_object(GameObject* game_object)
-{
-	ModelInstance* instance = game_object->get_model_instance();
-	for(std::size_t i = 0; i < game_objects.size(); ++i)
-		if (game_objects[i] == game_object)
-		{
-			game_objects.erase(game_objects.begin() + i);
-
-			RenderQueue* queue = RenderQueue::get(instance->get_queue());
-			if (queue != nullptr) queue->remove_instance(instance);
-		}
 }
 
 int Game::get_window_should_close()

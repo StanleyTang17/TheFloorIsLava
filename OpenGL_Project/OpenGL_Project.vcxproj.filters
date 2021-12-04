@@ -51,25 +51,13 @@
     <ClCompile Include="src\engine\camera\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\collision\Collision.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\font\Font.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\control\KeyboardControl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\gameobject\crate\Crate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\math\Math.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\utility\AssimpToGLM.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\gameobject\firearm\Firearm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\model\AnimatedModel.cpp">
@@ -79,9 +67,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\model\ModelInstance.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\gameobject\firearm\Kalashnikov.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\utility\Utility.cpp">
@@ -97,9 +82,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\mesh\Image.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\polygon\Ray.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\level\Level.cpp">
@@ -120,7 +102,13 @@
     <ClCompile Include="src\engine\particles\ParticleEffect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\level\BlockModel.cpp">
+    <ClCompile Include="src\level\models\LavaModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\level\models\WarehouseModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\polygon\Ray.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -152,9 +140,6 @@
     <ClInclude Include="src\engine\Game.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\gameobject\crate\Crate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\gameobject\player\Player.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -182,9 +167,6 @@
     <ClInclude Include="src\engine\camera\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\collision\Collision.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\engine\font\Font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -194,16 +176,10 @@
     <ClInclude Include="src\libs\GAMEOBJECTS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\control\KeyboardControl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\engine\math\Math.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\utility\AssimpToGLM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\gameobject\firearm\Firearm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\model\AnimatedModel.h">
@@ -213,9 +189,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\model\ModelInstance.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\gameobject\firearm\Kalashnikov.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\utility\Utility.h">
@@ -231,9 +204,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\mesh\Image.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\polygon\Ray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\level\Level.h">
@@ -263,7 +233,13 @@
     <ClInclude Include="src\engine\particles\ParticleEffect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\level\BlockModel.h">
+    <ClInclude Include="src\level\models\LavaModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\level\models\WarehouseModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\polygon\Ray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -297,8 +273,6 @@
     <None Include="src\shaders\particles\fragment.glsl" />
     <None Include="src\shaders\animated_particles\vertex.glsl" />
     <None Include="src\shaders\animated_particles\fragment.glsl" />
-    <None Include="src\shaders\warning_block\fragment.glsl" />
-    <None Include="src\shaders\warning_block\vertex.glsl" />
     <None Include="src\shaders\flowmap\fragment.glsl" />
     <None Include="src\shaders\flowmap_3d\fragment.glsl" />
   </ItemGroup>

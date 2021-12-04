@@ -49,7 +49,6 @@ private:
 	std::vector<DirLight*> dir_lights;
 	std::vector<PointLight*> point_lights;
 	std::vector<SpotLight*> spot_lights;
-	std::vector<GameObject*> game_objects;
 
 	// SKYBOX
 
@@ -69,11 +68,8 @@ private:
 	DepthFramebuffer* depth_FBO;
 	DepthCubeFramebuffer* depth_cube_FBO;
 
-	// GAMEOBJECTS
+	// LEVEL
 
-	Crate* crate;
-	Crate* crate2;
-	bool hit;
 	Level* level;
 	Cube3D* cube_mesh_test;
 
@@ -96,7 +92,7 @@ private:
 	void init_matrices();
 	void init_shaders();
 	void init_models();
-	void init_game_objects();
+	void init_level();
 	void init_lights();
 	void init_uniforms();
 	void init_fonts();
@@ -105,11 +101,13 @@ private:
 	void update_uniforms();
 	void update_dt();
 	void update_mouse_input();
-	void update_keyboard_input();
 
 	// DRAW
 	void render_skybox(Shader* shader);
+	void render_shadow_map();
+	void render_level();
 	void render_screen();
+	void render_text();
 
 public:
 	// CONSTRUCTOR / DESTRUCTOR
@@ -125,8 +123,6 @@ public:
 	// REGULAR FUNCTIONS
 	void update();
 	void render();
-	void add_game_object(GameObject* game_object);
-	void remove_game_object(GameObject* game_object);
 
 	// STATIC FUNCTIONS
 	static void framebuffer_resize_callback(GLFWwindow* window, int frame_buffer_width, int frame_buffer_height);

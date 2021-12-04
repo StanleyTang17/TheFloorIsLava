@@ -7,6 +7,5 @@
 #include"engine/model/InstancedModel.h"
 #include"level/Level.h"
 #include"engine/mesh/Image.h"
-#include"engine/polygon/Ray.h"
 #include"libs/FILTER.h"
 #include"libs/GAMEOBJECTS.h"

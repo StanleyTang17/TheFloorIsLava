@@ -127,10 +127,6 @@ void main()
 	}
 
 	fs_color = vec4(result, texture(texture_diffuse1, fs_in.texcoord).a);
-
-	//fs_color = texture(texture_diffuse1, fs_in.texcoord) * vec4(vec3(gl_FragCoord.z), 1.0);
-
-	//fs_color = vec4(test / 20.0f, test / 20.0f, test / 20.0f, 1.0f);
 }
 
 

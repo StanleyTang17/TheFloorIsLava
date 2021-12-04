@@ -9,7 +9,6 @@ WarehouseModel::WarehouseModel(glm::vec3 scale)
 
 void WarehouseModel::post_load_vertex_process(std::vector<Vertex>& vertices)
 {
-	std::cout << "post load vertex process" << std::endl;
 	for (std::size_t i = 0; i < vertices.size(); ++i)
 	{
 		vertices[i].position = vertices[i].position * this->size;
