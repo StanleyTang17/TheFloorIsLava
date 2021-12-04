@@ -101,6 +101,9 @@ std::vector<Vertex> Model::load_vertices(aiMesh* mesh)
 
 		vertices.push_back(vertex);
 	}
+
+	this->post_load_vertex_process(vertices);
+
 	return vertices;
 }
 

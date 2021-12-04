@@ -16,6 +16,8 @@ Level::Level(const int rows, const int cols, const int height, std::string queue
 	this->height_map = new int[num_tiles];
 	this->queue_map = new bool[num_tiles];
 	this->render_queue = queue;
+	this->game_over = false;
+	this->time_survived = 0;
 
 	for (int i = 0; i < num_tiles; ++i)
 	{
@@ -25,25 +27,23 @@ Level::Level(const int rows, const int cols, const int height, std::string queue
 
 	this->gameobjects.push_back(&this->player);
 
-	//RenderQueue::get("static")->add_instance(new ModelInstance(
-	//	"container_reverse",
-	//	"static",
-	//	glm::vec3(rows * GRID_SIZE / 2 - GRID_SIZE, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2 - GRID_SIZE),
-	//	glm::vec3(0.0f),
-	//	glm::vec3(rows * GRID_SIZE / 2, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2)
-	//));
+	// INIT GRAPHICS
+
+	WarehouseModel* warehouse_model = new WarehouseModel(glm::vec3(rows * GRID_SIZE / 2, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2));
+	Model::add(warehouse_model);
+
 	RenderQueue::get("static")->add_instance(new ModelInstance(
-		"warehouse",
+		warehouse_model->get_name(),
 		"static",
 		glm::vec3(rows * GRID_SIZE / 2 - GRID_SIZE, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2 - GRID_SIZE),
 		glm::vec3(0.0f),
-		glm::vec3(rows * GRID_SIZE / 2, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2)
+		glm::vec3(1.0f)
 	));
 
-	this->lava_model = new LavaModel("res/models/lava_plane/lava_plane.obj", "res/images/flowmap_2.png");
+	this->lava_model = new LavaModel("res/images/flowmap_2.png");
 	Model::add(this->lava_model);
 	this->lava_instance = new ModelInstance(
-		"lava_plane",
+		lava_model->get_name(),
 		"static",
 		glm::vec3(this->ROWS * GRID_SIZE / 2 - GRID_SIZE, -1.0f, this->COLS * GRID_SIZE / 2 - GRID_SIZE),
 		glm::vec3(0.0f),
@@ -51,6 +51,7 @@ Level::Level(const int rows, const int cols, const int height, std::string queue
 	);
 	this->has_lava = false;
 	
+	// INIT PARTICLES
 
 	float vel = 10.0;
 	TextureAtlas2D* particle_texture = new TextureAtlas2D("texture_diffuse", "res/images/particles/smoke.png", 8, 8, 5 * 8);
@@ -59,17 +60,6 @@ Level::Level(const int rows, const int cols, const int height, std::string queue
 	this->particles->set_scale_range(glm::vec3(0.8f), glm::vec3(1.2f));
 	this->particles->set_FPS(80);
 	this->particles->set_deceleration(-2 * vel);
-
-	this->game_over = false;
-	this->time_survived = 0;
-
-	//for (int i = 0; i < this->NUM_QUEUED_BLOCKS + 10; ++i)
-	//{
-	//	ModelInstance* instance = new ModelInstance("animated_container", "animated", glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-	//	instance->pause();
-	//	RenderQueue::get("animated")->add_instance(instance);
-	//	this->falling_block_animations.push_back(instance);
-	//}
 }
 
 Level::~Level()
@@ -156,11 +146,6 @@ void Level::drop_blocks()
 			if(block_it->graphic_instance != nullptr)
 				block_it->graphic_instance->set_position(position);
 
-			//ModelInstance* falling_block = this->falling_block_animations[block_index];
-			//falling_block->play_animation("main");
-			//falling_block->pause();
-			//falling_block->set_invisible(true);
-
 			position.y -= GRID_SIZE / 2;
 			this->particles->generate(position, 200);
 
@@ -182,19 +167,6 @@ void Level::drop_blocks()
 		}
 		else if (time_dif <= this->DROP_DURATION)
 		{
-			//ModelInstance* falling_block = this->falling_block_animations[block_index];
-			//if (falling_block->is_paused())
-			//{
-			//	glm::vec3 position = glm::vec3(
-			//		block_it->row * GRID_SIZE - GRID_SIZE / 2,
-			//		this->get_height(block_it->row, block_it->col) * GRID_SIZE,
-			//		block_it->col * GRID_SIZE - GRID_SIZE / 2
-			//	);
-			//	falling_block->set_position(position);
-			//	falling_block->play_animation("main");
-			//	falling_block->set_invisible(false);
-			//}
-
 			float drop_height = (this->get_height(block_it->row, block_it->col) + this->DROP_HEIGHT_OFFSET + 0.5f) * GRID_SIZE;
 			if (block_it->graphic_instance == nullptr)
 			{
@@ -551,7 +523,5 @@ void Level::render_particles(Shader* fragment_shader)
 
 void Level::render_lava(Shader* vertex_shader, Shader* fragment_shader)
 {
-	//vertex_shader->set_mat_4fv(this->lava_instance->get_model_matrix(), "model_matrix", GL_FALSE);
-	//this->lava_model->render(vertex_shader, fragment_shader);
 	this->lava_instance->render(vertex_shader, fragment_shader);
 }

@@ -378,13 +378,11 @@ void Game::init_models()
 {
 	Model::load("res/models/grass_plane/grass_plane.obj");
 	Model::load("res/models/glass_pane/glass_pane.obj");
-	Model::load("res/models/warehouse/warehouse.obj");
 	//Model::load("res/models/container_reverse/container_reverse.obj");
 	//Model::load("res/models/lava_plane/lava_plane.obj");
 	
 	//AnimatedModel::load("res/animations/zombie/zombie2.dae", "res/animations/zombie/split.txt");
 	//AnimatedModel::load("res/animations/ak_47/ak_47.dae", "res/animations/ak_47/split.txt");
-	AnimatedModel::load("res/animations/animated_container/animated_container.dae", "res/animations/animated_container/split.txt");
 
 	InstancedModel::load("res/models/container/container.obj");
 	InstancedModel::load("res/models/container_plane/container_plane.obj");

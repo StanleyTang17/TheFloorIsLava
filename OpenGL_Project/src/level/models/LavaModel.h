@@ -11,7 +11,7 @@ private:
 	Texture2D* flowmap;
 
 public:
-	LavaModel(std::string model_path, std::string flowmap_path);
+	LavaModel(std::string flowmap_path);
 	~LavaModel();
 	
 	void render(Shader* vertex_shader, Shader* fragment_shader) override;

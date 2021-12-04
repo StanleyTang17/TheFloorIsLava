@@ -1,8 +1,8 @@
 #include "LavaModel.h"
 
-LavaModel::LavaModel(std::string model_path, std::string flowmap_path)
+LavaModel::LavaModel(std::string flowmap_path)
 	:
-	Model(model_path)
+	Model("res/models/lava_plane/lava_plane.obj")
 {
 	this->flowmap = new Texture2D("texture_flowmap", flowmap_path);
 }

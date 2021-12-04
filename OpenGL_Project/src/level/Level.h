@@ -12,7 +12,8 @@
 #include"engine/input/MouseMoveInput.h"
 #include"engine/particles/ParticleEffect.h"
 #include"utility/Timer.h"
-#include"LavaModel.h"
+#include"models/LavaModel.h"
+#include"models/WarehouseModel.h"
 #include"GlobalDebug.h"
 
 struct QueuedBlock

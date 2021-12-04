@@ -22,6 +22,7 @@ protected:
 
 	void load_node(aiNode* node, const aiScene* scene);
 	virtual void load_mesh(aiMesh* mesh, const aiScene* scene);
+	virtual void post_load_vertex_process(std::vector<Vertex>& vertices) {};
 	std::vector<Vertex> load_vertices(aiMesh* mesh);
 	std::vector<GLuint> load_indices(aiMesh* mesh);
 	std::vector<Texture2D*> load_textures(aiMesh* mesh, const aiScene* scene);
