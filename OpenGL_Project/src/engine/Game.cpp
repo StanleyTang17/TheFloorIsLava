@@ -284,9 +284,6 @@ void Game::init_others()
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	this->lava_image = new Image("res/images/lava.jpg", 50, 50, 700, 700);
-	this->flowmap_texture = new Texture2D("texture_flowmap", "res/images/flowmap_2.png");
-
 	this->cube_mesh_test = new Cube3D();
 }
 
@@ -309,7 +306,7 @@ void Game::init_shaders()
 	Shader* image_vertex_shader = Shader::load("image_vertex", GL_VERTEX_SHADER, "src/shaders/image/vertex.glsl");
 	Shader* image_fragment_shader = Shader::load("image_fragment", GL_FRAGMENT_SHADER, "src/shaders/image/fragment.glsl");
 	Shader* text_fragment_shader = Shader::load("text_fragment", GL_FRAGMENT_SHADER, "src/shaders/text/fragment.glsl");
-	//Shader* block_fragment_shader = Shader::load("block_fragment", GL_FRAGMENT_SHADER, "src/shaders/warning_block/fragment.glsl");
+	Shader* flowmap_fragment_shader = Shader::load("flowmap_fragment", GL_FRAGMENT_SHADER, "src/shaders/flowmap_3d/fragment.glsl");
 
 
 	GLenum types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
@@ -338,9 +335,6 @@ void Game::init_shaders()
 	std::string block_srcs[] = { "src/shaders/warning_block/vertex.glsl", "src/shaders/warning_block/fragment.glsl" };
 	Shader::load("block", 2, types, block_srcs);
 
-	std::string flowmap_srcs[] = { "src/shaders/image/vertex.glsl", "src/shaders/flowmap/fragment.glsl" };
-	Shader::load("flowmap", 2, types, flowmap_srcs);
-
 	// INIT PIPELINES
 
 	GLbitfield pipeline_stages[] = { GL_VERTEX_SHADER_BIT, GL_FRAGMENT_SHADER_BIT };
@@ -351,14 +345,14 @@ void Game::init_shaders()
 	Shader* foreground_animated_pipeline_shaders[] = { foreground_animated_vertex_shader, game_fragment_shader };
 	Shader* image_pipeline_shaders[] = { image_vertex_shader, image_fragment_shader };
 	Shader* text_pipeline_shaders[] = { image_vertex_shader, text_fragment_shader };
-	//Shader* block_pipeline_shaders[] = { instanced_vertex_shader, block_fragment_shader };
+	Shader* flowmap_pipeline_shaders[] = { static_vertex_shader, flowmap_fragment_shader };
 	ShaderPipeline::load("static_game", 2, pipeline_stages, static_pipeline_shaders);
 	ShaderPipeline::load("animated_game", 2, pipeline_stages, animated_pipeline_shaders);
 	ShaderPipeline::load("instanced_game", 2, pipeline_stages, instanced_pipeline_shaders);
 	ShaderPipeline::load("foreground_animated_game", 2, pipeline_stages, foreground_animated_pipeline_shaders);
 	ShaderPipeline::load("image", 2, pipeline_stages, image_pipeline_shaders);
 	ShaderPipeline::load("text", 2, pipeline_stages, text_pipeline_shaders);
-	//ShaderPipeline::load("block", 2, pipeline_stages, block_pipeline_shaders);
+	ShaderPipeline::load("flowmap", 2, pipeline_stages, flowmap_pipeline_shaders);
 
 	RenderQueue::load("static", ShaderPipeline::get("static_game"));
 	RenderQueue::load("animated", ShaderPipeline::get("animated_game"));
@@ -372,11 +366,11 @@ void Game::init_lights()
 	//this->spot_lights.push_back(spot_light);
 
 	//PointLight* point_light = new PointLight(glm::vec3(0.0f), glm::vec3(1.5f), glm::vec3(0.5f), glm::vec3(0.0f, 2.0f, 0.0f), 1.0f, 0.28f, 0.06f);
-	PointLight* point_light2 = new PointLight(glm::vec3(2.0f), glm::vec3(2.0f), glm::vec3(0.5f), glm::vec3(4.0f, 5.0f, 4.0f), 1.0f, 0.045f, 0.006f);
+	PointLight* point_light2 = new PointLight(glm::vec3(0.5f), glm::vec3(1.5f), glm::vec3(0.5f), glm::vec3(4.0f, 5.0f, 4.0f), 1.0f, 0.045f, 0.006f);
 	//this->point_lights.push_back(point_light);
 	this->point_lights.push_back(point_light2);
 
-	DirLight* dir_light = new DirLight(glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
+	DirLight* dir_light = new DirLight(glm::vec3(1.5f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
 	this->dir_lights.push_back(dir_light);
 }
 
@@ -384,8 +378,9 @@ void Game::init_models()
 {
 	Model::load("res/models/grass_plane/grass_plane.obj");
 	Model::load("res/models/glass_pane/glass_pane.obj");
-	Model::load("res/models/container_reverse/container_reverse.obj");
-	Model::load("res/models/lava_plane/lava_plane.obj");
+	Model::load("res/models/warehouse/warehouse.obj");
+	//Model::load("res/models/container_reverse/container_reverse.obj");
+	//Model::load("res/models/lava_plane/lava_plane.obj");
 	
 	//AnimatedModel::load("res/animations/zombie/zombie2.dae", "res/animations/zombie/split.txt");
 	//AnimatedModel::load("res/animations/ak_47/ak_47.dae", "res/animations/ak_47/split.txt");
@@ -438,8 +433,6 @@ void Game::init_uniforms()
 
 	glm::mat4 flat_proj = glm::ortho(0.0f, (float)this->WINDOW_WIDTH, 0.0f, (float)this->WINDOW_HEIGHT);
 	Shader::get("image_vertex")->set_mat_4fv(flat_proj, "projection", GL_FALSE);
-
-	Shader::get("flowmap")->set_mat_4fv(flat_proj, "projection", GL_FALSE);
 
 	// SHADOWS
 
@@ -635,6 +628,10 @@ void Game::render()
 	this->multisample_FBO->bind(true);
 	glActiveTexture(GL_TEXTURE0 + this->depth_cube_FBO->get_texture());
 	glBindTexture(GL_TEXTURE_CUBE_MAP, this->depth_cube_FBO->get_texture());
+
+	Shader::unuse();
+	ShaderPipeline::get("flowmap")->use();
+	this->level->render_lava(Shader::get("static_vertex"), Shader::get("flowmap_fragment"));
 	
 	RenderQueue::get("static")->set_main_shader(nullptr);
 	RenderQueue::get("static")->render(this->dt);
@@ -677,15 +674,6 @@ void Game::render()
 
 	ShaderPipeline::get("image")->use();
 	this->crosshair->render(Shader::get("image_vertex"), Shader::get("image_fragment"));
-
-	float alpha = this->cur_time - std::floor(this->cur_time);
-	Shader::get("flowmap")->use();
-	Shader::get("flowmap")->set_1i(1, "flowmap_texture");
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, this->flowmap_texture->get_id());
-	Shader::get("flowmap")->set_1f(this->cur_time, "time");
-	Shader::get("flowmap")->set_1f(alpha, "alpha");
-	this->lava_image->render(Shader::get("flowmap"), Shader::get("flowmap"));
 
 	glfwSwapBuffers(this->window);
 	glFlush();

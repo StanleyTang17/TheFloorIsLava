@@ -25,23 +25,32 @@ Level::Level(const int rows, const int cols, const int height, std::string queue
 
 	this->gameobjects.push_back(&this->player);
 
+	//RenderQueue::get("static")->add_instance(new ModelInstance(
+	//	"container_reverse",
+	//	"static",
+	//	glm::vec3(rows * GRID_SIZE / 2 - GRID_SIZE, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2 - GRID_SIZE),
+	//	glm::vec3(0.0f),
+	//	glm::vec3(rows * GRID_SIZE / 2, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2)
+	//));
 	RenderQueue::get("static")->add_instance(new ModelInstance(
-		"container_reverse",
+		"warehouse",
 		"static",
 		glm::vec3(rows * GRID_SIZE / 2 - GRID_SIZE, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2 - GRID_SIZE),
 		glm::vec3(0.0f),
 		glm::vec3(rows * GRID_SIZE / 2, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2)
 	));
 
+	this->lava_model = new LavaModel("res/models/lava_plane/lava_plane.obj", "res/images/flowmap_2.png");
+	Model::add(this->lava_model);
 	this->lava_instance = new ModelInstance(
 		"lava_plane",
 		"static",
 		glm::vec3(this->ROWS * GRID_SIZE / 2 - GRID_SIZE, -1.0f, this->COLS * GRID_SIZE / 2 - GRID_SIZE),
 		glm::vec3(0.0f),
-		glm::vec3(this->ROWS * GRID_SIZE / 2, MAX_HEIGHT * GRID_SIZE / 2, this->COLS * GRID_SIZE / 2)
+		glm::vec3(this->ROWS * GRID_SIZE, MAX_HEIGHT * GRID_SIZE, this->COLS * GRID_SIZE)
 	);
 	this->has_lava = false;
-	RenderQueue::get("static")->add_instance(this->lava_instance);
+	
 
 	float vel = 10.0;
 	TextureAtlas2D* particle_texture = new TextureAtlas2D("texture_diffuse", "res/images/particles/smoke.png", 8, 8, 5 * 8);
@@ -538,4 +547,11 @@ void Level::update_lava(const float dt)
 void Level::render_particles(Shader* fragment_shader)
 {
 	this->particles->render(fragment_shader);
+}
+
+void Level::render_lava(Shader* vertex_shader, Shader* fragment_shader)
+{
+	//vertex_shader->set_mat_4fv(this->lava_instance->get_model_matrix(), "model_matrix", GL_FALSE);
+	//this->lava_model->render(vertex_shader, fragment_shader);
+	this->lava_instance->render(vertex_shader, fragment_shader);
 }

@@ -23,7 +23,7 @@ public:
 	void load_mesh(aiMesh* mesh, const aiScene* scene) override;
 	virtual void init_instances();
 	virtual void update_instances();
-	void render(Shader* vertex_shader, Shader* fragment_shader);
+	void render(Shader* vertex_shader, Shader* fragment_shader) override;
 
 	static void load(std::string model_path);
 	static InstancedModel* get(std::string model_name);

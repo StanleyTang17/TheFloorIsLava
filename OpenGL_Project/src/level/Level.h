@@ -12,6 +12,7 @@
 #include"engine/input/MouseMoveInput.h"
 #include"engine/particles/ParticleEffect.h"
 #include"utility/Timer.h"
+#include"LavaModel.h"
 #include"GlobalDebug.h"
 
 struct QueuedBlock
@@ -34,6 +35,7 @@ private:
 	int* height_map;
 	bool* queue_map;
 
+	LavaModel* lava_model;
 	ModelInstance* lava_instance;
 	bool has_lava;
 	float lava_speed = 0.1f;
@@ -81,6 +83,7 @@ public:
 
 	void update(const float dt);
 	void render_particles(Shader* fragment_shader);
+	void render_lava(Shader* vertex_shader, Shader* fragment_shader);
 	void queue_block(int row, int col, float time_til_landing);
 	void handle_key_input(GLFWwindow* window, int key, int action) override;
 	void handle_mouse_move_input(const float dt, const double offset_x, const double offset_y) override;

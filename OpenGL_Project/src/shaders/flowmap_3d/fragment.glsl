@@ -1,22 +1,27 @@
-in vec2 texcoords;
-
-out vec4 color;
+in VS_OUT
+{
+    vec3 position;
+    vec3 normal;
+    vec2 texcoord;
+} fs_in;
 
 uniform float time;
-uniform sampler2D image_texture;
+uniform sampler2D texture_diffuse1;
 uniform sampler2D flowmap_texture;
 
+out vec4 fs_color;
+
 vec2 bound(vec2 coord);
-vec4 calculate_color(vec2 texcoords, float time);
+vec4 calculate_color(vec2 texcoords, sampler2D tex, float time);
 
 void main()
 {
-	vec4 color1 = calculate_color(texcoords, time);
-	vec4 color2 = calculate_color(texcoords, time + 0.5);
-	color = color1 + color2;
+	vec4 color1 = calculate_color(fs_in.texcoord, texture_diffuse1, time / 10);
+	vec4 color2 = calculate_color(fs_in.texcoord, texture_diffuse1, time / 10 + 0.5);
+	fs_color = color1 + color2;
 }
 
-vec4 calculate_color(vec2 texcoords, float time)
+vec4 calculate_color(vec2 texcoords, sampler2D tex, float time)
 {
 	time = fract(time);
 
@@ -26,7 +31,7 @@ vec4 calculate_color(vec2 texcoords, float time)
 
 	texcoords = bound(texcoords + time * velocity);
 
-	return texture(image_texture, texcoords) * weight;
+	return texture(tex, texcoords) * weight;
 }
 
 vec2 bound(vec2 coord)

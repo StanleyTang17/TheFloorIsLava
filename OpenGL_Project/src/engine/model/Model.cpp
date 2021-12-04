@@ -23,6 +23,11 @@ bool Model::remove(std::string model_name)
 	return false;
 }
 
+void Model::add(Model* model)
+{
+	LOADED_SET[model->name] = model;
+}
+
 Model::Model()
 {
 	this->directory = "";
