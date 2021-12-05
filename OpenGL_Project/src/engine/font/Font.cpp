@@ -1,6 +1,22 @@
 #include"Font.h"
 
-Font::Font(std::string font_name, unsigned int size, glm::vec3 color)
+std::unordered_map<std::string, Font*> Font::LOADED_SET = std::unordered_map<std::string, Font*>();
+
+Font* Font::load(std::string name, std::string font_family, unsigned int size, glm::vec3 color)
+{
+	Font* font = new Font(font_family, size, color);
+	LOADED_SET[name] = font;
+	return font;
+}
+
+Font* Font::get(std::string name)
+{
+	if (LOADED_SET.find(name) != LOADED_SET.end())
+		return LOADED_SET.at(name);
+	return nullptr;
+}
+
+Font::Font(std::string font_family, unsigned int size, glm::vec3 color)
 	:
 	char_quad(0.0f, 0.0f, 1.0f, 1.0f)
 {
@@ -14,7 +30,7 @@ Font::Font(std::string font_name, unsigned int size, glm::vec3 color)
 	}
 
 	FT_Face face;
-	if (FT_New_Face(ft, ("res/fonts/" + font_name + ".ttf").c_str(), 0, &face))
+	if (FT_New_Face(ft, ("res/fonts/" + font_family + ".ttf").c_str(), 0, &face))
 	{
 		std::cout << "COULD NOT INITIALIZE FONT" << std::endl;
 		return;

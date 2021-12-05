@@ -73,11 +73,6 @@ private:
 	Level* level;
 	Cube3D* cube_mesh_test;
 
-	// FONTS
-
-	Font* arial;
-	Font* arial_big;
-
 	// MENU
 
 	Image* crosshair;

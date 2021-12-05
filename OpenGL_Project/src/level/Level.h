@@ -7,10 +7,12 @@
 #include<list>
 #include<math.h>
 #include"gameobject/player/Player.h"
-#include"engine/render_queue/RenderQueue.h"
+#include"engine/render_queue/ModelRenderQueue.h"
+#include"engine/render_queue/TextRenderQueue.h"
 #include"engine/model/InstancedModel.h"
 #include"engine/input/MouseMoveInput.h"
 #include"engine/particles/ParticleEffect.h"
+#include"engine/font/Font.h"
 #include"utility/Timer.h"
 #include"models/LavaModel.h"
 #include"models/WarehouseModel.h"
@@ -51,6 +53,9 @@ private:
 	Random random;
 	ParticleEffect* particles;
 
+	TextInfo game_over_text;
+	TextInfo time_survived_text;
+
 	std::list<GameObject*> gameobjects;
 	std::list<QueuedBlock> queued_blocks;
 	std::vector<ModelInstance*> falling_block_animations;
@@ -84,6 +89,7 @@ public:
 	void update(const float dt);
 	void render_particles(Shader* fragment_shader);
 	void render_lava(Shader* vertex_shader, Shader* fragment_shader);
+	void render_text(Font* title_font, Font* body_font);
 	void queue_block(int row, int col, float time_til_landing);
 	void handle_key_input(GLFWwindow* window, int key, int action) override;
 	void handle_mouse_move_input(const float dt, const double offset_x, const double offset_y) override;

@@ -3,16 +3,17 @@
 #ifndef RENDER_QUEUE_H
 #define RENDER_QUEUE_H
 
-#include"engine/model/ModelInstance.h"
 #include"engine/shader/ShaderPipeline.h"
 
 class RenderQueue
 {
-private:
+protected:
 	std::string name;
-	std::vector<ModelInstance*> instances;
 	Shader* main_shader;
 	ShaderPipeline* pipeline;
+
+	virtual void render_with_shader(Shader* shader, const float dt) = 0;
+	virtual void render_with_pipeline(ShaderPipeline* pipeline, const float dt) = 0;
 
 	static std::unordered_map<std::string, RenderQueue*> LOADED_SET;
 
@@ -22,14 +23,12 @@ public:
 	~RenderQueue();
 
 	void render(const float dt);
-	void add_instance(ModelInstance* instance);
-	void remove_instance(ModelInstance* instance);
+
 	inline void set_main_shader(Shader* shader) { this->main_shader = shader; }
 	inline void set_pipeline(ShaderPipeline* pipeline) { this->pipeline = pipeline; }
 	inline std::string get_name() const { return this->name; }
 
-	static RenderQueue* load(std::string name, Shader* single_main_shader);
-	static RenderQueue* load(std::string name, ShaderPipeline* pipeline);
+	static void add(std::string, RenderQueue* queue);
 	static RenderQueue* get(std::string);
 	static bool remove(std::string);
 };

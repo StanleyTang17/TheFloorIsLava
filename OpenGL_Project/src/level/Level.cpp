@@ -29,7 +29,7 @@ Level::Level(const int rows, const int cols, const int height)
 
 	WarehouseModel* warehouse_model = new WarehouseModel(glm::vec3(rows * GRID_SIZE / 2, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2));
 	Model::add(warehouse_model);
-	RenderQueue::get("static")->add_instance(new ModelInstance(
+	ModelRenderQueue::get("static")->add_instance(new ModelInstance(
 		warehouse_model->get_name(),
 		"static",
 		glm::vec3(rows * GRID_SIZE / 2 - GRID_SIZE, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2 - GRID_SIZE),
@@ -57,6 +57,14 @@ Level::Level(const int rows, const int cols, const int height)
 	this->particles->set_scale_range(glm::vec3(0.8f), glm::vec3(1.2f));
 	this->particles->set_FPS(80);
 	this->particles->set_deceleration(-2 * vel);
+
+	// INIT TEXT
+
+	game_over_text = { "Game Over", "game_title", 500.0f, 400.0f, 1.0f, false };
+	time_survived_text = { "", "game_body", 0.0f, 780.0f, 1.0f, true };
+
+	TextRenderQueue::get("game_text")->add_text(&game_over_text);
+	TextRenderQueue::get("game_text")->add_text(&time_survived_text);
 }
 
 Level::~Level()
@@ -97,6 +105,7 @@ void Level::update(const float dt)
 	this->update_lava(dt);
 
 	this->time_survived = this->timer.get_total_time_elapsed();
+	this->time_survived_text.text = "Time Survived: " + Utility::float_to_str(this->time_survived, 2) + "s";
 }
 
 void Level::queue_blocks()
@@ -437,12 +446,13 @@ void Level::check_z_collision(GameObject *object, const float dt)
 void Level::add_gameobject(GameObject* object)
 {
 	this->gameobjects.push_back(object);
-	RenderQueue::get("static")->add_instance(object->get_model_instance());
+	ModelRenderQueue::get("static")->add_instance(object->get_model_instance());
 }
 
 void Level::terminate()
 {
 	this->game_over = true;
+	this->game_over_text.enabled = true;
 	this->time_survived = this->timer.get_total_time_elapsed();
 	this->particles->generate(this->player.get_position(), 100);
 }
@@ -474,6 +484,7 @@ void Level::restart()
 	this->timer.reset_total_time();
 	this->has_lava = false;
 	this->game_over = false;
+	this->game_over_text.enabled = false;
 
 	InstancedModel::get("container")->clear_instances();
 	InstancedModel::get("container_plane")->clear_instances();
@@ -503,4 +514,9 @@ void Level::render_particles(Shader* fragment_shader)
 void Level::render_lava(Shader* vertex_shader, Shader* fragment_shader)
 {
 	this->lava_instance->render(vertex_shader, fragment_shader);
+}
+
+void Level::render_text(Font* title_font, Font* body_font)
+{
+	
 }

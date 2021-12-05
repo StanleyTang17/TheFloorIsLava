@@ -347,10 +347,11 @@ void Game::init_shaders()
 	ShaderPipeline::load("text", 2, pipeline_stages, text_pipeline_shaders);
 	ShaderPipeline::load("flowmap", 2, pipeline_stages, flowmap_pipeline_shaders);
 
-	RenderQueue::load("static", ShaderPipeline::get("static_game"));
-	RenderQueue::load("animated", ShaderPipeline::get("animated_game"));
-	RenderQueue::load("instanced", ShaderPipeline::get("instanced_game"));
-	RenderQueue::load("foreground_animated", ShaderPipeline::get("foreground_animated_game"));
+	ModelRenderQueue::load("static", ShaderPipeline::get("static_game"));
+	ModelRenderQueue::load("animated", ShaderPipeline::get("animated_game"));
+	ModelRenderQueue::load("instanced", ShaderPipeline::get("instanced_game"));
+	ModelRenderQueue::load("foreground_animated", ShaderPipeline::get("foreground_animated_game"));
+	TextRenderQueue::load("game_text", ShaderPipeline::get("text"));
 }
 
 void Game::init_lights()
@@ -452,8 +453,8 @@ void Game::init_uniforms()
 
 void Game::init_fonts()
 {
-	this->arial = new Font("arial", 24, glm::vec3(1.0f));
-	this->arial_big = new Font("arial", 48, glm::vec3(1.0f));
+	Font::load("game_body", "arial", 24, glm::vec3(1.0f));
+	Font::load("game_title", "arial", 48, glm::vec3(1.0f));
 }
 
 void Game::update_uniforms()
@@ -555,8 +556,8 @@ void Game::render_shadow_map()
 {
 	this->depth_cube_FBO->bind(true);
 	glEnable(GL_DEPTH_TEST);
-	RenderQueue::get("static")->set_main_shader(Shader::get("depth_cube"));
-	RenderQueue::get("static")->render(this->dt);
+	ModelRenderQueue::get("static")->set_main_shader(Shader::get("depth_cube"));
+	ModelRenderQueue::get("static")->render(this->dt);
 }
 
 void Game::render_level()
@@ -567,11 +568,11 @@ void Game::render_level()
 	this->level->render_lava(Shader::get("static_vertex"), Shader::get("flowmap_fragment"));
 
 	// STATIC OBJECTS
-	RenderQueue::get("static")->set_main_shader(nullptr);
-	RenderQueue::get("static")->render(this->dt);
+	ModelRenderQueue::get("static")->set_main_shader(nullptr);
+	ModelRenderQueue::get("static")->render(this->dt);
 
 	// ANIMATED OBJECTS
-	RenderQueue::get("animated")->render(this->dt);
+	ModelRenderQueue::get("animated")->render(this->dt);
 
 	// INSTANCED OBJECTS
 	ShaderPipeline* instanced_pipeline = ShaderPipeline::get("instanced_game");
@@ -607,11 +608,7 @@ void Game::render_screen()
 
 void Game::render_text()
 {
-	Shader::unuse();
-	ShaderPipeline::get("text")->use();
-	if (this->level->is_game_over())
-		this->arial_big->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "GAME OVER", 500.0f, 400.0f, 1.0f);
-	this->arial->render_string(Shader::get("image_vertex"), Shader::get("text_fragment"), "Time Survived: " + Utility::float_to_str(this->level->get_time_survived(), 2) + "s", 0.0f, 780.0f, 1.0f);
+	TextRenderQueue::get("game_text")->render(this->dt);
 }
 
 void Game::render()
@@ -631,7 +628,7 @@ void Game::render()
 
 	// RENDER FOREGROUND
 	glClear(GL_DEPTH_BUFFER_BIT);
-	RenderQueue::get("foreground_animated")->render(this->dt);
+	ModelRenderQueue::get("foreground_animated")->render(this->dt);
 
 	// RENDER SCREEN
 	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);

@@ -25,9 +25,14 @@ private:
 	glm::vec3 color;
 	Quad2D char_quad;
 
+	static std::unordered_map<std::string, Font*> LOADED_SET;
+
 public:
-	Font(std::string font_name, unsigned int size, glm::vec3 color);
+	Font(std::string font_family, unsigned int size, glm::vec3 color);
 	void render_string(Shader* vertex_shader, Shader* fragment_shader, std::string str, float x, float y, float scale);
+
+	static Font* load(std::string name, std::string font_family, unsigned int size, glm::vec3 color);
+	static Font* get(std::string name);
 };
 
 #endif
