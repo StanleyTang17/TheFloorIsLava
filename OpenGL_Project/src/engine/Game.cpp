@@ -56,6 +56,9 @@ Game::Game(const char* title, const int width, const int height, const int versi
 	this->init_matrices();
 	std::cout << "Initialized Matrices" << std::endl;
 
+	this->init_fonts();
+	std::cout << "Initialized Fonts" << std::endl;
+
 	this->init_shaders();
 	std::cout << "Initialized Shaders" << std::endl;
 
@@ -70,9 +73,6 @@ Game::Game(const char* title, const int width, const int height, const int versi
 
 	this->init_uniforms();
 	std::cout << "Initialized Uniforms" << std::endl;
-
-	this->init_fonts();
-	std::cout << "Initialized Fonts" << std::endl;
 }
 
 Game::~Game()
@@ -290,6 +290,12 @@ void Game::init_matrices()
 	this->projection_matrix = glm::perspective(glm::radians(this->FOV), (float)this->frame_buffer_width / (float)this->frame_buffer_height, this->near_plane, this->far_plane);
 }
 
+void Game::init_fonts()
+{
+	Font::load("game_body", "arial", 24, glm::vec3(1.0f));
+	Font::load("game_title", "arial", 48, glm::vec3(1.0f));
+}
+
 void Game::init_shaders()
 {
 	// INIT SHADERS
@@ -449,12 +455,6 @@ void Game::init_uniforms()
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->uniform_buffer);
 
 	Shader::get("cube")->set_vec_3f(glm::vec3(1.0f, 0.0f, 0.0f), "color");
-}
-
-void Game::init_fonts()
-{
-	Font::load("game_body", "arial", 24, glm::vec3(1.0f));
-	Font::load("game_title", "arial", 48, glm::vec3(1.0f));
 }
 
 void Game::update_uniforms()

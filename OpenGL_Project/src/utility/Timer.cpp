@@ -22,3 +22,10 @@ bool Timer::tick()
 		return false;
 	}
 }
+
+void Timer::reset()
+{
+	this->init_time = glfwGetTime();
+	this->last_tick_time = init_time;
+	this->ticks = 0;
+}

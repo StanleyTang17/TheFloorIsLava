@@ -75,7 +75,7 @@ void Font::render_string(Shader* vertex_shader, Shader* fragment_shader, std::st
 	for (std::string::const_iterator c = str.begin(); c != str.end(); ++c)
 	{
 		Character ch = this->characters.at(*c);
-
+		
 		float x_pos = x + ch.bearing.x * scale;
 		float y_pos = y + (ch.bearing.y - ch.size.y) * scale;
 
@@ -93,4 +93,30 @@ void Font::render_string(Shader* vertex_shader, Shader* fragment_shader, std::st
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindVertexArray(0);
+}
+
+glm::vec2 Font::get_string_dimension(std::string str, float scale)
+{
+	glm::vec2 size(0.0f, 0.0f);
+
+	for (std::string::const_iterator c = str.begin(); c != str.end(); ++c)
+	{
+		Character ch = this->characters.at(*c);
+
+		float char_width = (ch.advance >> 6) * scale;
+		float char_height = ch.size.y;
+
+		size.x += char_width;
+		if (char_height > size.y)
+			size.y = char_height;
+	}
+
+	return size;
+}
+
+float Font::get_center_x(std::string str, float scale, float lower_x, float upper_x)
+{
+	glm::vec2 size = this->get_string_dimension(str, scale);
+	float dif = upper_x - lower_x;
+	return lower_x + (dif - size.x) / 2;
 }

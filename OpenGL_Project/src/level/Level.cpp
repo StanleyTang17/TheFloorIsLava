@@ -60,11 +60,17 @@ Level::Level(const int rows, const int cols, const int height)
 
 	// INIT TEXT
 
-	game_over_text = { "Game Over", "game_title", 500.0f, 400.0f, 1.0f, false };
-	time_survived_text = { "", "game_body", 0.0f, 780.0f, 1.0f, true };
+	this->title_text = { "Lava rises in", "game_title", 480.0f, 600.0f, 1.0f, true };
+	this->time_survived_text = { "", "game_body", 0.0f, 780.0f, 1.0f, true };
+	this->countdown_text = { "", "game_title", 550, 550, 1.0f, true };
 
-	TextRenderQueue::get("game_text")->add_text(&game_over_text);
+	this->title_text.x = Font::get(this->title_text.font)->get_center_x(title_text.text, 1.0f, 0.0f, 1270.0f);
+
+	TextRenderQueue::get("game_text")->add_text(&title_text);
 	TextRenderQueue::get("game_text")->add_text(&time_survived_text);
+	TextRenderQueue::get("game_text")->add_text(&countdown_text);
+
+	this->timer.reset();
 }
 
 Level::~Level()
@@ -452,9 +458,13 @@ void Level::add_gameobject(GameObject* object)
 void Level::terminate()
 {
 	this->game_over = true;
-	this->game_over_text.enabled = true;
 	this->time_survived = this->timer.get_total_time_elapsed();
 	this->particles->generate(this->player.get_position(), 100);
+
+	this->title_text.enabled = true;
+	this->title_text.text = "Game Over";
+	this->title_text.x = Font::get(this->title_text.font)->get_center_x(title_text.text, 1.0f, 0.0f, 1270.0f);
+	this->countdown_text.enabled = false;
 }
 
 void Level::restart()
@@ -480,11 +490,14 @@ void Level::restart()
 	this->camera.set_front(glm::vec3(0.0f, 0.0f, 1.0f));
 	this->lava_instance->set_position(glm::vec3(this->ROWS * GRID_SIZE / 2 - GRID_SIZE, -10.0f, this->COLS * GRID_SIZE / 2 - GRID_SIZE));
 	
-	this->timer.set_ticks(0);
-	this->timer.reset_total_time();
+	this->timer.reset();
 	this->has_lava = false;
 	this->game_over = false;
-	this->game_over_text.enabled = false;
+
+	this->title_text.enabled = true;
+	this->title_text.text = "Lava rises in";
+	this->title_text.x = Font::get(this->title_text.font)->get_center_x(title_text.text, 1.0f, 0.0f, 1270.0f);
+	this->countdown_text.enabled = true;
 
 	InstancedModel::get("container")->clear_instances();
 	InstancedModel::get("container_plane")->clear_instances();
@@ -496,6 +509,14 @@ void Level::update_lava(const float dt)
 	{
 		this->lava_instance->set_position(glm::vec3(this->ROWS * GRID_SIZE / 2 - GRID_SIZE, 0.1f, this->COLS * GRID_SIZE / 2 - GRID_SIZE));
 		this->has_lava = true;
+
+		this->title_text.enabled = false;
+		this->countdown_text.enabled = false;
+	}
+	else
+	{
+		this->countdown_text.text = std::to_string(10 - this->timer.get_ticks());
+		this->countdown_text.x = Font::get(this->countdown_text.font)->get_center_x(countdown_text.text, 1.0f, 0.0f, 1270.0f);
 	}
 
 	if (this->has_lava)
@@ -514,9 +535,4 @@ void Level::render_particles(Shader* fragment_shader)
 void Level::render_lava(Shader* vertex_shader, Shader* fragment_shader)
 {
 	this->lava_instance->render(vertex_shader, fragment_shader);
-}
-
-void Level::render_text(Font* title_font, Font* body_font)
-{
-	
 }

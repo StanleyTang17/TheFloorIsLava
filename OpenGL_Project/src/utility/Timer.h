@@ -19,7 +19,7 @@ public:
 	inline int get_ticks() const { return this->ticks; }
 	inline void set_ticks(int ticks) { this->ticks = ticks; }
 	inline float get_total_time_elapsed() const { return glfwGetTime() - this->init_time; }
-	inline void reset_total_time() { this->init_time = glfwGetTime(); }
+	void reset();
 };
 
 #endif

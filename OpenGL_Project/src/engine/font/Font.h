@@ -30,6 +30,8 @@ private:
 public:
 	Font(std::string font_family, unsigned int size, glm::vec3 color);
 	void render_string(Shader* vertex_shader, Shader* fragment_shader, std::string str, float x, float y, float scale);
+	glm::vec2 get_string_dimension(std::string str, float scale);
+	float get_center_x(std::string str, float scale, float lower_x, float upper_x);
 
 	static Font* load(std::string name, std::string font_family, unsigned int size, glm::vec3 color);
 	static Font* get(std::string name);

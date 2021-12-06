@@ -53,7 +53,8 @@ private:
 	Random random;
 	ParticleEffect* particles;
 
-	TextInfo game_over_text;
+	TextInfo title_text;
+	TextInfo countdown_text;
 	TextInfo time_survived_text;
 
 	std::list<GameObject*> gameobjects;
@@ -89,7 +90,6 @@ public:
 	void update(const float dt);
 	void render_particles(Shader* fragment_shader);
 	void render_lava(Shader* vertex_shader, Shader* fragment_shader);
-	void render_text(Font* title_font, Font* body_font);
 	void queue_block(int row, int col, float time_til_landing);
 	void handle_key_input(GLFWwindow* window, int key, int action) override;
 	void handle_mouse_move_input(const float dt, const double offset_x, const double offset_y) override;
