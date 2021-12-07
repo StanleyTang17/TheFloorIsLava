@@ -80,6 +80,9 @@ Level::Level(const int rows, const int cols, const int height)
 
 	this->queue_blocks(1.5f);
 	this->timer.reset();
+
+	this->instance_updated["container"] = false;
+	this->instance_updated["container_plane"] = false;
 }
 
 Level::~Level()
@@ -94,16 +97,20 @@ Level::~Level()
 
 void Level::queue_block(int row, int col, float time_til_landing)
 {
-	QueuedBlock block { row, col, glfwGetTime() + time_til_landing, nullptr };
+	glm::vec3 position = glm::vec3(
+		row * GRID_SIZE - GRID_SIZE / 2,
+		(float)this->get_height(row, col) * GRID_SIZE + 0.0001f,
+		col * GRID_SIZE - GRID_SIZE / 2
+	);
+
+	ModelInstance* warning_instance = new ModelInstance("container_plane", "static", position, glm::vec3(0.0f), glm::vec3(1.0f));
+
+	QueuedBlock block{ row, col, glfwGetTime() + time_til_landing, nullptr, warning_instance };
 	this->queued_blocks.push_back(block);
 	this->set_tile_queued(row, col, true);
-	glm::vec3 position = glm::vec3(
-		block.row * GRID_SIZE - GRID_SIZE / 2,
-		(float)this->get_height(row, col) * GRID_SIZE + 0.0001f,
-		block.col * GRID_SIZE - GRID_SIZE / 2
-	);
-	InstancedModel::get("container_plane")->add_instance(new ModelInstance("container_plane", "static", position, glm::vec3(0.0f), glm::vec3(1.0f)));
-	InstancedModel::get("container_plane")->init_instances();
+	
+	InstancedModel::get("container_plane")->add_instance(warning_instance);
+	this->instance_updated["container_plane"] = true;
 }
 
 void Level::update(const float dt)
@@ -113,11 +120,20 @@ void Level::update(const float dt)
 	if (this->game_over)
 		return;
 
+	this->instance_updated["container"] = false;
+	this->instance_updated["container_plane"] = false;
+
 	this->timer.tick();
 	this->drop_blocks();
 	this->queue_blocks(0.5f);
 	this->update_gameobjects(dt);
 	this->update_lava(dt);
+
+	for (std::unordered_map<std::string, bool>::iterator iter = this->instance_updated.begin(); iter != this->instance_updated.end(); ++iter)
+	{
+		std::string instance_name = iter->first;
+		InstancedModel::get(instance_name)->init_instances();
+	}
 
 	this->time_survived = this->timer.get_total_time_elapsed();
 	this->time_survived_text.text = "Time Survived: " + Utility::float_to_str(this->time_survived, 2) + "s";
@@ -142,7 +158,6 @@ void Level::queue_blocks(const float wait_time)
 void Level::drop_blocks()
 {
 	bool hit = false;
-	bool has_new_blocks = false;
 	float current_time = glfwGetTime();
 	std::list<QueuedBlock>::iterator block_it = this->queued_blocks.begin();
 	int block_index = 0;
@@ -154,7 +169,6 @@ void Level::drop_blocks()
 
 		if (time_dif <= 0)
 		{
-			has_new_blocks = true;
 			this->height_map[index] += 1;
 			this->set_tile_queued(block_it->row, block_it->col, false);
 
@@ -164,8 +178,15 @@ void Level::drop_blocks()
 				block_it->col * GRID_SIZE - GRID_SIZE / 2
 			);
 
-			if(block_it->graphic_instance != nullptr)
-				block_it->graphic_instance->set_position(position);
+			if (block_it->block_instance != nullptr)
+				block_it->block_instance->set_position(position);
+
+			if (block_it->warning_instance != nullptr)
+			{
+				InstancedModel::get("container_plane")->remove_instance(block_it->warning_instance);
+				delete block_it->warning_instance;
+				this->instance_updated["container_plane"] = true;
+			}
 
 			position.y -= GRID_SIZE / 2;
 			this->particles->generate(position, 200);
@@ -189,7 +210,7 @@ void Level::drop_blocks()
 		else if (time_dif <= this->DROP_DURATION)
 		{
 			float drop_height = (this->get_height(block_it->row, block_it->col) + this->DROP_HEIGHT_OFFSET + 0.5f) * GRID_SIZE;
-			if (block_it->graphic_instance == nullptr)
+			if (block_it->block_instance == nullptr)
 			{
 				glm::vec3 position = glm::vec3(
 					block_it->row * GRID_SIZE - GRID_SIZE / 2,
@@ -197,12 +218,14 @@ void Level::drop_blocks()
 					block_it->col * GRID_SIZE - GRID_SIZE / 2
 				);
 				ModelInstance* instance = new ModelInstance("container", "static", position, glm::vec3(0.0f), glm::vec3(1.0f));
-				block_it->graphic_instance = instance;
-				InstancedModel::get("container")->add_instance(block_it->graphic_instance);
+				block_it->block_instance = instance;
+
+				InstancedModel::get("container")->add_instance(block_it->block_instance);
+				this->instance_updated["container"] = true;
 			}
 			else
 			{
-				ModelInstance* instance = block_it->graphic_instance;
+				ModelInstance* instance = block_it->block_instance;
 				glm::vec3 pos = instance->get_position();
 				float time_elapsed = this->DROP_DURATION - time_dif;
 				pos.y = drop_height - this->DROP_ACCELERATION / 2 * time_elapsed * time_elapsed;

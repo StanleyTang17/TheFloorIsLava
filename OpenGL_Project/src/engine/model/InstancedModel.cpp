@@ -52,7 +52,6 @@ void InstancedModel::init_instances()
 	{
 		
 		glBindVertexArray(new_mesh->get_VAO());
-		//new_mesh->init_instanced_mat4(5, this->instance_buffer);
 		glBindBuffer(GL_ARRAY_BUFFER, this->instance_buffer);
 
 		std::size_t vec4_size = sizeof(glm::vec4);
@@ -89,7 +88,6 @@ void InstancedModel::update_instances()
 void InstancedModel::add_instance(ModelInstance* instance)
 {
 	this->instances.push_back(instance);
-	this->init_instances();
 }
 
 void InstancedModel::remove_instance(ModelInstance* instance)

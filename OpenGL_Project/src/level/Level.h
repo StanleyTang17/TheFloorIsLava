@@ -23,7 +23,8 @@ struct QueuedBlock
 	int row;
 	int col;
 	float landing_time;
-	ModelInstance* graphic_instance;
+	ModelInstance* block_instance;
+	ModelInstance* warning_instance;
 };
 
 class Level : public KeyInput, public MouseMoveInput
@@ -60,6 +61,7 @@ private:
 	std::list<GameObject*> gameobjects;
 	std::list<QueuedBlock> queued_blocks;
 	std::vector<ModelInstance*> falling_block_animations;
+	std::unordered_map <std::string, bool> instance_updated;
 	
 	inline int get_index(int row, int col) const { return row * COLS + col; }
 	inline int get_height(int row, int col) { return this->height_map[this->get_index(row, col)]; }
