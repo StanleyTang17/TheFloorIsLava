@@ -4,7 +4,7 @@ WarehouseModel::WarehouseModel(glm::vec3 scale)
 	:
 	size(scale)
 {
-	this->init("res/models/warehouse/warehouse.obj");
+	this->init("res/models/warehouse/warehouse_walls.obj");
 }
 
 void WarehouseModel::post_load_vertex_process(std::vector<Vertex>& vertices)

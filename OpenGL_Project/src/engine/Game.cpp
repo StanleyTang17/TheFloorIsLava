@@ -371,8 +371,7 @@ void Game::init_lights()
 
 void Game::init_models()
 {
-	Model::load("res/models/grass_plane/grass_plane.obj");
-	Model::load("res/models/glass_pane/glass_pane.obj");
+	Model::load("res/models/concrete_plane/concrete_plane.obj");
 
 	InstancedModel::load("res/models/container/container.obj");
 	InstancedModel::load("res/models/container_plane/container_plane.obj");

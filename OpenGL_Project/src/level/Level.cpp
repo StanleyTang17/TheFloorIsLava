@@ -42,11 +42,19 @@ Level::Level(const int rows, const int cols, const int height)
 	this->lava_instance = new ModelInstance(
 		lava_model->get_name(),
 		"static",
-		glm::vec3(this->ROWS * GRID_SIZE / 2 - GRID_SIZE, -1.0f, this->COLS * GRID_SIZE / 2 - GRID_SIZE),
+		glm::vec3(this->ROWS * GRID_SIZE / 2 - GRID_SIZE, -10.0f, this->COLS * GRID_SIZE / 2 - GRID_SIZE),
 		glm::vec3(0.0f),
 		glm::vec3(this->ROWS * GRID_SIZE, MAX_HEIGHT * GRID_SIZE, this->COLS * GRID_SIZE)
 	);
 	this->has_lava = false;
+
+	ModelRenderQueue::get("static")->add_instance(new ModelInstance(
+		"concrete_plane",
+		"static",
+		glm::vec3(this->ROWS * GRID_SIZE / 2 - GRID_SIZE, 0.0f, this->COLS * GRID_SIZE / 2 - GRID_SIZE),
+		glm::vec3(0.0f),
+		glm::vec3(this->ROWS * GRID_SIZE, MAX_HEIGHT * GRID_SIZE, this->COLS * GRID_SIZE)
+	));
 	
 	// INIT PARTICLES
 
