@@ -67,7 +67,7 @@ private:
 	inline void set_tile_queued(int row, int col, bool queued) { this->queue_map[this->get_index(row, col)] = queued; }
 	glm::ivec3 get_grid_pos(glm::vec3 position);
 	void update_gameobjects(const float dt);
-	void queue_blocks();
+	void queue_blocks(const float wait_time = 0.0f);
 	void drop_blocks();
 	void update_lava(const float dt);
 	void terminate();

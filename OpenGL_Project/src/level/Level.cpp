@@ -70,6 +70,7 @@ Level::Level(const int rows, const int cols, const int height)
 	TextRenderQueue::get("game_text")->add_text(&time_survived_text);
 	TextRenderQueue::get("game_text")->add_text(&countdown_text);
 
+	this->queue_blocks(1.5f);
 	this->timer.reset();
 }
 
@@ -106,7 +107,7 @@ void Level::update(const float dt)
 
 	this->timer.tick();
 	this->drop_blocks();
-	this->queue_blocks();
+	this->queue_blocks(0.5f);
 	this->update_gameobjects(dt);
 	this->update_lava(dt);
 
@@ -114,7 +115,7 @@ void Level::update(const float dt)
 	this->time_survived_text.text = "Time Survived: " + Utility::float_to_str(this->time_survived, 2) + "s";
 }
 
-void Level::queue_blocks()
+void Level::queue_blocks(const float wait_time)
 {
 	while (this->queued_blocks.size() < NUM_QUEUED_BLOCKS)
 	{
@@ -126,7 +127,7 @@ void Level::queue_blocks()
 			col = this->random.rand_int(0, this->COLS - 1);
 		} while (this->is_tile_queued(row, col));
 
-		this->queue_block(row, col, this->queued_blocks.size() * QUEUE_TIME_PER_BLOCK);
+		this->queue_block(row, col, wait_time + this->queued_blocks.size() * QUEUE_TIME_PER_BLOCK);
 	}
 }
 
