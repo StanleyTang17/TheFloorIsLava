@@ -16,6 +16,8 @@ Level::Level(const int rows, const int cols, const int height)
 	this->queue_map = new bool[num_tiles];
 	this->game_over = false;
 	this->time_survived = 0;
+	this->height_increment = 2 * GRID_SIZE;
+	this->height_threshold = this->height_increment;
 
 	for (int i = 0; i < num_tiles; ++i)
 	{
@@ -27,18 +29,19 @@ Level::Level(const int rows, const int cols, const int height)
 
 	// INIT GRAPHICS
 
-	WarehouseModel* warehouse_model = new WarehouseModel(glm::vec3(rows * GRID_SIZE / 2, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2));
+	WarehouseModel* warehouse_model = new WarehouseModel(glm::vec3(rows * GRID_SIZE / 2, MAX_HEIGHT * GRID_SIZE * 10, cols * GRID_SIZE / 2));
 	Model::add(warehouse_model);
-	ModelRenderQueue::get("static")->add_instance(new ModelInstance(
+	this->warehouse_instance = new ModelInstance(
 		warehouse_model->get_name(),
 		"static",
-		glm::vec3(rows * GRID_SIZE / 2 - GRID_SIZE, MAX_HEIGHT * GRID_SIZE / 2, cols * GRID_SIZE / 2 - GRID_SIZE),
+		glm::vec3(rows * GRID_SIZE / 2 - GRID_SIZE, MAX_HEIGHT * GRID_SIZE, cols * GRID_SIZE / 2 - GRID_SIZE),
 		glm::vec3(0.0f),
 		glm::vec3(1.0f)
-	));
+	);
+	ModelRenderQueue::get("static")->add_instance(this->warehouse_instance);
 
-	this->lava_model = new LavaModel("res/images/flowmap_2.png");
-	Model::add(this->lava_model);
+	LavaModel* lava_model = new LavaModel("res/images/flowmap_2.png");
+	Model::add(lava_model);
 	this->lava_instance = new ModelInstance(
 		lava_model->get_name(),
 		"static",
@@ -55,6 +58,9 @@ Level::Level(const int rows, const int cols, const int height)
 		glm::vec3(0.0f),
 		glm::vec3(this->ROWS * GRID_SIZE, MAX_HEIGHT * GRID_SIZE, this->COLS * GRID_SIZE)
 	));
+
+	this->instance_updated["container"] = false;
+	this->instance_updated["container_plane"] = false;
 	
 	// INIT PARTICLES
 
@@ -78,11 +84,10 @@ Level::Level(const int rows, const int cols, const int height)
 	TextRenderQueue::get("game_text")->add_text(&time_survived_text);
 	TextRenderQueue::get("game_text")->add_text(&countdown_text);
 
+	// INIT GAME
+
 	this->queue_blocks(1.5f);
 	this->timer.reset();
-
-	this->instance_updated["container"] = false;
-	this->instance_updated["container_plane"] = false;
 }
 
 Level::~Level()
@@ -128,6 +133,7 @@ void Level::update(const float dt)
 	this->queue_blocks(0.5f);
 	this->update_gameobjects(dt);
 	this->update_lava(dt);
+	this->update_walls();
 
 	for (std::unordered_map<std::string, bool>::iterator iter = this->instance_updated.begin(); iter != this->instance_updated.end(); ++iter)
 	{
@@ -556,6 +562,18 @@ void Level::update_lava(const float dt)
 		glm::vec3 pos = this->lava_instance->get_position();
 		pos.y += this->lava_speed * dt;
 		this->lava_instance->set_position(pos);
+	}
+}
+
+void Level::update_walls()
+{
+	if (this->lava_instance->get_position().y > this->height_threshold)
+	{
+		glm::vec3 pos = this->warehouse_instance->get_position();
+		pos.y += this->height_increment;
+		this->warehouse_instance->set_position(pos);
+		
+		this->height_threshold += this->height_increment;
 	}
 }
 

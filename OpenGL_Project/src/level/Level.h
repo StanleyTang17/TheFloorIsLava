@@ -39,10 +39,13 @@ private:
 	int* height_map;
 	bool* queue_map;
 
-	LavaModel* lava_model;
 	ModelInstance* lava_instance;
+	ModelInstance* warehouse_instance;
 	bool has_lava;
 	float lava_speed = 0.1f;
+
+	float height_threshold;
+	float height_increment;
 
 	Timer timer;
 	bool game_over;
@@ -72,6 +75,7 @@ private:
 	void queue_blocks(const float wait_time = 0.0f);
 	void drop_blocks();
 	void update_lava(const float dt);
+	void update_walls();
 	void terminate();
 	void restart();
 	void check_collision(GameObject *object, const float dt);
