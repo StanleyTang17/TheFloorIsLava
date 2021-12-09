@@ -88,6 +88,13 @@ Level::Level(const int rows, const int cols, const int height)
 
 	this->queue_blocks(1.5f);
 	this->timer.reset();
+
+	this->start_pos = glm::vec3(1.0f);
+	this->end_pos = glm::vec3(1.0f);
+	this->start_axes = glm::vec3(1.0f);
+	this->end_axes = glm::vec3(1.0f);
+	this->start_time = 0.0f;
+	this->end_time = 0.0f;
 }
 
 Level::~Level()
@@ -123,7 +130,10 @@ void Level::update(const float dt)
 	this->particles->update(dt, this->camera.get_view_matrix(), this->camera.get_position());
 
 	if (this->game_over)
+	{
+		this->play_post_game_animation();
 		return;
+	}
 
 	this->instance_updated["container"] = false;
 	this->instance_updated["container_plane"] = false;
@@ -503,6 +513,17 @@ void Level::terminate()
 	this->title_text.text = "Game Over";
 	this->title_text.x = Font::get(this->title_text.font)->get_center_x(title_text.text, 1.0f, 0.0f, 1270.0f);
 	this->countdown_text.enabled = false;
+
+	this->start_pos = this->camera.get_position();
+	this->end_pos = glm::vec3(
+		this->ROWS * GRID_SIZE / 2 - GRID_SIZE,
+		this->player.get_position().y + this->MAX_HEIGHT * GRID_SIZE,
+		this->COLS * GRID_SIZE / 2 - GRID_SIZE
+	);
+	this->start_axes = this->camera.get_axes();
+	this->end_axes = glm::vec3(-90.0f, -90.0f, 0.0f);
+	this->start_time = glfwGetTime();
+	this->end_time = this->start_time + 4.0f;
 }
 
 void Level::restart()
@@ -574,6 +595,19 @@ void Level::update_walls()
 		this->warehouse_instance->set_position(pos);
 		
 		this->height_threshold += this->height_increment;
+	}
+}
+
+void Level::play_post_game_animation()
+{
+	float cur_time = glfwGetTime();
+	if (cur_time > this->start_time && cur_time < this->end_time)
+	{
+		glm::vec3 camera_pos = Utility::polynomial_interpolate(this->start_pos, this->end_pos, this->end_time - this->start_time, cur_time - this->start_time);
+		glm::vec3 camera_axes = Utility::polynomial_interpolate(this->start_axes, this->end_axes, this->end_time - this->start_time, cur_time - this->start_time);
+		this->camera.set_position(camera_pos);
+		this->camera.set_axes(camera_axes);
+		this->camera.update_camera_vectors();
 	}
 }
 

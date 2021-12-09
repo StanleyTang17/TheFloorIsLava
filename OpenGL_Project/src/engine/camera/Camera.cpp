@@ -36,6 +36,13 @@ void Camera::update_camera_vectors()
 	this->up = glm::normalize(glm::cross(this->right, this->front));
 }
 
+void Camera::set_axes(glm::vec3 axes)
+{
+	this->pitch = axes.x;
+	this->yaw = axes.y;
+	this->roll = axes.z;
+}
+
 void Camera::handle_mouse_move_input(const float dt, const double offset_x, const double offset_y)
 {
 	this->pitch += static_cast<GLfloat>(offset_y) * this->sensitivity * dt;
@@ -80,6 +87,11 @@ const glm::vec3 Camera::get_world_up() const
 const glm::vec3 Camera::get_camera_up() const
 {
 	return glm::normalize(glm::cross(this->right, this->front));
+}
+
+const glm::vec3 Camera::get_axes() const
+{
+	return glm::vec3(this->pitch, this->yaw, this->roll);
 }
 
 void Camera::set_position(glm::vec3 position)

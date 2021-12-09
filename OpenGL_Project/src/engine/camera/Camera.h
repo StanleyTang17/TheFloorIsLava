@@ -41,9 +41,11 @@ public:
 	const glm::vec3 get_right() const;
 	const glm::vec3 get_world_up() const;
 	const glm::vec3 get_camera_up() const;
+	const glm::vec3 get_axes() const;
 
 	void set_position(glm::vec3 position);
 	void set_front(glm::vec3 front);
+	void set_axes(glm::vec3 axes); // glm::vec3(pitch, yaw, roll)
 };
 
 #endif

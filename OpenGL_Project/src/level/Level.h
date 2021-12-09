@@ -61,6 +61,14 @@ private:
 	TextInfo countdown_text;
 	TextInfo time_survived_text;
 
+	// Camera Animation
+	glm::vec3 start_pos;
+	glm::vec3 end_pos;
+	glm::vec3 start_axes;
+	glm::vec3 end_axes;
+	float start_time;
+	float end_time;
+
 	std::list<GameObject*> gameobjects;
 	std::list<QueuedBlock> queued_blocks;
 	std::vector<ModelInstance*> falling_block_animations;
@@ -76,6 +84,7 @@ private:
 	void drop_blocks();
 	void update_lava(const float dt);
 	void update_walls();
+	void play_post_game_animation();
 	void terminate();
 	void restart();
 	void check_collision(GameObject *object, const float dt);
