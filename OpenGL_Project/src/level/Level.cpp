@@ -18,6 +18,8 @@ Level::Level(const int rows, const int cols, const int height)
 	this->time_survived = 0;
 	this->height_increment = 2 * GRID_SIZE;
 	this->height_threshold = this->height_increment;
+	this->save_file = "data/level.save";
+	this->highscore = this->read_high_score();
 
 	for (int i = 0; i < num_tiles; ++i)
 	{
@@ -77,12 +79,14 @@ Level::Level(const int rows, const int cols, const int height)
 	this->title_text = { "Lava rises in", "game_title", 480.0f, 600.0f, 1.0f, true };
 	this->time_survived_text = { "", "game_body", 0.0f, 780.0f, 1.0f, true };
 	this->countdown_text = { "", "game_title", 550, 550, 1.0f, true };
+	this->highscore_text = { "", "game_title", 550, 450, 1.0f, false };
 
 	this->title_text.x = Font::get(this->title_text.font)->get_center_x(title_text.text, 1.0f, 0.0f, 1270.0f);
 
 	TextRenderQueue::get("game_text")->add_text(&title_text);
 	TextRenderQueue::get("game_text")->add_text(&time_survived_text);
 	TextRenderQueue::get("game_text")->add_text(&countdown_text);
+	TextRenderQueue::get("game_text")->add_text(&highscore_text);
 
 	// INIT GAME
 
@@ -139,20 +143,27 @@ void Level::update(const float dt)
 	this->instance_updated["container_plane"] = false;
 
 	this->timer.tick();
+	this->time_survived = this->timer.get_total_time_elapsed();
+	this->time_survived_text.text = "Time Survived: " + Utility::float_to_str(this->time_survived, 2) + "s";
+
 	this->drop_blocks();
-	this->queue_blocks(0.5f);
 	this->update_gameobjects(dt);
+
+	if (this->game_over)
+		return;
+
+	this->queue_blocks(0.5f);
 	this->update_lava(dt);
 	this->update_walls();
 
 	for (std::unordered_map<std::string, bool>::iterator iter = this->instance_updated.begin(); iter != this->instance_updated.end(); ++iter)
 	{
-		std::string instance_name = iter->first;
-		InstancedModel::get(instance_name)->init_instances();
+		if (iter->second)
+		{
+			std::string instance_name = iter->first;
+			InstancedModel::get(instance_name)->init_instances();
+		}
 	}
-
-	this->time_survived = this->timer.get_total_time_elapsed();
-	this->time_survived_text.text = "Time Survived: " + Utility::float_to_str(this->time_survived, 2) + "s";
 }
 
 void Level::queue_blocks(const float wait_time)
@@ -292,7 +303,7 @@ glm::ivec3 Level::get_grid_pos(glm::vec3 position)
 
 void Level::handle_key_input(GLFWwindow* window, int key, int action)
 {
-	if (this->game_over)
+	if (this->game_over && glfwGetTime() > this->end_time)
 	{
 		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
 			this->restart();
@@ -503,16 +514,64 @@ void Level::add_gameobject(GameObject* object)
 	ModelRenderQueue::get("static")->add_instance(object->get_model_instance());
 }
 
+float Level::read_high_score()
+{
+	std::string line = "";
+	std::fstream in_file;
+	float score = 0;
+
+	in_file.open(this->save_file);
+	if (in_file.is_open())
+	{
+		std::getline(in_file, line);
+		score = std::stof(line);
+	}
+	else
+	{
+		std::cout << "CANNOT READ SAVE FILE!" << std::endl;
+	}
+
+	in_file.close();
+	return score;
+}
+
+void Level::write_high_score(float highscore)
+{
+	std::string line = std::to_string(highscore);
+	std::fstream in_file;
+
+	in_file.open(this->save_file);
+	if (in_file.is_open())
+	{
+		in_file.write(line.c_str(), line.length());
+	}
+	else
+	{
+		std::cout << "CANNOT READ SAVE FILE!" << std::endl;
+	}
+
+	in_file.close();
+}
+
 void Level::terminate()
 {
 	this->game_over = true;
 	this->time_survived = this->timer.get_total_time_elapsed();
 	this->particles->generate(this->player.get_position(), 100);
 
+	if (this->time_survived > this->highscore)
+	{
+		this->highscore = this->time_survived;
+		this->write_high_score(this->highscore);
+	}
+
 	this->title_text.enabled = true;
 	this->title_text.text = "Game Over";
 	this->title_text.x = Font::get(this->title_text.font)->get_center_x(title_text.text, 1.0f, 0.0f, 1270.0f);
 	this->countdown_text.enabled = false;
+	this->highscore_text.enabled = true;
+	this->highscore_text.text = "Longest Time Survived: " + Utility::float_to_str(this->highscore, 2) + "s";
+	this->highscore_text.x = Font::get(this->highscore_text.font)->get_center_x(highscore_text.text, 1.0f, 0.0f, 1270.0f);
 
 	this->start_pos = this->camera.get_position();
 	this->end_pos = glm::vec3(
@@ -524,6 +583,9 @@ void Level::terminate()
 	this->end_axes = glm::vec3(-90.0f, -90.0f, 0.0f);
 	this->start_time = glfwGetTime();
 	this->end_time = this->start_time + 4.0f;
+
+	InstancedModel::get("container_plane")->clear_instances();
+	InstancedModel::get("container_plane")->init_instances();
 }
 
 void Level::restart()
@@ -557,9 +619,9 @@ void Level::restart()
 	this->title_text.text = "Lava rises in";
 	this->title_text.x = Font::get(this->title_text.font)->get_center_x(title_text.text, 1.0f, 0.0f, 1270.0f);
 	this->countdown_text.enabled = true;
+	this->highscore_text.enabled = false;
 
 	InstancedModel::get("container")->clear_instances();
-	InstancedModel::get("container_plane")->clear_instances();
 }
 
 void Level::update_lava(const float dt)

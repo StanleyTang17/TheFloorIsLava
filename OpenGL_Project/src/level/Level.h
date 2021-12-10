@@ -6,6 +6,7 @@
 #include<iostream>
 #include<list>
 #include<math.h>
+#include<fstream>
 #include"gameobject/player/Player.h"
 #include"engine/render_queue/ModelRenderQueue.h"
 #include"engine/render_queue/TextRenderQueue.h"
@@ -50,6 +51,8 @@ private:
 	Timer timer;
 	bool game_over;
 	float time_survived;
+	float highscore;
+	std::string save_file;
 
 	Player player;
 	Camera camera;
@@ -60,6 +63,7 @@ private:
 	TextInfo title_text;
 	TextInfo countdown_text;
 	TextInfo time_survived_text;
+	TextInfo highscore_text;
 
 	// Camera Animation
 	glm::vec3 start_pos;
@@ -79,14 +83,20 @@ private:
 	inline bool is_tile_queued(int row, int col) { return this->queue_map[this->get_index(row, col)]; }
 	inline void set_tile_queued(int row, int col, bool queued) { this->queue_map[this->get_index(row, col)] = queued; }
 	glm::ivec3 get_grid_pos(glm::vec3 position);
+
 	void update_gameobjects(const float dt);
 	void queue_blocks(const float wait_time = 0.0f);
 	void drop_blocks();
 	void update_lava(const float dt);
 	void update_walls();
 	void play_post_game_animation();
+
+	float read_high_score();
+	void write_high_score(float highscore);
+
 	void terminate();
 	void restart();
+
 	void check_collision(GameObject *object, const float dt);
 	void check_x_collision(GameObject *object, const float dt);
 	void check_y_collision(GameObject *object, const float dt);

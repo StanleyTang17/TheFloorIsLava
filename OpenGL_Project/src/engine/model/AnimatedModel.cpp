@@ -150,6 +150,7 @@ void AnimatedModel::read_split_animations(std::string split_file)
 	else
 		std::cout << "CANNOT READ SPLIT ANIMATION" << std::endl;
 
+	in_file.close();
 }
 
 AnimatedBone* AnimatedModel::find_bone_by_name(std::string name)
