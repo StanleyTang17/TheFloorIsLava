@@ -93,12 +93,10 @@ Level::Level(const int rows, const int cols, const int height)
 	this->queue_blocks(1.5f);
 	this->timer.reset();
 
-	this->start_pos = glm::vec3(1.0f);
-	this->end_pos = glm::vec3(1.0f);
-	this->start_axes = glm::vec3(1.0f);
-	this->end_axes = glm::vec3(1.0f);
-	this->start_time = 0.0f;
-	this->end_time = 0.0f;
+	this->camera_anim_axes.add_point(0.0f, glm::vec3(0.0f));
+	this->camera_anim_axes.add_point(1.0f, glm::vec3(1.0f));
+	this->camera_anim_pos.add_point(0.0f, glm::vec3(0.0f));
+	this->camera_anim_pos.add_point(1.0f, glm::vec3(1.0f));
 }
 
 Level::~Level()
@@ -303,7 +301,7 @@ glm::ivec3 Level::get_grid_pos(glm::vec3 position)
 
 void Level::handle_key_input(GLFWwindow* window, int key, int action)
 {
-	if (this->game_over && glfwGetTime() > this->end_time)
+	if (this->game_over && glfwGetTime() > this->camera_anim_pos.get_end().first)
 	{
 		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
 			this->restart();
@@ -558,6 +556,7 @@ void Level::terminate()
 	this->game_over = true;
 	this->time_survived = this->timer.get_total_time_elapsed();
 	this->particles->generate(this->player.get_position(), 100);
+	float cur_time = glfwGetTime();
 
 	if (this->time_survived > this->highscore)
 	{
@@ -573,16 +572,14 @@ void Level::terminate()
 	this->highscore_text.text = "Longest Time Survived: " + Utility::float_to_str(this->highscore, 2) + "s";
 	this->highscore_text.x = Font::get(this->highscore_text.font)->get_center_x(highscore_text.text, 1.0f, 0.0f, 1270.0f);
 
-	this->start_pos = this->camera.get_position();
-	this->end_pos = glm::vec3(
+	this->camera_anim_pos.set_point(0, cur_time, this->camera.get_position());
+	this->camera_anim_pos.set_point(1, cur_time + 4.0f, glm::vec3(
 		this->ROWS * GRID_SIZE / 2 - GRID_SIZE,
 		this->player.get_position().y + this->MAX_HEIGHT * GRID_SIZE,
 		this->COLS * GRID_SIZE / 2 - GRID_SIZE
-	);
-	this->start_axes = this->camera.get_axes();
-	this->end_axes = glm::vec3(-90.0f, -90.0f, 0.0f);
-	this->start_time = glfwGetTime();
-	this->end_time = this->start_time + 4.0f;
+	));
+	this->camera_anim_axes.set_point(0, cur_time, this->camera.get_axes());
+	this->camera_anim_axes.set_point(1, cur_time + 4.0f, glm::vec3(-90.0f, -90.0f, 0.0f));
 
 	InstancedModel::get("container_plane")->clear_instances();
 	InstancedModel::get("container_plane")->init_instances();
@@ -663,10 +660,10 @@ void Level::update_walls()
 void Level::play_post_game_animation()
 {
 	float cur_time = glfwGetTime();
-	if (cur_time > this->start_time && cur_time < this->end_time)
+	if (cur_time > this->camera_anim_pos.get_start().first && cur_time < this->camera_anim_pos.get_end().first)
 	{
-		glm::vec3 camera_pos = Utility::polynomial_interpolate(this->start_pos, this->end_pos, this->end_time - this->start_time, cur_time - this->start_time);
-		glm::vec3 camera_axes = Utility::polynomial_interpolate(this->start_axes, this->end_axes, this->end_time - this->start_time, cur_time - this->start_time);
+		glm::vec3 camera_pos = this->camera_anim_pos.polynomial_interpolate(cur_time);
+		glm::vec3 camera_axes = this->camera_anim_axes.polynomial_interpolate(cur_time);
 		this->camera.set_position(camera_pos);
 		this->camera.set_axes(camera_axes);
 		this->camera.update_camera_vectors();

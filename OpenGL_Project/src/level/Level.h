@@ -66,12 +66,8 @@ private:
 	TextInfo highscore_text;
 
 	// Camera Animation
-	glm::vec3 start_pos;
-	glm::vec3 end_pos;
-	glm::vec3 start_axes;
-	glm::vec3 end_axes;
-	float start_time;
-	float end_time;
+	Utility::t_vec3 camera_anim_pos;
+	Utility::t_vec3 camera_anim_axes;
 
 	std::list<GameObject*> gameobjects;
 	std::list<QueuedBlock> queued_blocks;
