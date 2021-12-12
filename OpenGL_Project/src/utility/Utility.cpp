@@ -39,13 +39,13 @@ glm::vec3 Utility::polynomial_interpolate(std::pair<float, glm::vec3> p1, std::p
 float Utility::linear_interpolate(std::pair<float, float> p1, std::pair<float, float> p2, float cur)
 {
 	// std::pair< time, value >
-	return (p2.second - p1.first) / (p2.first - p1.first) * cur;
+	return (p2.second - p1.second) / (p2.first - p1.first) * (cur - p1.first);
 }
 
 glm::vec3 Utility::linear_interpolate(std::pair<float, glm::vec3> p1, std::pair<float, glm::vec3> p2, float cur)
 {
 	// std::pair< time, value >
-	return (p2.second - p1.first) / (p2.first - p1.first) * cur;
+	return (p2.second - p1.second) / (p2.first - p1.first) * (cur - p1.first);
 }
 
 float Utility::t_float::linear_interpolate(float cur_time)

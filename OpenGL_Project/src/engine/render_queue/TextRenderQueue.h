@@ -14,6 +14,7 @@ struct TextInfo
 	float y;
 	float scale;
 	bool enabled;
+	glm::vec4 color = glm::vec4(1.0f);
 };
 
 class TextRenderQueue : public RenderQueue
@@ -35,6 +36,8 @@ public:
 
 	void add_text(TextInfo* text_info);
 	void remove_text(TextInfo* text_info);
+
+	static void center_text_x(TextInfo& text_info);
 };
 
 #endif

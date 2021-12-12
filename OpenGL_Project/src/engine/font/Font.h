@@ -22,18 +22,20 @@ class Font
 {
 private:
 	std::unordered_map<char, Character> characters;
-	glm::vec3 color;
+	glm::vec4 default_color;
 	Quad2D char_quad;
 
 	static std::unordered_map<std::string, Font*> LOADED_SET;
 
 public:
-	Font(std::string font_family, unsigned int size, glm::vec3 color);
+	Font(std::string font_family, unsigned int size, glm::vec4 default_color);
+	void render_string(Shader* vertex_shader, Shader* fragment_shader, std::string str, float y, float scale, glm::vec4 color);
 	void render_string(Shader* vertex_shader, Shader* fragment_shader, std::string str, float x, float y, float scale);
+	void render_string(Shader* vertex_shader, Shader* fragment_shader, std::string str, float x, float y, float scale, glm::vec4 color);
 	glm::vec2 get_string_dimension(std::string str, float scale);
 	float get_center_x(std::string str, float scale, float lower_x, float upper_x);
 
-	static Font* load(std::string name, std::string font_family, unsigned int size, glm::vec3 color);
+	static Font* load(std::string name, std::string font_family, unsigned int size, glm::vec4 color);
 	static Font* get(std::string name);
 };
 

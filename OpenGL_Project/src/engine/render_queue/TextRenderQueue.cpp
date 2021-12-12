@@ -58,7 +58,7 @@ void TextRenderQueue::render_with_pipeline(ShaderPipeline* pipeline, const float
 		if (text_info->enabled)
 		{
 			Font* font = Font::get(text_info->font);
-			font->render_string(vertex, fragment, text_info->text, text_info->x, text_info->y, text_info->scale);
+			font->render_string(vertex, fragment, text_info->text, text_info->x, text_info->y, text_info->scale, text_info->color);
 		}
 	}
 }
@@ -73,4 +73,11 @@ void TextRenderQueue::remove_text(TextInfo* text_info)
 	for (std::vector<TextInfo*>::iterator it = this->text_queue.begin(); it != this->text_queue.end(); ++it)
 		if ((*it) == text_info)
 			this->text_queue.erase(it);
+}
+
+void TextRenderQueue::center_text_x(TextInfo& text_info)
+{
+	Font* font = Font::get(text_info.font);
+	float center_x = font->get_center_x(text_info.text, text_info.scale, 0.0f, 1270.0f);
+	text_info.x = center_x;
 }

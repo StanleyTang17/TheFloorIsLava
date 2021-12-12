@@ -2,7 +2,7 @@
 
 std::unordered_map<std::string, Font*> Font::LOADED_SET = std::unordered_map<std::string, Font*>();
 
-Font* Font::load(std::string name, std::string font_family, unsigned int size, glm::vec3 color)
+Font* Font::load(std::string name, std::string font_family, unsigned int size, glm::vec4 color)
 {
 	Font* font = new Font(font_family, size, color);
 	LOADED_SET[name] = font;
@@ -16,11 +16,11 @@ Font* Font::get(std::string name)
 	return nullptr;
 }
 
-Font::Font(std::string font_family, unsigned int size, glm::vec3 color)
+Font::Font(std::string font_family, unsigned int size, glm::vec4 default_color)
 	:
 	char_quad(0.0f, 0.0f, 1.0f, 1.0f)
 {
-	this->color = color;
+	this->default_color = default_color;
 
 	FT_Library ft;
 	if (FT_Init_FreeType(&ft))
@@ -67,15 +67,26 @@ Font::Font(std::string font_family, unsigned int size, glm::vec3 color)
 	FT_Done_FreeType(ft);
 }
 
+void Font::render_string(Shader* vertex_shader, Shader* fragment_shader, std::string str, float y, float scale, glm::vec4 color)
+{
+	float x = this->get_center_x(str, scale, 0.0f, 1270.0f);
+	this->render_string(vertex_shader, fragment_shader, str, x, y, scale, color);
+}
+
 void Font::render_string(Shader* vertex_shader, Shader* fragment_shader, std::string str, float x, float y, float scale)
 {
+	this->render_string(vertex_shader, fragment_shader, str, x, y, scale, this->default_color);
+}
+
+void Font::render_string(Shader* vertex_shader, Shader* fragment_shader, std::string str, float x, float y, float scale, glm::vec4 color)
+{
 	fragment_shader->set_1i(0, "font_texture");
-	fragment_shader->set_vec_3f(this->color, "font_color");
+	fragment_shader->set_vec_4f(color, "font_color");
 
 	for (std::string::const_iterator c = str.begin(); c != str.end(); ++c)
 	{
 		Character ch = this->characters.at(*c);
-		
+
 		float x_pos = x + ch.bearing.x * scale;
 		float y_pos = y + (ch.bearing.y - ch.size.y) * scale;
 

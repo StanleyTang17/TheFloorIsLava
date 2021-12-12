@@ -14,12 +14,12 @@ Level::Level(const int rows, const int cols, const int height)
 	int num_tiles = rows * cols;
 	this->height_map = new int[num_tiles];
 	this->queue_map = new bool[num_tiles];
-	this->game_over = false;
 	this->time_survived = 0;
 	this->height_increment = 2 * GRID_SIZE;
 	this->height_threshold = this->height_increment;
 	this->save_file = "data/level.save";
 	this->highscore = this->read_high_score();
+	this->state = LevelState::START;
 
 	for (int i = 0; i < num_tiles; ++i)
 	{
@@ -76,27 +76,40 @@ Level::Level(const int rows, const int cols, const int height)
 
 	// INIT TEXT
 
-	this->title_text = { "Lava rises in", "game_title", 480.0f, 600.0f, 1.0f, true };
-	this->time_survived_text = { "", "game_body", 0.0f, 780.0f, 1.0f, true };
-	this->countdown_text = { "", "game_title", 550, 550, 1.0f, true };
-	this->highscore_text = { "", "game_title", 550, 450, 1.0f, false };
+	this->title_text = { "The Floor is Lava", "game_title", 480.0f, 600.0f, 1.0f, true };
+	this->time_survived_text = { "", "game_body", 0.0f, 780.0f, 1.0f, false };
+	this->countdown_text = { "", "game_title", 550, 550, 1.0f, false };
+	this->highscore_text = { "Longest Time Survived: " + Utility::float_to_str(this->highscore, 2) + "s", "game_title", 550, 450, 1.0f, true };
+	this->help_text = { "Press [Space] to start ", "game_title", 550, 300, 1.0f, true };
 
-	this->title_text.x = Font::get(this->title_text.font)->get_center_x(title_text.text, 1.0f, 0.0f, 1270.0f);
+	TextRenderQueue::center_text_x(this->title_text);
+	TextRenderQueue::center_text_x(this->highscore_text);
+	TextRenderQueue::center_text_x(this->help_text);
 
 	TextRenderQueue::get("game_text")->add_text(&title_text);
 	TextRenderQueue::get("game_text")->add_text(&time_survived_text);
 	TextRenderQueue::get("game_text")->add_text(&countdown_text);
 	TextRenderQueue::get("game_text")->add_text(&highscore_text);
+	TextRenderQueue::get("game_text")->add_text(&help_text);
 
-	// INIT GAME
-
-	this->queue_blocks(1.5f);
-	this->timer.reset();
+	// INIT ANIMATION
 
 	this->camera_anim_axes.add_point(0.0f, glm::vec3(0.0f));
 	this->camera_anim_axes.add_point(1.0f, glm::vec3(1.0f));
 	this->camera_anim_pos.add_point(0.0f, glm::vec3(0.0f));
 	this->camera_anim_pos.add_point(1.0f, glm::vec3(1.0f));
+	this->text_alpha.add_point(0.0f, 0.0f);
+	this->text_alpha.add_point(1.0f, 1.0f);
+
+	// INIT CAMERA
+
+	this->camera.set_position(glm::vec3(
+		this->ROWS * GRID_SIZE / 2 - GRID_SIZE,
+		this->player.get_position().y + this->MAX_HEIGHT * GRID_SIZE,
+		this->COLS * GRID_SIZE / 2 - GRID_SIZE
+	));
+	this->camera.set_axes(glm::vec3(-89.0f, -89.0f, 0.0f));
+	this->camera.update_camera_vectors();
 }
 
 Level::~Level()
@@ -107,6 +120,51 @@ Level::~Level()
 	delete this->particles;
 	for (GameObject* object : this->gameobjects)
 		delete object;
+}
+
+void Level::update(const float dt)
+{
+	this->particles->update(dt, this->camera.get_view_matrix(), this->camera.get_position());
+
+	switch (this->state)
+	{
+	case LevelState::START:
+
+		break;
+
+	case LevelState::RUNNING:
+		this->instance_updated["container"] = false;
+		this->instance_updated["container_plane"] = false;
+
+		this->timer.tick();
+		this->time_survived = this->timer.get_total_time_elapsed();
+		this->time_survived_text.text = "Time Survived: " + Utility::float_to_str(this->time_survived, 2) + "s";
+
+		this->queue_blocks(0.5f);
+		this->drop_blocks();
+		this->update_gameobjects(dt);
+		this->update_lava(dt);
+		this->update_walls();
+
+		for (std::unordered_map<std::string, bool>::iterator iter = this->instance_updated.begin(); iter != this->instance_updated.end(); ++iter)
+		{
+			if (iter->second)
+			{
+				std::string instance_name = iter->first;
+				InstancedModel::get(instance_name)->init_instances();
+			}
+		}
+
+		break;
+
+	case LevelState::GAME_OVER:
+		this->play_post_game_animation();
+		break;
+
+	default:
+		break;
+	}
+
 }
 
 void Level::queue_block(int row, int col, float time_til_landing)
@@ -122,46 +180,9 @@ void Level::queue_block(int row, int col, float time_til_landing)
 	QueuedBlock block{ row, col, glfwGetTime() + time_til_landing, nullptr, warning_instance };
 	this->queued_blocks.push_back(block);
 	this->set_tile_queued(row, col, true);
-	
+
 	InstancedModel::get("container_plane")->add_instance(warning_instance);
 	this->instance_updated["container_plane"] = true;
-}
-
-void Level::update(const float dt)
-{
-	this->particles->update(dt, this->camera.get_view_matrix(), this->camera.get_position());
-
-	if (this->game_over)
-	{
-		this->play_post_game_animation();
-		return;
-	}
-
-	this->instance_updated["container"] = false;
-	this->instance_updated["container_plane"] = false;
-
-	this->timer.tick();
-	this->time_survived = this->timer.get_total_time_elapsed();
-	this->time_survived_text.text = "Time Survived: " + Utility::float_to_str(this->time_survived, 2) + "s";
-
-	this->drop_blocks();
-	this->update_gameobjects(dt);
-
-	if (this->game_over)
-		return;
-
-	this->queue_blocks(0.5f);
-	this->update_lava(dt);
-	this->update_walls();
-
-	for (std::unordered_map<std::string, bool>::iterator iter = this->instance_updated.begin(); iter != this->instance_updated.end(); ++iter)
-	{
-		if (iter->second)
-		{
-			std::string instance_name = iter->first;
-			InstancedModel::get(instance_name)->init_instances();
-		}
-	}
 }
 
 void Level::queue_blocks(const float wait_time)
@@ -301,11 +322,13 @@ glm::ivec3 Level::get_grid_pos(glm::vec3 position)
 
 void Level::handle_key_input(GLFWwindow* window, int key, int action)
 {
-	if (this->game_over && glfwGetTime() > this->camera_anim_pos.get_end().first)
+	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
 	{
-		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+		if (
+			(this->state == LevelState::GAME_OVER && glfwGetTime() > this->camera_anim_pos.get_end().first) ||
+			this->state == LevelState::START
+		)
 			this->restart();
-		return;
 	}
 
 	this->player.handle_key_input(window, key, action);
@@ -316,10 +339,8 @@ void Level::handle_key_input(GLFWwindow* window, int key, int action)
 
 void Level::handle_mouse_move_input(const float dt, const double offset_x, const double offset_y)
 {
-	if (this->game_over)
-		return;
-
-	this->camera.handle_mouse_move_input(dt, offset_x, offset_y);
+	if (this->state == LevelState::RUNNING)
+		this->camera.handle_mouse_move_input(dt, offset_x, offset_y);
 }
 
 void Level::check_collision(GameObject *object, const float dt)
@@ -553,7 +574,7 @@ void Level::write_high_score(float highscore)
 
 void Level::terminate()
 {
-	this->game_over = true;
+	this->state = LevelState::GAME_OVER;
 	this->time_survived = this->timer.get_total_time_elapsed();
 	this->particles->generate(this->player.get_position(), 100);
 	float cur_time = glfwGetTime();
@@ -566,20 +587,31 @@ void Level::terminate()
 
 	this->title_text.enabled = true;
 	this->title_text.text = "Game Over";
-	this->title_text.x = Font::get(this->title_text.font)->get_center_x(title_text.text, 1.0f, 0.0f, 1270.0f);
+	TextRenderQueue::center_text_x(this->title_text);
+	this->title_text.color.a = 0.0f;
 	this->countdown_text.enabled = false;
 	this->highscore_text.enabled = true;
 	this->highscore_text.text = "Longest Time Survived: " + Utility::float_to_str(this->highscore, 2) + "s";
-	this->highscore_text.x = Font::get(this->highscore_text.font)->get_center_x(highscore_text.text, 1.0f, 0.0f, 1270.0f);
+	TextRenderQueue::center_text_x(this->highscore_text);
+	this->highscore_text.color.a = 0.0f;
+	this->help_text.enabled = true;
+	this->help_text.color.a = 0.0f;
 
+	if (this->help_text.text.find_first_of("start") != std::string::npos)
+		this->help_text.text = "Press [Space] to try again";
+	TextRenderQueue::center_text_x(this->help_text);
+
+	float anim_duration = 4.0f;
 	this->camera_anim_pos.set_point(0, cur_time, this->camera.get_position());
-	this->camera_anim_pos.set_point(1, cur_time + 4.0f, glm::vec3(
+	this->camera_anim_pos.set_point(1, cur_time + anim_duration, glm::vec3(
 		this->ROWS * GRID_SIZE / 2 - GRID_SIZE,
 		this->player.get_position().y + this->MAX_HEIGHT * GRID_SIZE,
 		this->COLS * GRID_SIZE / 2 - GRID_SIZE
 	));
 	this->camera_anim_axes.set_point(0, cur_time, this->camera.get_axes());
-	this->camera_anim_axes.set_point(1, cur_time + 4.0f, glm::vec3(-90.0f, -90.0f, 0.0f));
+	this->camera_anim_axes.set_point(1, cur_time + anim_duration, glm::vec3(-90.0f, -90.0f, 0.0f));
+	this->text_alpha.set_point(0, cur_time, 0.0f);
+	this->text_alpha.set_point(1, cur_time + anim_duration, 1.0f);
 
 	InstancedModel::get("container_plane")->clear_instances();
 	InstancedModel::get("container_plane")->init_instances();
@@ -595,6 +627,7 @@ void Level::restart()
 	}
 
 	this->queued_blocks.clear();
+	this->queue_blocks(1.5f);
 
 	for (GameObject* object : this->gameobjects)
 		if (object != &this->player)
@@ -605,20 +638,25 @@ void Level::restart()
 	this->gameobjects.push_back(&this->player);
 
 	this->player.reset(glm::vec3(this->ROWS * GRID_SIZE / 2, 5.0f, this->COLS * GRID_SIZE / 2));
+	this->player.set_in_air(true);
 	this->camera.set_front(glm::vec3(0.0f, 0.0f, 1.0f));
 	this->lava_instance->set_position(glm::vec3(this->ROWS * GRID_SIZE / 2 - GRID_SIZE, -10.0f, this->COLS * GRID_SIZE / 2 - GRID_SIZE));
 	
 	this->timer.reset();
 	this->has_lava = false;
-	this->game_over = false;
+	this->state = LevelState::RUNNING;
 
 	this->title_text.enabled = true;
 	this->title_text.text = "Lava rises in";
-	this->title_text.x = Font::get(this->title_text.font)->get_center_x(title_text.text, 1.0f, 0.0f, 1270.0f);
+	TextRenderQueue::center_text_x(this->title_text);
 	this->countdown_text.enabled = true;
 	this->highscore_text.enabled = false;
+	this->time_survived_text.enabled = true;
+	this->help_text.enabled = false;
 
 	InstancedModel::get("container")->clear_instances();
+	InstancedModel::get("container")->init_instances();
+	InstancedModel::get("container_plane")->init_instances();
 }
 
 void Level::update_lava(const float dt)
@@ -634,7 +672,7 @@ void Level::update_lava(const float dt)
 	else
 	{
 		this->countdown_text.text = std::to_string(10 - this->timer.get_ticks());
-		this->countdown_text.x = Font::get(this->countdown_text.font)->get_center_x(countdown_text.text, 1.0f, 0.0f, 1270.0f);
+		TextRenderQueue::center_text_x(this->countdown_text);
 	}
 
 	if (this->has_lava)
@@ -664,9 +702,13 @@ void Level::play_post_game_animation()
 	{
 		glm::vec3 camera_pos = this->camera_anim_pos.polynomial_interpolate(cur_time);
 		glm::vec3 camera_axes = this->camera_anim_axes.polynomial_interpolate(cur_time);
+		float alpha = this->text_alpha.linear_interpolate(cur_time);
 		this->camera.set_position(camera_pos);
 		this->camera.set_axes(camera_axes);
 		this->camera.update_camera_vectors();
+		this->title_text.color.a = alpha;
+		this->highscore_text.color.a = alpha;
+		this->help_text.color.a = alpha;
 	}
 }
 

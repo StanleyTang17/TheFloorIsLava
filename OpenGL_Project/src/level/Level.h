@@ -28,6 +28,11 @@ struct QueuedBlock
 	ModelInstance* warning_instance;
 };
 
+enum class LevelState
+{
+	START, RUNNING, GAME_OVER
+};
+
 class Level : public KeyInput, public MouseMoveInput
 {
 private:
@@ -36,6 +41,8 @@ private:
 	const float DROP_ACCELERATION = 80.0f;
 	const int DROP_HEIGHT_OFFSET = 10;
 	const float DROP_DURATION;
+
+	LevelState state;
 
 	int* height_map;
 	bool* queue_map;
@@ -49,7 +56,6 @@ private:
 	float height_increment;
 
 	Timer timer;
-	bool game_over;
 	float time_survived;
 	float highscore;
 	std::string save_file;
@@ -64,10 +70,12 @@ private:
 	TextInfo countdown_text;
 	TextInfo time_survived_text;
 	TextInfo highscore_text;
+	TextInfo help_text;
 
 	// Camera Animation
 	Utility::t_vec3 camera_anim_pos;
 	Utility::t_vec3 camera_anim_axes;
+	Utility::t_float text_alpha;
 
 	std::list<GameObject*> gameobjects;
 	std::list<QueuedBlock> queued_blocks;
@@ -120,7 +128,7 @@ public:
 
 	inline Camera get_camera() const { return this->camera; }
 	inline float get_time_survived() const { return this->time_survived; }
-	inline bool is_game_over() const { return this->game_over; }
+	inline bool is_game_over() const { return this->state == LevelState::GAME_OVER; }
 	
 };
 

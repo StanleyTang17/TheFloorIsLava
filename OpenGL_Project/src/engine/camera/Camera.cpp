@@ -53,8 +53,10 @@ void Camera::handle_mouse_move_input(const float dt, const double offset_x, cons
 	else if (this->pitch < -80.0f)
 		this->pitch = -80.0f;
 
-	if (this->yaw > 360.0f || this->yaw < -360.0f)
-		this->yaw = 0.0f;
+	if (this->yaw > 180.0f)
+		this->yaw -= 360.0f;
+	else if (this->yaw < -180.0f)
+		this->yaw += 360.0f;
 }
 
 const glm::mat4 Camera::get_view_matrix()

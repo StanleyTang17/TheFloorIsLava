@@ -27,6 +27,9 @@ void InstancedModel::load_mesh(aiMesh* mesh, const aiScene* scene)
 
 void InstancedModel::render(Shader* vertex_shader, Shader* fragment_shader)
 {
+	if (this->instances.size() == 0)
+		return;
+
 	if (this->last_rendered_instances == this->instances.size())
 		this->update_instances();
 	else
