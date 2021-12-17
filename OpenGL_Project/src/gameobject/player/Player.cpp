@@ -45,13 +45,18 @@ void Player::update_velocity(const float dt)
 		this->velocity.z = 0;
 	}
 
-	if (jump_movement && !this->in_air)
-	{
-		this->velocity.y = this->jump_speed;
-		this->in_air = true;
-	}
-	
-	this->apply_gravity(dt);
+	//if (jump_movement && !this->in_air)
+	//{
+	//	this->velocity.y = this->jump_speed;
+	//	this->in_air = true;
+	//}
+	//
+	//this->apply_gravity(dt);
+
+	if (jump_movement)
+		this->velocity.y = jump_movement * 1.0f;
+	else
+		this->velocity.y = 0.0f;
 }
 
 void Player::update()
@@ -113,17 +118,24 @@ void Player::handle_key_input(GLFWwindow* window, int key, int action)
 	else if (key == GLFW_KEY_SPACE)
 	{
 		if (action == GLFW_PRESS)
-			this->jump_movement = true;
+			this->jump_movement = 1;
 		else if (action == GLFW_RELEASE)
-			this->jump_movement = false;
+			this->jump_movement = 0;
 	}
 	else if (key == GLFW_KEY_LEFT_SHIFT)
 	{
 		if (action == GLFW_PRESS)
-			this->speed = 2.0f;
+			this->jump_movement = -1;
 		else if (action == GLFW_RELEASE)
-			this->speed = 5.0f;
+			this->jump_movement = 0;
 	}
+	//else if (key == GLFW_KEY_LEFT_SHIFT)
+	//{
+	//	if (action == GLFW_PRESS)
+	//		this->speed = 2.0f;
+	//	else if (action == GLFW_RELEASE)
+	//		this->speed = 5.0f;
+	//}
 }
 
 void Player::reset(glm::vec3 position)

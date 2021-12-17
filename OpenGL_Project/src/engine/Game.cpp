@@ -334,6 +334,12 @@ void Game::init_shaders()
 	std::string animated_particles_srcs[] = { "src/shaders/animated_particles/vertex.glsl", "src/shaders/animated_particles/fragment.glsl" };
 	Shader::load("animated_particles", 2, types, animated_particles_srcs);
 
+	std::string foreground_animation_debug_srcs[] = { "src/shaders/foreground_animation_debug/vertex.glsl", "src/shaders/foreground_animation_debug/fragment.glsl" };
+	Shader::load("foreground_animated_debug", 2, types, foreground_animation_debug_srcs);
+
+	std::string animation_debug_srcs[] = { "src/shaders/animation_debug/vertex.glsl", "src/shaders/foreground_animation_debug/fragment.glsl" };
+	Shader::load("animated_debug", 2, types, animation_debug_srcs);
+
 	// INIT PIPELINES
 
 	GLbitfield pipeline_stages[] = { GL_VERTEX_SHADER_BIT, GL_FRAGMENT_SHADER_BIT };
@@ -354,9 +360,11 @@ void Game::init_shaders()
 	ShaderPipeline::load("flowmap", 2, pipeline_stages, flowmap_pipeline_shaders);
 
 	ModelRenderQueue::load("static", ShaderPipeline::get("static_game"));
-	ModelRenderQueue::load("animated", ShaderPipeline::get("animated_game"));
+	//ModelRenderQueue::load("animated", ShaderPipeline::get("animated_game"));
+	ModelRenderQueue::load("animated", Shader::get("animated_debug"));
 	ModelRenderQueue::load("instanced", ShaderPipeline::get("instanced_game"));
-	ModelRenderQueue::load("foreground_animated", ShaderPipeline::get("foreground_animated_game"));
+	//ModelRenderQueue::load("foreground_animated", ShaderPipeline::get("foreground_animated_game"));
+	ModelRenderQueue::load("foreground_animated", Shader::get("foreground_animated_debug"));
 	TextRenderQueue::load("game_text", ShaderPipeline::get("text"));
 }
 
@@ -375,6 +383,9 @@ void Game::init_models()
 
 	InstancedModel::load("res/models/container/container.obj");
 	InstancedModel::load("res/models/container_plane/container_plane.obj");
+
+	//AnimatedModel::load("res/models/hands_V2/hands_V2.dae", "res/models/hands_V2/split.txt");
+	AnimatedModel::load("res/models/hands/hands.dae", "res/models/hands/split.txt");
 
 	crosshair = new Image(
 		"res/images/crosshair_white.png",
@@ -571,7 +582,9 @@ void Game::render_level()
 	ModelRenderQueue::get("static")->render(this->dt);
 
 	// ANIMATED OBJECTS
+	glDisable(GL_CULL_FACE);
 	ModelRenderQueue::get("animated")->render(this->dt);
+	glEnable(GL_CULL_FACE);
 
 	// INSTANCED OBJECTS
 	ShaderPipeline* instanced_pipeline = ShaderPipeline::get("instanced_game");
@@ -626,8 +639,10 @@ void Game::render()
 	this->render_level();
 
 	// RENDER FOREGROUND
-	glClear(GL_DEPTH_BUFFER_BIT);
-	ModelRenderQueue::get("foreground_animated")->render(this->dt);
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	//glDisable(GL_CULL_FACE);
+	//ModelRenderQueue::get("foreground_animated")->render(this->dt);
+	//glEnable(GL_CULL_FACE);
 
 	// RENDER SCREEN
 	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);

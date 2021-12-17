@@ -49,6 +49,7 @@ private:
 
 	ModelInstance* lava_instance;
 	ModelInstance* warehouse_instance;
+	ModelInstance* hands_instance;
 	bool has_lava;
 	float lava_speed = 0.1f;
 

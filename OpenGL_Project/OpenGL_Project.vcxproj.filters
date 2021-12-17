@@ -288,5 +288,8 @@
     <None Include="src\shaders\flowmap\fragment.glsl" />
     <None Include="src\shaders\flowmap_3d\fragment.glsl" />
     <None Include="data\level.save" />
+    <None Include="src\shaders\foreground_animation_debug\fragment.glsl" />
+    <None Include="src\shaders\foreground_animation_debug\vertex.glsl" />
+    <None Include="src\shaders\animation_debug\vertex.glsl" />
   </ItemGroup>
 </Project>

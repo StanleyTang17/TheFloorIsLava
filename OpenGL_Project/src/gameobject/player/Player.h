@@ -13,13 +13,13 @@
 class Player : public GameObject, public KeyInput
 {
 private:
-	float speed = 7.0f;
+	float speed = 2.0f;
 	float jump_speed = 15.0f;
 
 	// MOVEMENT CONTROL
 	int front_movement;
 	int side_movement;
-	bool jump_movement;
+	int jump_movement;
 
 	glm::vec3 front;
 	glm::vec3 right;

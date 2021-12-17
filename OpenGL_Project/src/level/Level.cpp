@@ -61,6 +61,11 @@ Level::Level(const int rows, const int cols, const int height)
 		glm::vec3(this->ROWS * GRID_SIZE, MAX_HEIGHT * GRID_SIZE, this->COLS * GRID_SIZE)
 	));
 
+	this->hands_instance = new ModelInstance("hands", "foreground_animated", glm::vec3(this->ROWS * GRID_SIZE / 2 - GRID_SIZE, 4.0f, this->COLS * GRID_SIZE / 2 - GRID_SIZE), glm::vec3(0.0f, -90.0f, 0.0f), glm::vec3(7.0f));
+	this->hands_instance->pause();
+	//ModelRenderQueue::get("foreground_animated")->add_instance(this->hands_instance);
+	ModelRenderQueue::get("animated")->add_instance(this->hands_instance);
+
 	this->instance_updated["container"] = false;
 	this->instance_updated["container_plane"] = false;
 	
@@ -135,16 +140,16 @@ void Level::update(const float dt)
 	case LevelState::RUNNING:
 		this->instance_updated["container"] = false;
 		this->instance_updated["container_plane"] = false;
-
+		
 		this->timer.tick();
 		this->time_survived = this->timer.get_total_time_elapsed();
 		this->time_survived_text.text = "Time Survived: " + Utility::float_to_str(this->time_survived, 2) + "s";
 
-		this->queue_blocks(0.5f);
-		this->drop_blocks();
+		//this->queue_blocks(0.5f);
+		//this->drop_blocks();
 		this->update_gameobjects(dt);
-		this->update_lava(dt);
-		this->update_walls();
+		//this->update_lava(dt);
+		//this->update_walls();
 
 		for (std::unordered_map<std::string, bool>::iterator iter = this->instance_updated.begin(); iter != this->instance_updated.end(); ++iter)
 		{
@@ -322,6 +327,26 @@ glm::ivec3 Level::get_grid_pos(glm::vec3 position)
 
 void Level::handle_key_input(GLFWwindow* window, int key, int action)
 {
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS)
+	{
+		this->hands_instance->rotate(glm::vec3(0.0f, 5.0f, 0.0f));
+	}
+
+	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+	{
+		this->hands_instance->rotate(glm::vec3(0.0f, -5.0f, 0.0f));
+	}
+
+	if (key == GLFW_KEY_L && action == GLFW_PRESS)
+	{
+		this->hands_instance->_scale(glm::vec3(0.1f));
+	}
+
+	if (key == GLFW_KEY_K && action == GLFW_PRESS)
+	{
+		this->hands_instance->_scale(glm::vec3(-0.1f));
+	}
+
 	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
 	{
 		if (
@@ -335,6 +360,14 @@ void Level::handle_key_input(GLFWwindow* window, int key, int action)
 
 	if (key == GLFW_KEY_P && action == GLFW_PRESS)
 		this->particles->generate(this->player.get_position(), 30);
+	
+	if (key == GLFW_KEY_O && action == GLFW_PRESS)
+	{
+		if (this->hands_instance->is_paused())
+			this->hands_instance->unpause();
+		else
+			this->hands_instance->pause();
+	}
 }
 
 void Level::handle_mouse_move_input(const float dt, const double offset_x, const double offset_y)
@@ -615,6 +648,8 @@ void Level::terminate()
 
 	InstancedModel::get("container_plane")->clear_instances();
 	InstancedModel::get("container_plane")->init_instances();
+
+	this->hands_instance->pause();
 }
 
 void Level::restart()
@@ -657,6 +692,8 @@ void Level::restart()
 	InstancedModel::get("container")->clear_instances();
 	InstancedModel::get("container")->init_instances();
 	InstancedModel::get("container_plane")->init_instances();
+
+	this->hands_instance->play_animation("run", true);
 }
 
 void Level::update_lava(const float dt)

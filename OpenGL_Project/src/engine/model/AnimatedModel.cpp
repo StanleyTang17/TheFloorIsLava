@@ -21,6 +21,7 @@ AnimatedModel::AnimatedModel(std::string model_path, std::string split_animation
 	this->init(model_path);
 
 	Assimp::Importer importer;
+	//const aiScene* scene = importer.ReadFile(model_path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_FlipUVs);
 	const aiScene* scene = importer.ReadFile(model_path, aiProcess_Triangulate);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -38,6 +39,13 @@ AnimatedModel::AnimatedModel(std::string model_path, std::string split_animation
 	this->read_animated_node(0, scene->mRootNode);
 	this->read_animated_bones(animation, scene);
 	this->read_split_animations(split_animation_path);
+
+	std::cout << "num bones: " << this->bone_count << std::endl;
+
+	for (std::map<std::string, BoneInfo>::iterator it = this->bone_info_map.begin(); it != this->bone_info_map.end(); ++it)
+	{
+		std::cout << it->first << " " << it->second.id << std::endl;
+	}
 }
 
 void AnimatedModel::set_vertex_bone_default(AnimatedVertex& vertex)
@@ -51,13 +59,26 @@ void AnimatedModel::set_vertex_bone_default(AnimatedVertex& vertex)
 
 void AnimatedModel::append_vertex_bone(AnimatedVertex& vertex, int bone_id, float weight)
 {
+	int index = -1;
+
 	for (std::size_t i = 0; i < 4; ++i)
-		if (vertex.bone_ids[i] < 0)
+		if (vertex.bone_ids[i] == -1)
 		{
-			vertex.bone_ids[i] = bone_id;
-			vertex.weights[i] = weight;
+			index = i;
 			break;
 		}
+		else if (weight > vertex.weights[i])
+		{
+			// replace bone with smallest weight
+			if (index == -1 || vertex.weights[i] < vertex.weights[index])
+				index = i;
+		}
+	
+	if (index > -1)
+	{
+		vertex.bone_ids[index] = bone_id;
+		vertex.weights[index] = weight;
+	}
 }
 
 void AnimatedModel::extract_bone_info(std::vector<AnimatedVertex>& vertices, aiMesh* mesh, const aiScene* scene)
@@ -85,7 +106,25 @@ void AnimatedModel::extract_bone_info(std::vector<AnimatedVertex>& vertices, aiM
 			int vertex_id = bone->mWeights[j].mVertexId;
 			float weight = bone->mWeights[j].mWeight;
 			assert(vertex_id <= vertices.size());
+			//if (vertex_id == 60)
+			//{
+			//	std::cout << "INSERTING Bone (" << bone_id << ", " << weight << ")" << std::endl;
+			//	float* bone_ids = vertices[vertex_id].bone_ids;
+			//	float* weights = vertices[vertex_id].weights;
+			//	std::cout << "BEFORE: " << std::endl;
+			//	std::cout << "    bone_ids: " << bone_ids[0] << ", " << bone_ids[1] << ", " << bone_ids[2] << ", " << bone_ids[3] << std::endl;
+			//	std::cout << "    weights: " << weights[0] << ", " << weights[1] << ", " << weights[2] << ", " << weights[3] << std::endl;
+			//}
 			this->append_vertex_bone(vertices[vertex_id], bone_id, weight);
+			//if (vertex_id == 60)
+			//{
+			//	float* bone_ids = vertices[vertex_id].bone_ids;
+			//	float* weights = vertices[vertex_id].weights;
+			//	std::cout << "AFTER: " << std::endl;
+			//	std::cout << "    bone_ids: " << bone_ids[0] << ", " << bone_ids[1] << ", " << bone_ids[2] << ", " << bone_ids[3] << std::endl;
+			//	std::cout << "    weights: " << weights[0] << ", " << weights[1] << ", " << weights[2] << ", " << weights[3] << std::endl;
+			//	std::cout << std::endl;
+			//}
 		}
 	}
 }
@@ -123,6 +162,7 @@ void AnimatedModel::read_animated_bones(aiAnimation* animation, const aiScene* s
 			++this->bone_count;
 		}
 
+		std::cout << "read bone: " << bone_name << std::endl;
 		this->animated_bones.push_back(AnimatedBone(bone_name, this->bone_info_map.at(bone_name).id, channel));
 	}
 }
@@ -144,7 +184,6 @@ void AnimatedModel::read_split_animations(std::string split_file)
 			ss >> end_frame;
 			Sequence animation = { name, stof(start_frame) / this->FPS, stof(end_frame) / this->FPS };
 			this->animations.emplace(name, animation);
-			std::cout << "Loaded sequence " << name << " " << start_frame << " => " << end_frame << std::endl;
 		}
 	}
 	else
