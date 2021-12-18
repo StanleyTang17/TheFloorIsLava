@@ -71,4 +71,13 @@ public:
 	DepthCubeFramebuffer(int width, int height);
 };
 
+class HDRFramebuffer : public Framebuffer
+{
+protected:
+	void init_texture();
+	void init_renderbuffer();
+public:
+	HDRFramebuffer(int width, int height);
+};
+
 #endif

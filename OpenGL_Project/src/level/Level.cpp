@@ -140,11 +140,11 @@ void Level::update(const float dt)
 		this->time_survived = this->timer.get_total_time_elapsed();
 		this->time_survived_text.text = "Time Survived: " + Utility::float_to_str(this->time_survived, 2) + "s";
 
-		this->queue_blocks(0.5f);
-		this->drop_blocks();
+		//this->queue_blocks(0.5f);
+		//this->drop_blocks();
 		this->update_gameobjects(dt);
-		this->update_lava(dt);
-		this->update_walls();
+		//this->update_lava(dt);
+		//this->update_walls();
 
 		for (std::unordered_map<std::string, bool>::iterator iter = this->instance_updated.begin(); iter != this->instance_updated.end(); ++iter)
 		{

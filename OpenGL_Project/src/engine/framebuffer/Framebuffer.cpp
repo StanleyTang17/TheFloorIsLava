@@ -151,3 +151,24 @@ void DepthCubeFramebuffer::init_texture()
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 }
+
+HDRFramebuffer::HDRFramebuffer(int width, int height)
+	:
+	Framebuffer(GL_TEXTURE_2D, GL_RENDERBUFFER, width, height)
+{
+	this->init();
+}
+
+void HDRFramebuffer::init_texture()
+{
+	glTexImage2D(this->texture_type, 0, GL_RGBA16F, this->WIDTH, this->HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(this->texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(this->texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->texture_type, this->texture, 0);
+}
+
+void HDRFramebuffer::init_renderbuffer()
+{
+	glRenderbufferStorage(this->renderbuffer_type, GL_DEPTH_COMPONENT, this->WIDTH, this->HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, this->renderbuffer_type, this->renderbuffer);
+}

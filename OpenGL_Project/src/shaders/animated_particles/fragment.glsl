@@ -17,11 +17,16 @@ void main()
 	vec2 texcoord = vec2(vs_texcoord.x / atlas_rows, vs_texcoord.y / atlas_cols) + offset;
 
 	vec4 tex_color = texture(texture_atlas, texcoord);
-	vec4 color_enhancer = vec4(50.0, 50.0, 50.0, 1.0);
+	vec3 color_override = vec3(1.0);
 
-	float fade = 0.75 / (atlas_rows * atlas_cols) * index;
+	float fade = 0.5 / (atlas_rows * atlas_cols) * index;
 	tex_color.a -= fade;
 
-	fs_color = tex_color * color_enhancer;
+	if (tex_color.a < 0.0)
+		tex_color.a = 0.0;
+	else if (tex_color.a > 1.0)
+		tex_color.a = 1.0;
+
+	fs_color = vec4(color_override, tex_color.a);
 	
 }

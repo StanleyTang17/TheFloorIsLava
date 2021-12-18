@@ -91,6 +91,7 @@ uniform sampler2D shadow_map;
 uniform samplerCube shadow_cube;
 uniform float far_plane;
 
+uniform float exposure;
 
 
 // FUNCTION DECLARATIONS
@@ -112,7 +113,10 @@ void main()
 
 	vec3 result = vec3(0.0, 0.0, 0.0);
 	float gamma = 2.2;
-	vec3 diffuse_color = pow(texture(material.diffuse_map, fs_in.texcoord).rgb, vec3(gamma));
+	vec3 diffuse_color = texture(material.diffuse_map, fs_in.texcoord).rgb;
+	
+	// transform from gamma space to linear space
+	diffuse_color = pow(diffuse_color, vec3(gamma));
 
 	for (int i = 0; i < num_dir_lights; ++i) {
 		result += calc_dir_light(dir_lights[i], normal, view_dir, diffuse_color);
@@ -125,6 +129,15 @@ void main()
 	for (int i = 0; i < num_spot_lights; ++i) {
 		result += calc_spot_light(spot_lights[i], normal, view_dir, diffuse_color);
 	}
+	
+	// Reinhard tone mapping
+	//result = result / (result + vec3(1.0));
+
+	// exposure tone mapping
+	result = vec3(1.0) - exp(-result * exposure);
+
+	// transform from linear space back to gamma space
+	result = pow(result, vec3(1.0/gamma));
 
 	fs_color = vec4(result, texture(texture_diffuse1, fs_in.texcoord).a);
 }

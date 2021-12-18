@@ -63,7 +63,8 @@ private:
 
 	// FRAMEBUFFERS
 
-	MultiSampleFramebuffer* multisample_FBO;
+	//MultiSampleFramebuffer* multisample_FBO;
+	HDRFramebuffer* HDR_FBO;
 	ScreenFramebuffer* screen_FBO;
 	DepthFramebuffer* depth_FBO;
 	DepthCubeFramebuffer* depth_cube_FBO;

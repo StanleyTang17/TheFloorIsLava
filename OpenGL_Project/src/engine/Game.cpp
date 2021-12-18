@@ -77,7 +77,8 @@ Game::Game(const char* title, const int width, const int height, const int versi
 
 Game::~Game()
 {
-	delete this->multisample_FBO;
+	//delete this->multisample_FBO;
+	delete this->HDR_FBO;
 	delete this->screen_FBO;
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -186,7 +187,8 @@ void Game::init_OpenGL_options()
 
 void Game::init_framebuffers()
 {
-	this->multisample_FBO = new MultiSampleFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT, 4);
+	//this->multisample_FBO = new MultiSampleFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT, 4);
+	this->HDR_FBO = new HDRFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT);
 	this->screen_FBO = new ScreenFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT);
 	this->depth_FBO = new DepthFramebuffer(1024, 1024);
 	this->depth_cube_FBO = new DepthCubeFramebuffer(1024, 1024);
@@ -362,10 +364,10 @@ void Game::init_shaders()
 
 void Game::init_lights()
 {
-	PointLight* point_light1 = new PointLight(glm::vec3(0.5f), glm::vec3(1.5f), glm::vec3(0.5f), glm::vec3(4.0f, 5.0f, 4.0f), 1.0f, 0.045f, 0.006f);
+	PointLight* point_light1 = new PointLight(glm::vec3(0.0f), glm::vec3(200.0f), glm::vec3(0.0f), glm::vec3(9.0f, 5.0f, 9.0f), 0.0f, 0.0f, 1.0f);
 	this->point_lights.push_back(point_light1);
 
-	DirLight* dir_light = new DirLight(glm::vec3(1.5f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
+	DirLight* dir_light = new DirLight(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
 	this->dir_lights.push_back(dir_light);
 }
 
@@ -444,6 +446,7 @@ void Game::init_uniforms()
 	game_fragment_shader->set_1f(64.0f, "material.shininess");
 	game_fragment_shader->set_1i(this->depth_cube_FBO->get_texture(), "shadow_cube");
 	game_fragment_shader->set_1f(far, "far_plane");
+	game_fragment_shader->set_1f(0.8f, "exposure");
 
 	// UNIFORM BUFFER
 
@@ -618,7 +621,8 @@ void Game::render()
 	this->render_shadow_map();
 
 	// SWITCH TO MULTI-SAMPLE FRAMEBUFFER
-	this->multisample_FBO->bind(true);
+	//this->multisample_FBO->bind(true);
+	this->HDR_FBO->bind(true);
 	glActiveTexture(GL_TEXTURE0 + this->depth_cube_FBO->get_texture());
 	glBindTexture(GL_TEXTURE_CUBE_MAP, this->depth_cube_FBO->get_texture());
 
@@ -630,8 +634,10 @@ void Game::render()
 	ModelRenderQueue::get("foreground_animated")->render(this->dt);
 
 	// RENDER SCREEN
-	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	this->multisample_FBO->bind_default(true);
+	//this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	//this->multisample_FBO->bind_default(true);
+	this->HDR_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	Framebuffer::bind_default(true);
 	this->render_screen();
 
 	// RENDER TEXT
