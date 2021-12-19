@@ -61,10 +61,13 @@ private:
 
 	GLuint uniform_buffer;
 
+	GLuint blurred_texture;
+
 	// FRAMEBUFFERS
 
 	//MultiSampleFramebuffer* multisample_FBO;
-	HDRFramebuffer* HDR_FBO;
+	BloomFramebuffer* bloom_FBO;
+	HDRFramebuffer* ping_pong_FBOs[2];
 	ScreenFramebuffer* screen_FBO;
 	DepthFramebuffer* depth_FBO;
 	DepthCubeFramebuffer* depth_cube_FBO;
@@ -102,6 +105,7 @@ private:
 	void render_skybox(Shader* shader);
 	void render_shadow_map();
 	void render_level();
+	void render_blur();
 	void render_screen();
 	void render_text();
 

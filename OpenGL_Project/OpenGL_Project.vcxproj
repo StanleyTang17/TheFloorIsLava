@@ -123,6 +123,7 @@
     <None Include="src\shaders\game\geometry.glsl" />
     <None Include="src\shaders\game\vertex.glsl" />
     <None Include="src\shaders\game_instanced\vertex.glsl" />
+    <None Include="src\shaders\gaussian_blur\fragment.glsl" />
     <None Include="src\shaders\image\fragment.glsl" />
     <None Include="src\shaders\line\fragment.glsl" />
     <None Include="src\shaders\line\vertex.glsl" />

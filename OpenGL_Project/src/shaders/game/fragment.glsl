@@ -66,7 +66,8 @@ in VS_OUT
 
 // OUT
 
-out vec4 fs_color;
+layout (location = 0) out vec4 fs_color;
+layout (location = 1) out vec4 fs_bright_color;
 
 
 
@@ -91,8 +92,6 @@ uniform sampler2D shadow_map;
 uniform samplerCube shadow_cube;
 uniform float far_plane;
 
-uniform float exposure;
-
 
 // FUNCTION DECLARATIONS
 
@@ -102,7 +101,17 @@ vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 view_dir, vec3 diffuse_c
 //float calc_shadow(vec3 normal, vec3 light_dir);
 float calc_point_shadow(vec3 light_pos);
 
+const float gamma = 2.2;
 
+vec3 gamma_to_linear(vec3 color)
+{
+    return pow(color, vec3(gamma));
+}
+
+vec3 linear_to_gamma(vec3 color)
+{
+    return pow(color, vec3(1.0/gamma));
+}
 
 // MAIN
 
@@ -110,13 +119,9 @@ void main()
 {
 	vec3 normal = normalize(fs_in.normal);
 	vec3 view_dir = normalize(camera_pos - fs_in.position);
+	vec3 diffuse_color = gamma_to_linear(texture(material.diffuse_map, fs_in.texcoord).rgb);
 
 	vec3 result = vec3(0.0, 0.0, 0.0);
-	float gamma = 2.2;
-	vec3 diffuse_color = texture(material.diffuse_map, fs_in.texcoord).rgb;
-	
-	// transform from gamma space to linear space
-	diffuse_color = pow(diffuse_color, vec3(gamma));
 
 	for (int i = 0; i < num_dir_lights; ++i) {
 		result += calc_dir_light(dir_lights[i], normal, view_dir, diffuse_color);
@@ -129,15 +134,16 @@ void main()
 	for (int i = 0; i < num_spot_lights; ++i) {
 		result += calc_spot_light(spot_lights[i], normal, view_dir, diffuse_color);
 	}
-	
-	// Reinhard tone mapping
-	//result = result / (result + vec3(1.0));
 
-	// exposure tone mapping
-	result = vec3(1.0) - exp(-result * exposure);
+	result = linear_to_gamma(result);
 
-	// transform from linear space back to gamma space
-	result = pow(result, vec3(1.0/gamma));
+	// output bright color
+	vec3 grayscale_vector = vec3(0.2126, 0.7152, 0.0722);
+	float brightness = dot(result.rgb, grayscale_vector);
+	if (brightness > 1.0)
+		fs_bright_color = vec4(result.rgb, 1.0);
+	else
+		fs_bright_color = vec4(0.0, 0.0, 0.0, 1.0);
 
 	fs_color = vec4(result, texture(texture_diffuse1, fs_in.texcoord).a);
 }

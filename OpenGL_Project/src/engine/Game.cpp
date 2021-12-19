@@ -77,8 +77,11 @@ Game::Game(const char* title, const int width, const int height, const int versi
 
 Game::~Game()
 {
-	//delete this->multisample_FBO;
-	delete this->HDR_FBO;
+	delete this->bloom_FBO;
+	delete this->ping_pong_FBOs[0];
+	delete this->ping_pong_FBOs[1];
+	delete this->depth_FBO;
+	delete this->depth_cube_FBO;
 	delete this->screen_FBO;
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -105,6 +108,13 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
 	{
 		game->set_window_should_close(true);
 		return;
+	}
+	else if (key == GLFW_KEY_Y)
+	{
+		if (action == GLFW_PRESS)
+			game->show_depth = 1;
+		else if (action == GLFW_RELEASE)
+			game->show_depth = 0;
 	}
 
 	game->level->handle_key_input(window, key, action);
@@ -187,11 +197,12 @@ void Game::init_OpenGL_options()
 
 void Game::init_framebuffers()
 {
-	//this->multisample_FBO = new MultiSampleFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT, 4);
-	this->HDR_FBO = new HDRFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT);
+	this->bloom_FBO = new BloomFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT);
+	this->ping_pong_FBOs[0] = new HDRFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT, false);
+	this->ping_pong_FBOs[1] = new HDRFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT, false);
 	this->screen_FBO = new ScreenFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT);
 	this->depth_FBO = new DepthFramebuffer(1024, 1024);
-	this->depth_cube_FBO = new DepthCubeFramebuffer(1024, 1024);
+	this->depth_cube_FBO = new DepthCubeFramebuffer(1024, 1024);	
 }
 
 void Game::init_others()
@@ -309,13 +320,14 @@ void Game::init_shaders()
 	Shader* game_fragment_shader = Shader::load("game_fragment", GL_FRAGMENT_SHADER, "src/shaders/game/fragment.glsl");
 	Shader* image_vertex_shader = Shader::load("image_vertex", GL_VERTEX_SHADER, "src/shaders/image/vertex.glsl");
 	Shader* image_fragment_shader = Shader::load("image_fragment", GL_FRAGMENT_SHADER, "src/shaders/image/fragment.glsl");
+	Shader* screen_vertex_shader = Shader::load("screen_vertex", GL_VERTEX_SHADER, "src/shaders/screen/vertex.glsl");
+	Shader* screen_fragment_shader = Shader::load("screen_fragment", GL_FRAGMENT_SHADER, "src/shaders/screen/fragment.glsl");
 	Shader* text_fragment_shader = Shader::load("text_fragment", GL_FRAGMENT_SHADER, "src/shaders/text/fragment.glsl");
 	Shader* flowmap_fragment_shader = Shader::load("flowmap_fragment", GL_FRAGMENT_SHADER, "src/shaders/flowmap_3d/fragment.glsl");
+	Shader* gaussian_blur_fragment_shader = Shader::load("gaussian_blur_fragment", GL_FRAGMENT_SHADER, "src/shaders/gaussian_blur/fragment.glsl");
 
 
 	GLenum types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
-	std::string screen_srcs[] = { "src/shaders/screen/vertex.glsl", "src/shaders/screen/fragment.glsl" };
-	Shader::load("screen", 2, types, screen_srcs);
 
 	std::string skybox_srcs[] = { "src/shaders/skybox/vertex.glsl", "src/shaders/skybox/fragment.glsl" };
 	Shader::load("skybox", 2, types, skybox_srcs);
@@ -347,6 +359,8 @@ void Game::init_shaders()
 	Shader* image_pipeline_shaders[] = { image_vertex_shader, image_fragment_shader };
 	Shader* text_pipeline_shaders[] = { image_vertex_shader, text_fragment_shader };
 	Shader* flowmap_pipeline_shaders[] = { static_vertex_shader, flowmap_fragment_shader };
+	Shader* screen_pipeline_shaders[] = { screen_vertex_shader, screen_fragment_shader };
+	Shader* gaussian_blur_pipeline_shaders[] = { screen_vertex_shader, gaussian_blur_fragment_shader };
 	ShaderPipeline::load("static_game", 2, pipeline_stages, static_pipeline_shaders);
 	ShaderPipeline::load("animated_game", 2, pipeline_stages, animated_pipeline_shaders);
 	ShaderPipeline::load("instanced_game", 2, pipeline_stages, instanced_pipeline_shaders);
@@ -354,6 +368,8 @@ void Game::init_shaders()
 	ShaderPipeline::load("image", 2, pipeline_stages, image_pipeline_shaders);
 	ShaderPipeline::load("text", 2, pipeline_stages, text_pipeline_shaders);
 	ShaderPipeline::load("flowmap", 2, pipeline_stages, flowmap_pipeline_shaders);
+	ShaderPipeline::load("screen", 2, pipeline_stages, screen_pipeline_shaders);
+	ShaderPipeline::load("gaussian_blur", 2, pipeline_stages, gaussian_blur_pipeline_shaders);
 
 	ModelRenderQueue::load("static", ShaderPipeline::get("static_game"));
 	ModelRenderQueue::load("animated", ShaderPipeline::get("animated_game"));
@@ -364,10 +380,10 @@ void Game::init_shaders()
 
 void Game::init_lights()
 {
-	PointLight* point_light1 = new PointLight(glm::vec3(0.0f), glm::vec3(200.0f), glm::vec3(0.0f), glm::vec3(9.0f, 5.0f, 9.0f), 0.0f, 0.0f, 1.0f);
+	PointLight* point_light1 = new PointLight(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(9.0f, 5.0f, 9.0f), 0.0f, 0.0f, 1.0f);
 	this->point_lights.push_back(point_light1);
 
-	DirLight* dir_light = new DirLight(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
+	DirLight* dir_light = new DirLight(glm::vec3(0.4f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
 	this->dir_lights.push_back(dir_light);
 }
 
@@ -434,11 +450,13 @@ void Game::init_uniforms()
 
 	// AFTER EFFECTS
 
-	Shader* screen_shader = Shader::get("screen");
-	screen_shader->set_1i(0, "screen_texture");
-	screen_shader->set_1i(1, "depth_texture");
-	screen_shader->set_1i(NONE, "filter_mode");
-	screen_shader->set_1i(0, "show_depth");
+	Shader* screen_fragment_shader = Shader::get("screen_fragment");
+	screen_fragment_shader->set_1i(0, "screen_texture");
+	screen_fragment_shader->set_1i(1, "bloom_blur_texture");
+	screen_fragment_shader->set_1i(2, "depth_texture");
+	screen_fragment_shader->set_1i(NONE, "filter_mode");
+	screen_fragment_shader->set_1i(0, "show_depth");
+	screen_fragment_shader->set_1f(0.8f, "exposure");
 
 	// MAIN FRAGMENT
 
@@ -446,7 +464,6 @@ void Game::init_uniforms()
 	game_fragment_shader->set_1f(64.0f, "material.shininess");
 	game_fragment_shader->set_1i(this->depth_cube_FBO->get_texture(), "shadow_cube");
 	game_fragment_shader->set_1f(far, "far_plane");
-	game_fragment_shader->set_1f(0.8f, "exposure");
 
 	// UNIFORM BUFFER
 
@@ -457,6 +474,10 @@ void Game::init_uniforms()
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->uniform_buffer);
 
 	Shader::get("cube")->set_vec_3f(glm::vec3(1.0f, 0.0f, 0.0f), "color");
+
+	Shader::get("gaussian_blur_fragment")->set_1i(0, "image_texture");
+
+	Shader::get("flowmap_fragment")->set_vec_3f(glm::vec3(4.0f, 1.0f, 0.5f), "color_enhance");
 }
 
 void Game::update_uniforms()
@@ -498,7 +519,7 @@ void Game::update_uniforms()
 	for (std::size_t i = 0; i < this->spot_lights.size(); ++i)
 		this->spot_lights[i]->send_to_shader(game_fragment_shader, i);
 
-	Shader::get("screen")->set_1i(this->show_depth, "show_depth");
+	Shader::get("screen_fragment")->set_1i(this->show_depth, "show_depth");
 }
 
 void Game::update_dt()
@@ -592,17 +613,49 @@ void Game::render_level()
 	glDepthMask(GL_TRUE);
 }
 
+void Game::render_blur()
+{
+	glActiveTexture(GL_TEXTURE0);
+
+	Shader::unuse();
+	ShaderPipeline::get("gaussian_blur")->use();
+
+	int blur_interations = 15;
+	bool horizontal = true;
+	bool first_iteration = true;
+	for (int i = 0; i < blur_interations; ++i)
+	{
+		HDRFramebuffer* cur_buffer = this->ping_pong_FBOs[horizontal];
+		HDRFramebuffer* next_buffer = this->ping_pong_FBOs[!horizontal];
+		cur_buffer->bind(false);
+		Shader::get("gaussian_blur_fragment")->set_1i(horizontal, "horizontal");
+		glBindTexture(GL_TEXTURE_2D, first_iteration ? this->bloom_FBO->get_bright_texture() : next_buffer->get_texture());
+		glBindVertexArray(this->screen_VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		horizontal = !horizontal;
+		if (first_iteration) first_iteration = false;
+	}
+
+	this->blurred_texture = this->ping_pong_FBOs[!horizontal]->get_texture();
+}
+
 void Game::render_screen()
 {
 	glDisable(GL_DEPTH_TEST);
 
-	Shader::get("screen")->use();
+	Shader::unuse();
+	ShaderPipeline::get("screen")->use();
 	glBindVertexArray(this->screen_VAO);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, this->screen_FBO->get_texture());
+	glBindTexture(GL_TEXTURE_2D, this->bloom_FBO->get_texture());
+
 	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, this->blurred_texture);
+
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, this->depth_FBO->get_texture());
+
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	Shader::unuse();
@@ -621,22 +674,19 @@ void Game::render()
 	this->render_shadow_map();
 
 	// SWITCH TO MULTI-SAMPLE FRAMEBUFFER
-	//this->multisample_FBO->bind(true);
-	this->HDR_FBO->bind(true);
+	this->bloom_FBO->bind(true);
 	glActiveTexture(GL_TEXTURE0 + this->depth_cube_FBO->get_texture());
 	glBindTexture(GL_TEXTURE_CUBE_MAP, this->depth_cube_FBO->get_texture());
 
 	// RENDER IN GAME SCENE
 	this->render_level();
+	this->render_blur();
 
 	// RENDER FOREGROUND
 	glClear(GL_DEPTH_BUFFER_BIT);
 	ModelRenderQueue::get("foreground_animated")->render(this->dt);
 
 	// RENDER SCREEN
-	//this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	//this->multisample_FBO->bind_default(true);
-	this->HDR_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	Framebuffer::bind_default(true);
 	this->render_screen();
 
