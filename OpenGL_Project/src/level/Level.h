@@ -129,6 +129,7 @@ public:
 	inline Camera get_camera() const { return this->camera; }
 	inline float get_time_survived() const { return this->time_survived; }
 	inline bool is_game_over() const { return this->state == LevelState::GAME_OVER; }
+	inline float get_lava_height() const { return this->lava_instance->get_position().y; }
 	
 };
 

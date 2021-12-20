@@ -119,7 +119,7 @@ void main()
 {
 	vec3 normal = normalize(fs_in.normal);
 	vec3 view_dir = normalize(camera_pos - fs_in.position);
-	vec3 diffuse_color = gamma_to_linear(texture(material.diffuse_map, fs_in.texcoord).rgb);
+	vec3 diffuse_color = gamma_to_linear(texture(texture_diffuse1, fs_in.texcoord).rgb);
 
 	vec3 result = vec3(0.0, 0.0, 0.0);
 

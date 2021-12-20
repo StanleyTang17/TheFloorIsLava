@@ -380,7 +380,7 @@ void Game::init_shaders()
 
 void Game::init_lights()
 {
-	PointLight* point_light1 = new PointLight(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(9.0f, 5.0f, 9.0f), 0.0f, 0.0f, 1.0f);
+	PointLight* point_light1 = new PointLight(glm::vec3(0.0f), glm::vec3(50.0f), glm::vec3(0.0f), glm::vec3(9.0f, 9.0f, 9.0f), 0.0f, 0.0f, 1.0f);
 	this->point_lights.push_back(point_light1);
 
 	DirLight* dir_light = new DirLight(glm::vec3(0.4f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
@@ -477,7 +477,7 @@ void Game::init_uniforms()
 
 	Shader::get("gaussian_blur_fragment")->set_1i(0, "image_texture");
 
-	Shader::get("flowmap_fragment")->set_vec_3f(glm::vec3(4.0f, 1.0f, 0.5f), "color_enhance");
+	Shader::get("flowmap_fragment")->set_vec_3f(glm::vec3(2.5f, 2.0f, 0.0f), "color_enhance");
 }
 
 void Game::update_uniforms()
@@ -549,6 +549,18 @@ void Game::update_mouse_input()
 	this->level->handle_mouse_move_input(this->dt, this->mouse_offset_x, this->mouse_offset_y);
 }
 
+void Game::update_lights()
+{
+	float lava_height = this->level->get_lava_height();
+	if (lava_height > 0)
+	{
+		PointLight* main_light = this->point_lights[0];
+		glm::vec3 pos = main_light->get_position();
+		pos.y = lava_height + 9.0f;
+		main_light->set_position(pos);
+	}
+}
+
 void Game::update()
 {
 	// UPDATE INPUT
@@ -558,6 +570,9 @@ void Game::update()
 	this->update_mouse_input();
 
 	this->level->update(this->dt);
+	this->update_lights();
+
+	this->update_uniforms();
 }
 
 void Game::render_skybox(Shader* shader)
@@ -668,8 +683,6 @@ void Game::render_text()
 
 void Game::render()
 {
-	this->update_uniforms();
-
 	// RENDER SHADOW MAP
 	this->render_shadow_map();
 
