@@ -61,6 +61,9 @@ Level::Level(const int rows, const int cols, const int height)
 		glm::vec3(this->ROWS * GRID_SIZE, MAX_HEIGHT * GRID_SIZE, this->COLS * GRID_SIZE)
 	));
 
+	ModelInstance* wall_light_instance = new ModelInstance("wall_light", "instanced_game", glm::vec3(8.0f, 5.0f + 1.0f / 3, -1.98f), glm::vec3(0.0f), glm::vec3(2.0f, 2.0f / 3 * 2, 2.0f));
+	InstancedModel::get("wall_light")->add_instance(wall_light_instance);
+
 	this->instance_updated["container"] = false;
 	this->instance_updated["container_plane"] = false;
 	

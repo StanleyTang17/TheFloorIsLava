@@ -393,6 +393,7 @@ void Game::init_models()
 
 	InstancedModel::load("res/models/container/container.obj");
 	InstancedModel::load("res/models/container_plane/container_plane.obj");
+	InstancedModel::load("res/models/wall_light/wall_light.obj");
 
 	crosshair = new Image(
 		"res/images/crosshair_white.png",
@@ -477,7 +478,7 @@ void Game::init_uniforms()
 
 	Shader::get("gaussian_blur_fragment")->set_1i(0, "image_texture");
 
-	Shader::get("flowmap_fragment")->set_vec_3f(glm::vec3(2.5f, 2.0f, 0.0f), "color_enhance");
+	Shader::get("flowmap_fragment")->set_vec_3f(glm::vec3(2.5f, 2.0f, 2.0f), "color_enhance");
 }
 
 void Game::update_uniforms()
@@ -620,6 +621,7 @@ void Game::render_level()
 	instanced_pipeline->use();
 	InstancedModel::get("container")->render(vertex, fragment);
 	InstancedModel::get("container_plane")->render(vertex, fragment);
+	InstancedModel::get("wall_light")->render(vertex, fragment);
 
 	// PARTICLES
 	Shader::get("animated_particles")->use();
@@ -635,7 +637,7 @@ void Game::render_blur()
 	Shader::unuse();
 	ShaderPipeline::get("gaussian_blur")->use();
 
-	int blur_interations = 15;
+	int blur_interations = 10;
 	bool horizontal = true;
 	bool first_iteration = true;
 	for (int i = 0; i < blur_interations; ++i)
