@@ -71,4 +71,26 @@ public:
 	DepthCubeFramebuffer(int width, int height);
 };
 
+class HDRFramebuffer : public Framebuffer
+{
+protected:
+	void init_texture();
+	void init_renderbuffer();
+public:
+	HDRFramebuffer(int width, int height, bool use_depth = true);
+};
+
+class BloomFramebuffer : public Framebuffer
+{
+protected:
+	GLuint bright_texture;
+
+	void init_texture();
+	void init_renderbuffer();
+public:
+	BloomFramebuffer(int width, int height);
+
+	inline GLuint get_bright_texture() const { return this->bright_texture; }
+};
+
 #endif

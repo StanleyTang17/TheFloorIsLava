@@ -45,11 +45,6 @@ private:
 
 	int show_depth;
 
-	// VECTORS
-	std::vector<DirLight*> dir_lights;
-	std::vector<PointLight*> point_lights;
-	std::vector<SpotLight*> spot_lights;
-
 	// SKYBOX
 
 	TextureCube* skybox_texture;
@@ -61,9 +56,13 @@ private:
 
 	GLuint uniform_buffer;
 
+	GLuint blurred_texture;
+
 	// FRAMEBUFFERS
 
-	MultiSampleFramebuffer* multisample_FBO;
+	//MultiSampleFramebuffer* multisample_FBO;
+	BloomFramebuffer* bloom_FBO;
+	HDRFramebuffer* ping_pong_FBOs[2];
 	ScreenFramebuffer* screen_FBO;
 	DepthFramebuffer* depth_FBO;
 	DepthCubeFramebuffer* depth_cube_FBO;
@@ -93,6 +92,7 @@ private:
 	void init_fonts();
 
 	// UPDATE
+	void update_lights();
 	void update_uniforms();
 	void update_dt();
 	void update_mouse_input();
@@ -101,6 +101,7 @@ private:
 	void render_skybox(Shader* shader);
 	void render_shadow_map();
 	void render_level();
+	void render_blur();
 	void render_screen();
 	void render_text();
 

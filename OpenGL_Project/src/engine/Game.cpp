@@ -77,19 +77,14 @@ Game::Game(const char* title, const int width, const int height, const int versi
 
 Game::~Game()
 {
-	delete this->multisample_FBO;
+	delete this->bloom_FBO;
+	delete this->ping_pong_FBOs[0];
+	delete this->ping_pong_FBOs[1];
+	delete this->depth_FBO;
+	delete this->depth_cube_FBO;
 	delete this->screen_FBO;
 	glfwDestroyWindow(window);
 	glfwTerminate();
-
-	for (std::size_t i = 0; i < this->dir_lights.size(); ++i)
-		delete this->dir_lights[i];
-
-	for (std::size_t i = 0; i < this->point_lights.size(); ++i)
-		delete this->point_lights[i];
-
-	for (std::size_t i = 0; i < this->spot_lights.size(); ++i)
-		delete this->spot_lights[i];
 }
 
 void Game::framebuffer_resize_callback(GLFWwindow* window, int frame_buffer_width, int frame_buffer_height)
@@ -104,6 +99,13 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
 	{
 		game->set_window_should_close(true);
 		return;
+	}
+	else if (key == GLFW_KEY_Y)
+	{
+		if (action == GLFW_PRESS)
+			game->show_depth = 1;
+		else if (action == GLFW_RELEASE)
+			game->show_depth = 0;
 	}
 
 	game->level->handle_key_input(window, key, action);
@@ -186,10 +188,12 @@ void Game::init_OpenGL_options()
 
 void Game::init_framebuffers()
 {
-	this->multisample_FBO = new MultiSampleFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT, 4);
+	this->bloom_FBO = new BloomFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT);
+	this->ping_pong_FBOs[0] = new HDRFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT, false);
+	this->ping_pong_FBOs[1] = new HDRFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT, false);
 	this->screen_FBO = new ScreenFramebuffer(this->WINDOW_WIDTH, this->WINDOW_HEIGHT);
 	this->depth_FBO = new DepthFramebuffer(1024, 1024);
-	this->depth_cube_FBO = new DepthCubeFramebuffer(1024, 1024);
+	this->depth_cube_FBO = new DepthCubeFramebuffer(1024, 1024);	
 }
 
 void Game::init_others()
@@ -307,13 +311,14 @@ void Game::init_shaders()
 	Shader* game_fragment_shader = Shader::load("game_fragment", GL_FRAGMENT_SHADER, "src/shaders/game/fragment.glsl");
 	Shader* image_vertex_shader = Shader::load("image_vertex", GL_VERTEX_SHADER, "src/shaders/image/vertex.glsl");
 	Shader* image_fragment_shader = Shader::load("image_fragment", GL_FRAGMENT_SHADER, "src/shaders/image/fragment.glsl");
+	Shader* screen_vertex_shader = Shader::load("screen_vertex", GL_VERTEX_SHADER, "src/shaders/screen/vertex.glsl");
+	Shader* screen_fragment_shader = Shader::load("screen_fragment", GL_FRAGMENT_SHADER, "src/shaders/screen/fragment.glsl");
 	Shader* text_fragment_shader = Shader::load("text_fragment", GL_FRAGMENT_SHADER, "src/shaders/text/fragment.glsl");
 	Shader* flowmap_fragment_shader = Shader::load("flowmap_fragment", GL_FRAGMENT_SHADER, "src/shaders/flowmap_3d/fragment.glsl");
+	Shader* gaussian_blur_fragment_shader = Shader::load("gaussian_blur_fragment", GL_FRAGMENT_SHADER, "src/shaders/gaussian_blur/fragment.glsl");
 
 
 	GLenum types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
-	std::string screen_srcs[] = { "src/shaders/screen/vertex.glsl", "src/shaders/screen/fragment.glsl" };
-	Shader::load("screen", 2, types, screen_srcs);
 
 	std::string skybox_srcs[] = { "src/shaders/skybox/vertex.glsl", "src/shaders/skybox/fragment.glsl" };
 	Shader::load("skybox", 2, types, skybox_srcs);
@@ -345,6 +350,8 @@ void Game::init_shaders()
 	Shader* image_pipeline_shaders[] = { image_vertex_shader, image_fragment_shader };
 	Shader* text_pipeline_shaders[] = { image_vertex_shader, text_fragment_shader };
 	Shader* flowmap_pipeline_shaders[] = { static_vertex_shader, flowmap_fragment_shader };
+	Shader* screen_pipeline_shaders[] = { screen_vertex_shader, screen_fragment_shader };
+	Shader* gaussian_blur_pipeline_shaders[] = { screen_vertex_shader, gaussian_blur_fragment_shader };
 	ShaderPipeline::load("static_game", 2, pipeline_stages, static_pipeline_shaders);
 	ShaderPipeline::load("animated_game", 2, pipeline_stages, animated_pipeline_shaders);
 	ShaderPipeline::load("instanced_game", 2, pipeline_stages, instanced_pipeline_shaders);
@@ -352,6 +359,8 @@ void Game::init_shaders()
 	ShaderPipeline::load("image", 2, pipeline_stages, image_pipeline_shaders);
 	ShaderPipeline::load("text", 2, pipeline_stages, text_pipeline_shaders);
 	ShaderPipeline::load("flowmap", 2, pipeline_stages, flowmap_pipeline_shaders);
+	ShaderPipeline::load("screen", 2, pipeline_stages, screen_pipeline_shaders);
+	ShaderPipeline::load("gaussian_blur", 2, pipeline_stages, gaussian_blur_pipeline_shaders);
 
 	ModelRenderQueue::load("static", ShaderPipeline::get("static_game"));
 	ModelRenderQueue::load("animated", ShaderPipeline::get("animated_game"));
@@ -362,11 +371,8 @@ void Game::init_shaders()
 
 void Game::init_lights()
 {
-	PointLight* point_light1 = new PointLight(glm::vec3(0.5f), glm::vec3(1.5f), glm::vec3(0.5f), glm::vec3(4.0f, 5.0f, 4.0f), 1.0f, 0.045f, 0.006f);
-	this->point_lights.push_back(point_light1);
-
-	DirLight* dir_light = new DirLight(glm::vec3(1.5f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
-	this->dir_lights.push_back(dir_light);
+	DirLight* dir_light = new DirLight(glm::vec3(0.1f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
+	Light::add(LightType::DIRECTION, dir_light);
 }
 
 void Game::init_models()
@@ -375,6 +381,7 @@ void Game::init_models()
 
 	InstancedModel::load("res/models/container/container.obj");
 	InstancedModel::load("res/models/container_plane/container_plane.obj");
+	InstancedModel::load("res/models/wall_light/wall_light.obj");
 
 	crosshair = new Image(
 		"res/images/crosshair_white.png",
@@ -399,9 +406,11 @@ void Game::init_uniforms()
 
 	// SHADOWS
 
+	PointLight* main_light = this->level->get_lights()[0];
+
 	float light_near_plane = 1.0f, light_far_plane = 10.5f;
 	glm::mat4 light_projection_matrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, light_near_plane, light_far_plane);
-	glm::mat4 light_view_matrix = glm::lookAt(this->point_lights[0]->get_position(), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 light_view_matrix = glm::lookAt(main_light->get_position(), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	this->light_space_matrix = light_projection_matrix * light_view_matrix;
 
 	// POINT SHADOW
@@ -410,7 +419,7 @@ void Game::init_uniforms()
 	float near = 1.0f;
 	float far = 25.0f;
 	glm::mat4 shadow_proj = glm::perspective(glm::radians(90.0f), aspect, near, far);
-	glm::vec3 light_pos = this->point_lights[0]->get_position();
+	glm::vec3 light_pos = main_light->get_position();
 	std::vector<glm::mat4> shadow_transforms;
 	shadow_transforms.push_back(shadow_proj * glm::lookAt(light_pos, light_pos + glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3( 0.0f, -1.0f,  0.0f)));
 	shadow_transforms.push_back(shadow_proj * glm::lookAt(light_pos, light_pos + glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3( 0.0f, -1.0f,  0.0f)));
@@ -432,11 +441,13 @@ void Game::init_uniforms()
 
 	// AFTER EFFECTS
 
-	Shader* screen_shader = Shader::get("screen");
-	screen_shader->set_1i(0, "screen_texture");
-	screen_shader->set_1i(1, "depth_texture");
-	screen_shader->set_1i(NONE, "filter_mode");
-	screen_shader->set_1i(0, "show_depth");
+	Shader* screen_fragment_shader = Shader::get("screen_fragment");
+	screen_fragment_shader->set_1i(0, "screen_texture");
+	screen_fragment_shader->set_1i(1, "bloom_blur_texture");
+	screen_fragment_shader->set_1i(2, "depth_texture");
+	screen_fragment_shader->set_1i(NONE, "filter_mode");
+	screen_fragment_shader->set_1i(0, "show_depth");
+	screen_fragment_shader->set_1f(0.8f, "exposure");
 
 	// MAIN FRAGMENT
 
@@ -444,6 +455,7 @@ void Game::init_uniforms()
 	game_fragment_shader->set_1f(64.0f, "material.shininess");
 	game_fragment_shader->set_1i(this->depth_cube_FBO->get_texture(), "shadow_cube");
 	game_fragment_shader->set_1f(far, "far_plane");
+	game_fragment_shader->set_1i(false, "is_drawing_wall_light");
 
 	// UNIFORM BUFFER
 
@@ -454,6 +466,10 @@ void Game::init_uniforms()
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->uniform_buffer);
 
 	Shader::get("cube")->set_vec_3f(glm::vec3(1.0f, 0.0f, 0.0f), "color");
+
+	Shader::get("gaussian_blur_fragment")->set_1i(0, "image_texture");
+
+	Shader::get("flowmap_fragment")->set_vec_3f(glm::vec3(2.5f, 2.0f, 2.0f), "color_enhance");
 }
 
 void Game::update_uniforms()
@@ -476,26 +492,9 @@ void Game::update_uniforms()
 
 	// LIGHTS
 
-	game_fragment_shader->set_1i(dir_lights.size(), "num_dir_lights");
-	game_fragment_shader->set_1i(point_lights.size(), "num_point_lights");
-	game_fragment_shader->set_1i(spot_lights.size(), "num_spot_lights");
+	Light::send_all_to_shader(Shader::get("game_fragment"));
 
-	if (spot_lights.size())
-	{
-		this->spot_lights[0]->set_direction(camera.get_front());
-		this->spot_lights[0]->set_position(camera.get_position());
-	}
-
-	for (std::size_t i = 0; i < this->dir_lights.size(); ++i)
-		this->dir_lights[i]->send_to_shader(game_fragment_shader, i);
-
-	for (std::size_t i = 0; i < this->point_lights.size(); ++i)
-		this->point_lights[i]->send_to_shader(game_fragment_shader, i);
-		
-	for (std::size_t i = 0; i < this->spot_lights.size(); ++i)
-		this->spot_lights[i]->send_to_shader(game_fragment_shader, i);
-
-	Shader::get("screen")->set_1i(this->show_depth, "show_depth");
+	Shader::get("screen_fragment")->set_1i(this->show_depth, "show_depth");
 }
 
 void Game::update_dt()
@@ -525,6 +524,11 @@ void Game::update_mouse_input()
 	this->level->handle_mouse_move_input(this->dt, this->mouse_offset_x, this->mouse_offset_y);
 }
 
+void Game::update_lights()
+{
+
+}
+
 void Game::update()
 {
 	// UPDATE INPUT
@@ -534,6 +538,9 @@ void Game::update()
 	this->update_mouse_input();
 
 	this->level->update(this->dt);
+	this->update_lights();
+
+	this->update_uniforms();
 }
 
 void Game::render_skybox(Shader* shader)
@@ -581,6 +588,9 @@ void Game::render_level()
 	instanced_pipeline->use();
 	InstancedModel::get("container")->render(vertex, fragment);
 	InstancedModel::get("container_plane")->render(vertex, fragment);
+	fragment->set_1i(true, "is_drawing_wall_light");
+	InstancedModel::get("wall_light")->render(vertex, fragment);
+	fragment->set_1i(false, "is_drawing_wall_light");
 
 	// PARTICLES
 	Shader::get("animated_particles")->use();
@@ -589,17 +599,49 @@ void Game::render_level()
 	glDepthMask(GL_TRUE);
 }
 
+void Game::render_blur()
+{
+	glActiveTexture(GL_TEXTURE0);
+
+	Shader::unuse();
+	ShaderPipeline::get("gaussian_blur")->use();
+
+	int blur_interations = 10;
+	bool horizontal = true;
+	bool first_iteration = true;
+	for (int i = 0; i < blur_interations; ++i)
+	{
+		HDRFramebuffer* cur_buffer = this->ping_pong_FBOs[horizontal];
+		HDRFramebuffer* next_buffer = this->ping_pong_FBOs[!horizontal];
+		cur_buffer->bind(false);
+		Shader::get("gaussian_blur_fragment")->set_1i(horizontal, "horizontal");
+		glBindTexture(GL_TEXTURE_2D, first_iteration ? this->bloom_FBO->get_bright_texture() : next_buffer->get_texture());
+		glBindVertexArray(this->screen_VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		horizontal = !horizontal;
+		if (first_iteration) first_iteration = false;
+	}
+
+	this->blurred_texture = this->ping_pong_FBOs[!horizontal]->get_texture();
+}
+
 void Game::render_screen()
 {
 	glDisable(GL_DEPTH_TEST);
 
-	Shader::get("screen")->use();
+	Shader::unuse();
+	ShaderPipeline::get("screen")->use();
 	glBindVertexArray(this->screen_VAO);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, this->screen_FBO->get_texture());
+	glBindTexture(GL_TEXTURE_2D, this->bloom_FBO->get_texture());
+
 	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, this->blurred_texture);
+
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, this->depth_FBO->get_texture());
+
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	Shader::unuse();
@@ -612,26 +654,24 @@ void Game::render_text()
 
 void Game::render()
 {
-	this->update_uniforms();
-
 	// RENDER SHADOW MAP
 	this->render_shadow_map();
 
 	// SWITCH TO MULTI-SAMPLE FRAMEBUFFER
-	this->multisample_FBO->bind(true);
+	this->bloom_FBO->bind(true);
 	glActiveTexture(GL_TEXTURE0 + this->depth_cube_FBO->get_texture());
 	glBindTexture(GL_TEXTURE_CUBE_MAP, this->depth_cube_FBO->get_texture());
 
 	// RENDER IN GAME SCENE
 	this->render_level();
+	this->render_blur();
 
 	// RENDER FOREGROUND
 	glClear(GL_DEPTH_BUFFER_BIT);
 	ModelRenderQueue::get("foreground_animated")->render(this->dt);
 
 	// RENDER SCREEN
-	this->multisample_FBO->blit(this->screen_FBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	this->multisample_FBO->bind_default(true);
+	Framebuffer::bind_default(true);
 	this->render_screen();
 
 	// RENDER TEXT

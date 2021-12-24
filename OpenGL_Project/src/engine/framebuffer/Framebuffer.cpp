@@ -151,3 +151,64 @@ void DepthCubeFramebuffer::init_texture()
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 }
+
+HDRFramebuffer::HDRFramebuffer(int width, int height, bool use_depth)
+	:
+	Framebuffer(GL_TEXTURE_2D, GL_RENDERBUFFER, width, height)
+{
+	if (!use_depth)
+		this->renderbuffer_type = NULL;
+	this->init();
+}
+
+void HDRFramebuffer::init_texture()
+{
+	glTexImage2D(this->texture_type, 0, GL_RGBA16F, this->WIDTH, this->HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(this->texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(this->texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->texture_type, this->texture, 0);
+}
+
+void HDRFramebuffer::init_renderbuffer()
+{
+	glRenderbufferStorage(this->renderbuffer_type, GL_DEPTH_COMPONENT, this->WIDTH, this->HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, this->renderbuffer_type, this->renderbuffer);
+}
+
+BloomFramebuffer::BloomFramebuffer(int width, int height)
+	:
+	Framebuffer(GL_TEXTURE_2D, GL_RENDERBUFFER, width, height)
+{
+	this->bright_texture = 0;
+	this->init();
+}
+
+void BloomFramebuffer::init_texture()
+{
+	glTexImage2D(this->texture_type, 0, GL_RGBA16F, this->WIDTH, this->HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(this->texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(this->texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->texture_type, this->texture, 0);
+
+	glGenTextures(1, &this->bright_texture);
+	glBindTexture(this->texture_type, this->bright_texture);
+	glTexImage2D(this->texture_type, 0, GL_RGBA16F, this->WIDTH, this->HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(this->texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(this->texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, this->texture_type, this->bright_texture, 0);
+
+	GLuint color_attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, color_attachments);
+}
+
+void BloomFramebuffer::init_renderbuffer()
+{
+	glRenderbufferStorage(this->renderbuffer_type, GL_DEPTH_COMPONENT, this->WIDTH, this->HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, this->renderbuffer_type, this->renderbuffer);
+}

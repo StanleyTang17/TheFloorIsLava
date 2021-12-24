@@ -61,6 +61,26 @@ Level::Level(const int rows, const int cols, const int height)
 		glm::vec3(this->ROWS * GRID_SIZE, MAX_HEIGHT * GRID_SIZE, this->COLS * GRID_SIZE)
 	));
 
+	this->lights = new PointLight*[this->num_lights];
+	this->last_lit_wall_light_index = this->num_lights - 1;
+	float wall_light_interval = 6 * 4.0f / 3;
+	int num_wall_lights = (int)(MAX_HEIGHT * GRID_SIZE * 10 / wall_light_interval);
+	for (int i = 0; i < num_wall_lights; ++i)
+	{
+		glm::vec3 pos, rot;
+		this->calc_light_placement(i, pos, rot);
+
+		ModelInstance* wall_light_instance = new ModelInstance("wall_light", "instanced_game", pos, rot, glm::vec3(2.0f, 2.0f / 3 * 2, 2.0f));
+		InstancedModel::get("wall_light")->add_instance(wall_light_instance);
+		
+		if (i < this->num_lights)
+		{
+			this->lights[i] = new PointLight(glm::vec3(0.0f), glm::vec3(50.0f), glm::vec3(0.0f), pos, 0.0f, 0.0f, 1.0f);
+			Light::add(LightType::POINT, this->lights[i]);
+		}
+	}
+	InstancedModel::get("wall_light")->init_instances();
+
 	this->instance_updated["container"] = false;
 	this->instance_updated["container_plane"] = false;
 	
@@ -145,6 +165,7 @@ void Level::update(const float dt)
 		this->update_gameobjects(dt);
 		this->update_lava(dt);
 		this->update_walls();
+		this->update_lights();
 
 		for (std::unordered_map<std::string, bool>::iterator iter = this->instance_updated.begin(); iter != this->instance_updated.end(); ++iter)
 		{
@@ -309,6 +330,21 @@ void Level::update_gameobjects(const float dt)
 
 	if (player.get_position().y - player.get_hitbox_size().y / 2 <= this->lava_instance->get_position().y)
 		this->terminate();
+}
+
+void Level::update_lights()
+{
+	for (int i = 0; i < num_lights; ++i)
+	{
+		PointLight* light = this->lights[i];
+		float wall_tile_height = 4.0f / 3;
+		if (light->get_position().y + wall_tile_height < this->lava_instance->get_position().y)
+		{
+			glm::vec3 pos, rot;
+			this->calc_light_placement(++this->last_lit_wall_light_index, pos, rot);
+			light->set_position(pos);
+		}
+	}
 }
 
 glm::ivec3 Level::get_grid_pos(glm::vec3 position)
@@ -720,4 +756,29 @@ void Level::render_particles(Shader* fragment_shader)
 void Level::render_lava(Shader* vertex_shader, Shader* fragment_shader)
 {
 	this->lava_instance->render(vertex_shader, fragment_shader);
+}
+
+void Level::calc_light_placement(int iteration, glm::vec3& position, glm::vec3& rotation)
+{
+	int gs = this->GRID_SIZE;
+	float wall_tile_height = 4.0f / 3;
+	float height = (iteration + 1) * (6 * wall_tile_height);
+
+	glm::vec3 positions[4] = {
+		glm::vec3(this->ROWS * gs / 2 - gs,		height, -gs + 0.02f),
+		glm::vec3(this->ROWS * gs - gs - 0.02f, height, this->COLS * gs / 2 - gs),
+		glm::vec3(this->ROWS * gs / 2 - gs,		height, this->COLS * gs - gs - 0.02f),
+		glm::vec3(-gs + 0.02f,					height, this->COLS * gs / 2 - gs)
+	};
+
+	glm::vec3 rotations[4] = {
+		glm::vec3(0.0f),
+		glm::vec3(0.0f, -90.0f, 0.0f),
+		glm::vec3(0.0f, 180.0f, 0.0f),
+		glm::vec3(0.0f, 90.0f, 0.0f)
+	};
+
+	int index = iteration % 4;
+	position = positions[index];
+	rotation = rotations[index];
 }

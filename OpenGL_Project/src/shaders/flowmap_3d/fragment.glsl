@@ -8,8 +8,10 @@ in VS_OUT
 uniform float time;
 uniform sampler2D texture_diffuse1;
 uniform sampler2D flowmap_texture;
+uniform vec3 color_enhance;
 
-out vec4 fs_color;
+layout (location = 0) out vec4 fs_color;
+layout (location = 1) out vec4 fs_bright_color;
 
 vec2 bound(vec2 coord);
 vec4 calculate_color(vec2 texcoords, sampler2D tex, float time);
@@ -18,7 +20,15 @@ void main()
 {
 	vec4 color1 = calculate_color(fs_in.texcoord, texture_diffuse1, time / 10);
 	vec4 color2 = calculate_color(fs_in.texcoord, texture_diffuse1, time / 10 + 0.5);
-	fs_color = color1 + color2;
+	fs_color = (color1 + color2) * vec4(color_enhance, 1.0);
+
+	// output bright color
+	vec3 grayscale_vector = vec3(0.2126, 0.7152, 0.0722);
+	float brightness = dot(fs_color.rgb, grayscale_vector);
+	if (brightness > 1.0)
+		fs_bright_color = vec4(fs_color.rgb, 1.0);
+	else
+		fs_bright_color = vec4(0.0, 0.0, 0.0, 1.0);
 }
 
 vec4 calculate_color(vec2 texcoords, sampler2D tex, float time)
