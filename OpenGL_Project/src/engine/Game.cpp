@@ -85,15 +85,6 @@ Game::~Game()
 	delete this->screen_FBO;
 	glfwDestroyWindow(window);
 	glfwTerminate();
-
-	for (std::size_t i = 0; i < this->dir_lights.size(); ++i)
-		delete this->dir_lights[i];
-
-	for (std::size_t i = 0; i < this->point_lights.size(); ++i)
-		delete this->point_lights[i];
-
-	for (std::size_t i = 0; i < this->spot_lights.size(); ++i)
-		delete this->spot_lights[i];
 }
 
 void Game::framebuffer_resize_callback(GLFWwindow* window, int frame_buffer_width, int frame_buffer_height)
@@ -380,11 +371,8 @@ void Game::init_shaders()
 
 void Game::init_lights()
 {
-	PointLight* point_light1 = new PointLight(glm::vec3(0.0f), glm::vec3(50.0f), glm::vec3(0.0f), glm::vec3(9.0f, 9.0f, 9.0f), 0.0f, 0.0f, 1.0f);
-	this->point_lights.push_back(point_light1);
-
-	DirLight* dir_light = new DirLight(glm::vec3(0.4f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
-	this->dir_lights.push_back(dir_light);
+	DirLight* dir_light = new DirLight(glm::vec3(0.1f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(-0.2f, -1.0f, -0.3f));
+	Light::add(LightType::DIRECTION, dir_light);
 }
 
 void Game::init_models()
@@ -418,9 +406,11 @@ void Game::init_uniforms()
 
 	// SHADOWS
 
+	PointLight* main_light = this->level->get_lights()[0];
+
 	float light_near_plane = 1.0f, light_far_plane = 10.5f;
 	glm::mat4 light_projection_matrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, light_near_plane, light_far_plane);
-	glm::mat4 light_view_matrix = glm::lookAt(this->point_lights[0]->get_position(), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 light_view_matrix = glm::lookAt(main_light->get_position(), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	this->light_space_matrix = light_projection_matrix * light_view_matrix;
 
 	// POINT SHADOW
@@ -429,7 +419,7 @@ void Game::init_uniforms()
 	float near = 1.0f;
 	float far = 25.0f;
 	glm::mat4 shadow_proj = glm::perspective(glm::radians(90.0f), aspect, near, far);
-	glm::vec3 light_pos = this->point_lights[0]->get_position();
+	glm::vec3 light_pos = main_light->get_position();
 	std::vector<glm::mat4> shadow_transforms;
 	shadow_transforms.push_back(shadow_proj * glm::lookAt(light_pos, light_pos + glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3( 0.0f, -1.0f,  0.0f)));
 	shadow_transforms.push_back(shadow_proj * glm::lookAt(light_pos, light_pos + glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3( 0.0f, -1.0f,  0.0f)));
@@ -465,6 +455,7 @@ void Game::init_uniforms()
 	game_fragment_shader->set_1f(64.0f, "material.shininess");
 	game_fragment_shader->set_1i(this->depth_cube_FBO->get_texture(), "shadow_cube");
 	game_fragment_shader->set_1f(far, "far_plane");
+	game_fragment_shader->set_1i(false, "is_drawing_wall_light");
 
 	// UNIFORM BUFFER
 
@@ -501,24 +492,7 @@ void Game::update_uniforms()
 
 	// LIGHTS
 
-	game_fragment_shader->set_1i(dir_lights.size(), "num_dir_lights");
-	game_fragment_shader->set_1i(point_lights.size(), "num_point_lights");
-	game_fragment_shader->set_1i(spot_lights.size(), "num_spot_lights");
-
-	if (spot_lights.size())
-	{
-		this->spot_lights[0]->set_direction(camera.get_front());
-		this->spot_lights[0]->set_position(camera.get_position());
-	}
-
-	for (std::size_t i = 0; i < this->dir_lights.size(); ++i)
-		this->dir_lights[i]->send_to_shader(game_fragment_shader, i);
-
-	for (std::size_t i = 0; i < this->point_lights.size(); ++i)
-		this->point_lights[i]->send_to_shader(game_fragment_shader, i);
-		
-	for (std::size_t i = 0; i < this->spot_lights.size(); ++i)
-		this->spot_lights[i]->send_to_shader(game_fragment_shader, i);
+	Light::send_all_to_shader(Shader::get("game_fragment"));
 
 	Shader::get("screen_fragment")->set_1i(this->show_depth, "show_depth");
 }
@@ -552,14 +526,7 @@ void Game::update_mouse_input()
 
 void Game::update_lights()
 {
-	float lava_height = this->level->get_lava_height();
-	if (lava_height > 0)
-	{
-		PointLight* main_light = this->point_lights[0];
-		glm::vec3 pos = main_light->get_position();
-		pos.y = lava_height + 9.0f;
-		main_light->set_position(pos);
-	}
+
 }
 
 void Game::update()
@@ -621,7 +588,9 @@ void Game::render_level()
 	instanced_pipeline->use();
 	InstancedModel::get("container")->render(vertex, fragment);
 	InstancedModel::get("container_plane")->render(vertex, fragment);
+	fragment->set_1i(true, "is_drawing_wall_light");
 	InstancedModel::get("wall_light")->render(vertex, fragment);
+	fragment->set_1i(false, "is_drawing_wall_light");
 
 	// PARTICLES
 	Shader::get("animated_particles")->use();

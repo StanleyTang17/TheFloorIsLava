@@ -14,6 +14,7 @@
 #include"engine/input/MouseMoveInput.h"
 #include"engine/particles/ParticleEffect.h"
 #include"engine/font/Font.h"
+#include"engine/lights/Lights.h"
 #include"utility/Timer.h"
 #include"models/LavaModel.h"
 #include"models/WarehouseModel.h"
@@ -79,20 +80,25 @@ private:
 
 	std::list<GameObject*> gameobjects;
 	std::list<QueuedBlock> queued_blocks;
-	std::vector<ModelInstance*> falling_block_animations;
 	std::unordered_map <std::string, bool> instance_updated;
+
+	const int num_lights = 2;
+	int last_lit_wall_light_index;
+	PointLight** lights;
 	
 	inline int get_index(int row, int col) const { return row * COLS + col; }
 	inline int get_height(int row, int col) { return this->height_map[this->get_index(row, col)]; }
 	inline bool is_tile_queued(int row, int col) { return this->queue_map[this->get_index(row, col)]; }
 	inline void set_tile_queued(int row, int col, bool queued) { this->queue_map[this->get_index(row, col)] = queued; }
 	glm::ivec3 get_grid_pos(glm::vec3 position);
+	void calc_light_placement(int iteration, glm::vec3& position, glm::vec3& rotation);
 
 	void update_gameobjects(const float dt);
 	void queue_blocks(const float wait_time = 0.0f);
 	void drop_blocks();
 	void update_lava(const float dt);
 	void update_walls();
+	void update_lights();
 	void play_post_game_animation();
 
 	float read_high_score();
@@ -129,8 +135,7 @@ public:
 	inline Camera get_camera() const { return this->camera; }
 	inline float get_time_survived() const { return this->time_survived; }
 	inline bool is_game_over() const { return this->state == LevelState::GAME_OVER; }
-	inline float get_lava_height() const { return this->lava_instance->get_position().y; }
-	
+	inline PointLight** get_lights() const { return this->lights; }
 };
 
 #endif

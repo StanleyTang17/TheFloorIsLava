@@ -45,11 +45,6 @@ private:
 
 	int show_depth;
 
-	// VECTORS
-	std::vector<DirLight*> dir_lights;
-	std::vector<PointLight*> point_lights;
-	std::vector<SpotLight*> spot_lights;
-
 	// SKYBOX
 
 	TextureCube* skybox_texture;

@@ -92,6 +92,11 @@ uniform sampler2D shadow_map;
 uniform samplerCube shadow_cube;
 uniform float far_plane;
 
+uniform float gamma = 2.2;
+
+uniform bool is_drawing_wall_light;
+uniform vec2 light_tex_top_left = vec2(0.09, 0.869);
+uniform vec2 light_tex_bottom_right = vec2(0.905, 0.135);
 
 // FUNCTION DECLARATIONS
 
@@ -100,18 +105,10 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 view_dir, vec3 diffuse
 vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color);
 //float calc_shadow(vec3 normal, vec3 light_dir);
 float calc_point_shadow(vec3 light_pos);
-
-const float gamma = 2.2;
-
-vec3 gamma_to_linear(vec3 color)
-{
-    return pow(color, vec3(gamma));
-}
-
-vec3 linear_to_gamma(vec3 color)
-{
-    return pow(color, vec3(1.0/gamma));
-}
+vec3 gamma_to_linear(vec3 color);
+vec3 linear_to_gamma(vec3 color);
+bool is_light_pixel(vec2 texcoord);
+bool near_light_source(vec3 highest_light_pos);
 
 // MAIN
 
@@ -122,6 +119,7 @@ void main()
 	vec3 diffuse_color = gamma_to_linear(texture(texture_diffuse1, fs_in.texcoord).rgb);
 
 	vec3 result = vec3(0.0, 0.0, 0.0);
+	vec3 highest_light_pos = vec3(0.0);
 
 	for (int i = 0; i < num_dir_lights; ++i) {
 		result += calc_dir_light(dir_lights[i], normal, view_dir, diffuse_color);
@@ -129,11 +127,17 @@ void main()
 
 	for (int i = 0; i < num_point_lights; ++i) {
 		result += calc_point_light(point_lights[i], normal, view_dir, diffuse_color);
+
+		if (point_lights[i].position.y > highest_light_pos.y)
+			highest_light_pos = point_lights[i].position;
 	}
 
 	for (int i = 0; i < num_spot_lights; ++i) {
 		result += calc_spot_light(spot_lights[i], normal, view_dir, diffuse_color);
 	}
+
+	if (is_drawing_wall_light && is_light_pixel(fs_in.texcoord) && near_light_source(highest_light_pos))
+		result *= vec3(100.0f);
 
 	result = linear_to_gamma(result);
 
@@ -189,7 +193,8 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 view_dir, vec3 diffuse
 	specular *= attenuation;
 
 	//return ambient + (1.0f - calc_shadow(normal, light_dir)) * (diffuse + specular);
-	return ambient + (1.0f - calc_point_shadow(light.position)) * (diffuse + specular);
+	//return ambient + (1.0f - calc_point_shadow(light.position)) * (diffuse + specular);
+	return ambient + diffuse + specular;
 }
 
 vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color)
@@ -261,4 +266,28 @@ float calc_point_shadow(vec3 light_pos)
 	float shadow = current_depth - bias > closest_depth ? 1.0f : 0.0f;
 
 	return shadow;
+}
+
+vec3 gamma_to_linear(vec3 color)
+{
+    return pow(color, vec3(gamma));
+}
+
+vec3 linear_to_gamma(vec3 color)
+{
+    return pow(color, vec3(1.0/gamma));
+}
+
+bool is_light_pixel(vec2 texcoord)
+{
+	return texcoord.x > light_tex_top_left.x && texcoord.x < light_tex_bottom_right.x &&
+		   texcoord.y > light_tex_bottom_right.y && texcoord.y < light_tex_top_left.y;
+}
+
+bool near_light_source(vec3 highest_light_pos)
+{
+	if (fs_in.position.y < highest_light_pos.y)
+		return true;
+	else
+		return length(fs_in.position - highest_light_pos) < 3.0;
 }

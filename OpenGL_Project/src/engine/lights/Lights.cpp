@@ -1,6 +1,37 @@
 #include "Lights.h"
 
-AbstractLight::AbstractLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular)
+std::unordered_map<LightType, std::vector<Light*>> Light::LOADED_SET = {
+	{ LightType::DIRECTION, std::vector<Light*>() },
+	{ LightType::POINT, std::vector<Light*>() },
+	{ LightType::SPOTLIGHT, std::vector<Light*>() }
+};
+
+void Light::add(LightType type, Light* light)
+{
+	LOADED_SET.at(type).push_back(light);
+}
+
+void Light::send_all_to_shader(Shader* shader)
+{
+	std::vector<Light*> dir_lights = LOADED_SET.at(LightType::DIRECTION);
+	std::vector<Light*> point_lights = LOADED_SET.at(LightType::POINT);
+	std::vector<Light*> spot_lights = LOADED_SET.at(LightType::SPOTLIGHT);
+
+	shader->set_1i(dir_lights.size(), "num_dir_lights");
+	shader->set_1i(point_lights.size(), "num_point_lights");
+	shader->set_1i(spot_lights.size(), "num_spot_lights");
+
+	for (std::size_t i = 0; i < dir_lights.size(); ++i)
+		dir_lights[i]->send_to_shader(shader, i);
+
+	for (std::size_t i = 0; i < point_lights.size(); ++i)
+		point_lights[i]->send_to_shader(shader, i);
+
+	for (std::size_t i = 0; i < spot_lights.size(); ++i)
+		spot_lights[i]->send_to_shader(shader, i);
+}
+
+Light::Light(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular)
 {
 	this->ambient = ambient;
 	this->diffuse = diffuse;
@@ -9,7 +40,7 @@ AbstractLight::AbstractLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 spe
 
 DirLight::DirLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, glm::vec3 direction)
 	:
-	AbstractLight(ambient, diffuse, specular)
+	Light(ambient, diffuse, specular)
 {
 	this->direction = direction;
 }
@@ -34,7 +65,7 @@ void DirLight::send_to_shader(Shader* shader, const int index)
 
 PointLight::PointLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, glm::vec3 position, const float constant, const float linear, const float quadratic)
 	:
-	AbstractLight(ambient, diffuse, specular)
+	Light(ambient, diffuse, specular)
 {
 	this->position = position;
 	this->constant = constant;
@@ -67,6 +98,17 @@ void PointLight::send_to_shader(Shader* shader, const int index)
 
 	sprintf_s(buffer, "%s[%d].quadratic", array, index);
 	shader->set_1f(this->quadratic, buffer);
+}
+
+std::vector<PointLight*> PointLight::get_list()
+{
+	std::vector<Light*> lights = LOADED_SET.at(LightType::POINT);
+	std::vector<PointLight*> point_lights;
+
+	for (Light* light : lights)
+		point_lights.push_back(static_cast<PointLight*>(light));
+
+	return point_lights;
 }
 
 SpotLight::SpotLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, glm::vec3 position, glm::vec3 direction, const float constant, const float linear, const float quadratic, float cut_off, float outer_cut_off)
