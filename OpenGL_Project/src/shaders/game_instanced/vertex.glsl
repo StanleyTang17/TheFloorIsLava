@@ -17,6 +17,7 @@ out VS_OUT
     vec3 position;
     vec3 normal;
     vec2 texcoord;
+    mat3 TBN;
 } vs_out;
 
 void main()
@@ -24,6 +25,12 @@ void main()
     vs_out.position = vec3(model_matrix * vec4(vertex_position, 1.0f));
     vs_out.normal = mat3(transpose(inverse(model_matrix))) * vertex_normal;
     vs_out.texcoord = vertex_texcoord;
+
+    vec3 T = normalize(vec3(model_matrix * vec4(vertex_tangent,     0.0)));
+    vec3 B = normalize(vec3(model_matrix * vec4(vertex_bitangent,   0.0)));
+    vec3 N = normalize(vec3(model_matrix * vec4(vertex_normal,      0.0)));
+
+    vs_out.TBN = mat3(T, B, N);
 
     gl_Position = projection_matrix * view_matrix * vec4(vs_out.position, 1.0f);
 }

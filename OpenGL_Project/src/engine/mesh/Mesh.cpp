@@ -103,6 +103,8 @@ void Mesh::update_uniform(Shader* shader)
 	unsigned int num_normal = 1;
 	unsigned int num_height = 1;
 
+	bool has_normal_map = false;
+
 	for (std::size_t i = 0; i < this->textures.size(); ++i)
 	{
 		Texture* tex = this->textures[i];
@@ -117,13 +119,18 @@ void Mesh::update_uniform(Shader* shader)
 		else if (name == "texture_specular")
 			number = num_specular++;
 		else if (name == "texture_normal")
+		{
 			number = num_normal++;
+			has_normal_map = true;
+		}
 		else if (name == "texture_height")
 			number = num_height++;
 
 		std::string combined = name + std::to_string(number);
 		shader->set_1i(i, combined.c_str());
 	}
+
+	shader->set_1i(has_normal_map, "has_normal_map");
 }
 
 void Mesh::rendor(Shader* vertex_shader, Shader* fragment_shader, int instances)

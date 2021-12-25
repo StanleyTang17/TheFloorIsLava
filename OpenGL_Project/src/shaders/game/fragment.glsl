@@ -60,6 +60,7 @@ in VS_OUT
     vec3 position;
     vec3 normal;
     vec2 texcoord;
+	mat3 TBN;
 } fs_in;
 
 
@@ -88,6 +89,8 @@ uniform sampler2D texture_diffuse1;
 uniform sampler2D texture_normal1;
 uniform sampler2D texture_specular1;
 
+uniform bool has_normal_map;
+
 uniform sampler2D shadow_map;
 uniform samplerCube shadow_cube;
 uniform float far_plane;
@@ -109,12 +112,13 @@ vec3 gamma_to_linear(vec3 color);
 vec3 linear_to_gamma(vec3 color);
 bool is_light_pixel(vec2 texcoord);
 bool near_light_source(vec3 highest_light_pos);
+vec3 calc_normal_from_map();
 
 // MAIN
 
 void main()
 {
-	vec3 normal = normalize(fs_in.normal);
+	vec3 normal = has_normal_map ? calc_normal_from_map() : normalize(fs_in.normal);
 	vec3 view_dir = normalize(camera_pos - fs_in.position);
 	vec3 diffuse_color = gamma_to_linear(texture(texture_diffuse1, fs_in.texcoord).rgb);
 
@@ -290,4 +294,12 @@ bool near_light_source(vec3 highest_light_pos)
 		return true;
 	else
 		return length(fs_in.position - highest_light_pos) < 3.0;
+}
+
+vec3 calc_normal_from_map()
+{
+	vec3 normal = texture(texture_normal1, fs_in.texcoord).rgb;
+	normal = normal * 2.0 - 1.0;
+	normal = normalize(fs_in.TBN * normal);
+	return normal;
 }

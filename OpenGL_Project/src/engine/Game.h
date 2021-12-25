@@ -92,7 +92,6 @@ private:
 	void init_fonts();
 
 	// UPDATE
-	void update_lights();
 	void update_uniforms();
 	void update_dt();
 	void update_mouse_input();

@@ -3,6 +3,7 @@ in VS_OUT
     vec3 position;
     vec3 normal;
     vec2 texcoord;
+	mat3 TBN;
 } fs_in;
 
 uniform float time;
