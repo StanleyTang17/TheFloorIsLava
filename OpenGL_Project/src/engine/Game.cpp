@@ -524,11 +524,6 @@ void Game::update_mouse_input()
 	this->level->handle_mouse_move_input(this->dt, this->mouse_offset_x, this->mouse_offset_y);
 }
 
-void Game::update_lights()
-{
-
-}
-
 void Game::update()
 {
 	// UPDATE INPUT
@@ -538,7 +533,6 @@ void Game::update()
 	this->update_mouse_input();
 
 	this->level->update(this->dt);
-	this->update_lights();
 
 	this->update_uniforms();
 }
