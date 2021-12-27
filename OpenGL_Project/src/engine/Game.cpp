@@ -456,6 +456,7 @@ void Game::init_uniforms()
 	game_fragment_shader->set_1i(this->depth_cube_FBO->get_texture(), "shadow_cube");
 	game_fragment_shader->set_1f(far, "far_plane");
 	game_fragment_shader->set_1i(false, "is_drawing_wall_light");
+	game_fragment_shader->set_1f(0.05f, "height_scale");
 
 	// UNIFORM BUFFER
 

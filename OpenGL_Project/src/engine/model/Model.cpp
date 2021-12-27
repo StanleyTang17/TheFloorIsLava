@@ -126,8 +126,8 @@ std::vector<Texture2D*> Model::load_textures(aiMesh* mesh, const aiScene* scene)
 	std::map<aiTextureType, std::string> texture_types;
 	texture_types.emplace(aiTextureType_DIFFUSE, "texture_diffuse");
 	texture_types.emplace(aiTextureType_SPECULAR, "texture_specular");
-	texture_types.emplace(aiTextureType_HEIGHT, "texture_normal");
-	texture_types.emplace(aiTextureType_AMBIENT, "texture_height");
+	texture_types.emplace(aiTextureType_NORMALS, "texture_normal");
+	texture_types.emplace(aiTextureType_HEIGHT, "texture_height");
 
 	for (std::map<aiTextureType, std::string>::iterator it = texture_types.begin(); it != texture_types.end(); ++it)
 	{

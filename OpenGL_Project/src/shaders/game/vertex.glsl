@@ -27,9 +27,9 @@ void main()
     vs_out.normal = mat3(transpose(inverse(model_matrix))) * vertex_normal;
     vs_out.texcoord = vertex_texcoord;
 
-    vec3 T = normalize(vec3(model_matrix * vec4(vertex_tangent,     0.0)));
-    vec3 B = normalize(vec3(model_matrix * vec4(vertex_bitangent,   0.0)));
-    vec3 N = normalize(vec3(model_matrix * vec4(vertex_normal,      0.0)));
+    vec3 T = normalize(mat3(model_matrix) * vertex_tangent);
+    vec3 B = normalize(mat3(model_matrix) * vertex_bitangent);
+    vec3 N = normalize(mat3(model_matrix) * vertex_normal);
 
     vs_out.TBN = mat3(T, B, N);
 

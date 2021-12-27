@@ -119,6 +119,7 @@
     <None Include="src\shaders\flowmap\fragment.glsl" />
     <None Include="src\shaders\flowmap_3d\fragment.glsl" />
     <None Include="src\shaders\foreground_animation\vertex.glsl" />
+    <None Include="src\shaders\game\fragment_backup1.glsl" />
     <None Include="src\shaders\game\fragment.glsl" />
     <None Include="src\shaders\game\geometry.glsl" />
     <None Include="src\shaders\game\vertex.glsl" />

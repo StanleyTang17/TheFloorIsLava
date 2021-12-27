@@ -160,12 +160,14 @@ void Level::update(const float dt)
 		this->time_survived = this->timer.get_total_time_elapsed();
 		this->time_survived_text.text = "Time Survived: " + Utility::float_to_str(this->time_survived, 2) + "s";
 
-		this->queue_blocks(0.5f);
-		this->drop_blocks();
+		//this->queue_blocks(0.5f);
+		//this->drop_blocks();
+		//this->update_gameobjects(dt);
+		//this->update_lava(dt);
+		//this->update_walls();
+		//this->update_lights();
+
 		this->update_gameobjects(dt);
-		this->update_lava(dt);
-		this->update_walls();
-		this->update_lights();
 
 		for (std::unordered_map<std::string, bool>::iterator iter = this->instance_updated.begin(); iter != this->instance_updated.end(); ++iter)
 		{
@@ -691,6 +693,7 @@ void Level::restart()
 	this->help_text.enabled = false;
 
 	InstancedModel::get("container")->clear_instances();
+	InstancedModel::get("container")->add_instance(new ModelInstance("container", "game_instanced", glm::vec3(5.0f), glm::vec3(0.0f), glm::vec3(3.0f)));
 	InstancedModel::get("container")->init_instances();
 	InstancedModel::get("container_plane")->init_instances();
 }

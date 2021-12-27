@@ -105,6 +105,8 @@ uniform bool is_drawing_wall_light;
 uniform vec2 light_tex_top_left = vec2(0.09, 0.869);
 uniform vec2 light_tex_bottom_right = vec2(0.905, 0.135);
 
+mat3 inverse_TBN = mat3(1.0);
+
 // FUNCTION DECLARATIONS
 
 vec3 calc_dir_light(DirLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color, vec2 texcoord);
@@ -123,14 +125,20 @@ vec2 calc_texcoord_from_map(vec2 texcoord);
 
 void main()
 {
+	inverse_TBN = transpose(fs_in.TBN);
+	
 	vec2 texcoord = has_height_map ? calc_texcoord_from_map(fs_in.texcoord) : fs_in.texcoord;
 	vec3 normal = has_normal_map ? calc_normal_from_map(texcoord) : normalize(fs_in.normal);
-	vec3 view_dir = normalize(camera_pos - fs_in.position);
+	
+	vec3 tangent_camera_pos = inverse_TBN * camera_pos;
+	vec3 tangent_frag_pos = inverse_TBN * fs_in.position;
+	vec3 view_dir = normalize(tangent_camera_pos - tangent_frag_pos);
+
 	vec3 diffuse_color = gamma_to_linear(texture(texture_diffuse1, texcoord).rgb);
-	/*
+	
 	if(has_height_map && (texcoord.x > 1.0 || texcoord.y > 1.0 || texcoord.x < 0.0 || texcoord.y < 0.0))
 		discard;
-	*/
+	
 	vec3 result = vec3(0.0, 0.0, 0.0);
 	vec3 highest_light_pos = vec3(0.0);
 
@@ -187,14 +195,14 @@ vec3 calc_dir_light(DirLight light, vec3 normal, vec3 view_dir, vec3 diffuse_col
 
 vec3 calc_point_light(PointLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color, vec2 texcoord)
 {
-	vec3 light_dir = normalize(light.position - fs_in.position);
+	vec3 light_dir = normalize(inverse_TBN * light.position - inverse_TBN * fs_in.position);
 
 	float diff = max(dot(normal, light_dir), 0.0);
 
 	vec3 halfway_dir = normalize(light_dir + view_dir);
 	float spec = pow(max(dot(normal, halfway_dir), 0.0), 2.0);
 
-	float distance = length(light.position - fs_in.position);
+	float distance = length(inverse_TBN * light.position - inverse_TBN * fs_in.position);
 	float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
 
 	vec3 ambient = light.ambient * diffuse_color;
@@ -309,7 +317,7 @@ vec3 calc_normal_from_map(vec2 texcoord)
 {
 	vec3 normal = texture(texture_normal1, texcoord).rgb;
 	normal = normal * 2.0 - 1.0;
-	normal = normalize(fs_in.TBN * normal);
+	//normal = normalize(fs_in.TBN * normal);
 	return normal;
 }
 
