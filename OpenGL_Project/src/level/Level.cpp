@@ -31,6 +31,8 @@ Level::Level(const int rows, const int cols, const int height)
 
 	// INIT GRAPHICS
 
+	this->text_bg = new Image("res/images/black.png", 0, 0);
+
 	WarehouseModel* warehouse_model = new WarehouseModel(glm::vec3(rows * GRID_SIZE / 2, MAX_HEIGHT * GRID_SIZE * 10, cols * GRID_SIZE / 2));
 	Model::add(warehouse_model);
 	this->warehouse_instance = new ModelInstance(
@@ -120,6 +122,8 @@ Level::Level(const int rows, const int cols, const int height)
 	this->camera_anim_pos.add_point(1.0f, glm::vec3(1.0f));
 	this->text_alpha.add_point(0.0f, 0.0f);
 	this->text_alpha.add_point(1.0f, 1.0f);
+	this->text_bg_alpha.add_point(0.0f, 0.0f);
+	this->text_bg_alpha.add_point(1.0f, 0.8f);
 
 	// INIT CAMERA
 
@@ -648,6 +652,8 @@ void Level::terminate()
 	this->camera_anim_axes.set_point(1, cur_time + anim_duration, glm::vec3(-90.0f, -90.0f, 0.0f));
 	this->text_alpha.set_point(0, cur_time, 0.0f);
 	this->text_alpha.set_point(1, cur_time + anim_duration, 1.0f);
+	this->text_bg_alpha.set_point(0, cur_time, 0.0f);
+	this->text_bg_alpha.set_point(1, cur_time + anim_duration, 1.0f);
 
 	InstancedModel::get("container_plane")->clear_instances();
 	InstancedModel::get("container_plane")->init_instances();
@@ -757,6 +763,16 @@ void Level::render_lava(Shader* vertex_shader, Shader* fragment_shader)
 {
 	this->lava_instance->render(vertex_shader, fragment_shader);
 }
+
+void Level::render_text_bg(Shader* vertex_shader, Shader* fragment_shader)
+{
+	float cur_time = glfwGetTime();
+
+	fragment_shader->set_1f(this->text_bg_alpha.linear_interpolate(cur_time), "alpha_override");
+	this->text_bg->render(vertex_shader, fragment_shader);
+	fragment_shader->set_1f(-1.0f, "alpha_override");
+}
+
 
 void Level::calc_light_placement(int iteration, glm::vec3& position, glm::vec3& rotation)
 {

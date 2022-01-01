@@ -15,6 +15,7 @@
 #include"engine/particles/ParticleEffect.h"
 #include"engine/font/Font.h"
 #include"engine/lights/Lights.h"
+#include"engine/mesh/Image.h"
 #include"utility/Timer.h"
 #include"models/LavaModel.h"
 #include"models/WarehouseModel.h"
@@ -47,6 +48,7 @@ private:
 	int* height_map;
 	bool* queue_map;
 
+	Image* text_bg;
 	ModelInstance* lava_instance;
 	ModelInstance* warehouse_instance;
 	bool has_lava;
@@ -76,6 +78,7 @@ private:
 	Utility::t_vec3 camera_anim_pos;
 	Utility::t_vec3 camera_anim_axes;
 	Utility::t_float text_alpha;
+	Utility::t_float text_bg_alpha;
 
 	std::list<GameObject*> gameobjects;
 	std::list<QueuedBlock> queued_blocks;
@@ -124,6 +127,7 @@ public:
 	void update(const float dt);
 	void render_particles(Shader* fragment_shader);
 	void render_lava(Shader* vertex_shader, Shader* fragment_shader);
+	void render_text_bg(Shader* vertex_shader, Shader* fragment_shader);
 	void queue_block(int row, int col, float time_til_landing);
 	void handle_key_input(GLFWwindow* window, int key, int action) override;
 	void handle_mouse_move_input(const float dt, const double offset_x, const double offset_y) override;

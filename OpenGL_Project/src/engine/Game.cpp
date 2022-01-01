@@ -399,6 +399,9 @@ void Game::init_level()
 
 void Game::init_uniforms()
 {
+	// IMAGE
+	Shader::get("image_fragment")->set_1f(-1.0f, "alpha_override");
+
 	// TEXT
 
 	glm::mat4 flat_proj = glm::ortho(0.0f, (float)this->WINDOW_WIDTH, 0.0f, (float)this->WINDOW_HEIGHT);
@@ -643,6 +646,17 @@ void Game::render_screen()
 
 void Game::render_text()
 {
+	if (this->level->is_game_over())
+	{
+		ShaderPipeline* image_pipline = ShaderPipeline::get("image");
+		Shader::unuse();
+		image_pipline->use();
+
+		this->level->render_text_bg(image_pipline->get_staged_shader(GL_VERTEX_SHADER_BIT), image_pipline->get_staged_shader(GL_FRAGMENT_SHADER_BIT));
+
+		ShaderPipeline::unuse();
+	}
+	
 	TextRenderQueue::get("game_text")->render(this->dt);
 }
 
@@ -670,10 +684,6 @@ void Game::render()
 
 	// RENDER TEXT
 	this->render_text();
-
-	// RENDER CROSSHAIR
-	ShaderPipeline::get("image")->use();
-	this->crosshair->render(Shader::get("image_vertex"), Shader::get("image_fragment"));
 
 	// CLEAN UP
 	glfwSwapBuffers(this->window);
