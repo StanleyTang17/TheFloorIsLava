@@ -1,18 +1,12 @@
 #include "Player.h"
 
-glm::vec3 global::position = glm::vec3(0.0f);
-glm::vec3 global::velocity = glm::vec3(0.0f);
-glm::vec3 global::size = glm::vec3(0.0f);
-
 Player::Player(glm::vec3 position)
 	:
 	GameObject(position)
 {
 	this->reset(position);
-
 	this->set_hitbox(new Hitbox(this->position, glm::vec3(1.0f, 2.0f, 1.0f)));
-
-	global::size = this->hitbox->get_size();
+	this->speed = this->run_speed;
 }
 
 Player::~Player()
@@ -56,8 +50,7 @@ void Player::update_velocity(const float dt)
 
 void Player::update()
 {
-	global::position = this->position;
-	global::velocity = this->velocity;
+	
 }
 
 void Player::handle_key_input(GLFWwindow* window, int key, int action)
@@ -120,9 +113,9 @@ void Player::handle_key_input(GLFWwindow* window, int key, int action)
 	else if (key == GLFW_KEY_LEFT_SHIFT)
 	{
 		if (action == GLFW_PRESS)
-			this->speed = 2.0f;
+			this->speed = this->walk_speed;
 		else if (action == GLFW_RELEASE)
-			this->speed = 5.0f;
+			this->speed = this->run_speed;
 	}
 }
 

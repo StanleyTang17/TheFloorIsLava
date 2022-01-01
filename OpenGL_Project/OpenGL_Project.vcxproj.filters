@@ -176,9 +176,6 @@
     <ClInclude Include="src\engine\font\Font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\GlobalDebug.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\libs\GAMEOBJECTS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -273,7 +270,6 @@
     <None Include="src\shaders\skybox\fragment.glsl" />
     <None Include="src\shaders\skybox\vertex.glsl" />
     <None Include="src\shaders\image\vertex.glsl" />
-    <None Include="src\shaders\text\fragment.glsl" />
     <None Include="src\shaders\animation\vertex.glsl" />
     <None Include="src\shaders\foreground_animation\vertex.glsl" />
     <None Include="src\shaders\image\fragment.glsl" />

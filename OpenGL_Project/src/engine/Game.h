@@ -4,7 +4,6 @@
 #define GAME_ENGINE_H
 
 #include"libs/ALL.h"
-#include"GlobalDebug.h"
 
 class Game
 {

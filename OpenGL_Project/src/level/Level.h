@@ -18,7 +18,6 @@
 #include"utility/Timer.h"
 #include"models/LavaModel.h"
 #include"models/WarehouseModel.h"
-#include"GlobalDebug.h"
 
 struct QueuedBlock
 {

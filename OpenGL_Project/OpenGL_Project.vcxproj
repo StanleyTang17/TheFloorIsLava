@@ -82,7 +82,6 @@
     <ClInclude Include="src\engine\lights\Lights.h" />
     <ClInclude Include="src\engine\material\Material.h" />
     <ClInclude Include="src\engine\mesh\Mesh.h" />
-    <ClInclude Include="src\GlobalDebug.h" />
     <ClInclude Include="src\libs\GAMEOBJECTS.h" />
     <ClInclude Include="src\libs\VERTEX.h" />
     <ClInclude Include="src\engine\model\Model.h" />
@@ -133,7 +132,6 @@
     <None Include="src\shaders\screen\vertex.glsl" />
     <None Include="src\shaders\skybox\fragment.glsl" />
     <None Include="src\shaders\skybox\vertex.glsl" />
-    <None Include="src\shaders\text\fragment.glsl" />
     <None Include="src\shaders\image\vertex.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -3,7 +3,6 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include"GlobalDebug.h"
 #include"engine/camera/Camera.h"
 #include"engine/hitbox/Hitbox.h"
 #include"engine/input/KeyInput.h"
@@ -13,8 +12,10 @@
 class Player : public GameObject, public KeyInput
 {
 private:
-	float speed = 7.0f;
-	float jump_speed = 15.0f;
+	float speed;
+	const float jump_speed = 15.0f;
+	const float run_speed = 7.0f;
+	const float walk_speed = 2.0f;
 
 	// MOVEMENT CONTROL
 	int front_movement;
