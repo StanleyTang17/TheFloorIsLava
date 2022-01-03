@@ -232,8 +232,8 @@ void Game::init_matrices()
 
 void Game::init_fonts()
 {
-	Font::load("game_body", "arial", 24, glm::vec4(1.0f));
-	Font::load("game_title", "arial", 48, glm::vec4(1.0f));
+	Font::load("game_body", "impact", 24, glm::vec4(1.0f));
+	Font::load("game_title", "impact", 56, glm::vec4(1.0f), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), 1.0f);
 }
 
 void Game::init_shaders()

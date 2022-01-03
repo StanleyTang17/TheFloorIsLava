@@ -100,7 +100,7 @@ Level::Level(const int rows, const int cols, const int height)
 
 	this->title_text = { "The Floor is Lava", "game_title", 480.0f, 600.0f, 1.0f, true };
 	this->time_survived_text = { "", "game_body", 0.0f, 780.0f, 1.0f, false };
-	this->countdown_text = { "", "game_title", 550, 550, 1.0f, false };
+	this->countdown_text = { "", "game_title", 550, 540, 1.0f, false };
 	this->highscore_text = { "Longest Time Survived: " + Utility::float_to_str(this->highscore, 2) + "s", "game_title", 550, 450, 1.0f, true };
 	this->help_text = { "Press [Space] to start ", "game_title", 550, 300, 1.0f, true };
 
@@ -689,7 +689,7 @@ void Level::restart()
 	this->state = LevelState::RUNNING;
 
 	this->title_text.enabled = true;
-	this->title_text.text = "Lava rises in";
+	this->title_text.text = "The floor becomes lava in";
 	TextRenderQueue::center_text_x(this->title_text);
 	this->countdown_text.enabled = true;
 	this->highscore_text.enabled = false;

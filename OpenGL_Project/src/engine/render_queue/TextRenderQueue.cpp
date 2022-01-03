@@ -58,7 +58,11 @@ void TextRenderQueue::render_with_pipeline(ShaderPipeline* pipeline, const float
 		if (text_info->enabled)
 		{
 			Font* font = Font::get(text_info->font);
-			font->render_string(vertex, fragment, text_info->text, text_info->x, text_info->y, text_info->scale, text_info->color);
+			glm::vec4 outline_color = font->get_outline_color();
+			outline_color.a = text_info->color.a;
+			font->set_text_color(text_info->color);
+			font->set_outline_color(outline_color);
+			font->render_string(vertex, fragment, text_info->text, text_info->x, text_info->y, text_info->scale);
 		}
 	}
 }
