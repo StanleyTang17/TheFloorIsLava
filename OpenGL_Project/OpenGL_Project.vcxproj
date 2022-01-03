@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\engine\model\AnimatedBone.cpp" />
+    <ClCompile Include="src\engine\model\AnimatedModel.cpp" />
     <ClCompile Include="src\engine\render_queue\ModelRenderQueue.cpp" />
     <ClCompile Include="src\engine\polygon\Ray.cpp" />
     <ClCompile Include="src\level\models\LavaModel.cpp" />
@@ -32,8 +34,6 @@
     <ClCompile Include="src\engine\render_queue\RenderQueue.cpp" />
     <ClCompile Include="src\engine\shader\ShaderPipeline.cpp" />
     <ClCompile Include="src\engine\model\ModelInstance.cpp" />
-    <ClCompile Include="src\engine\model\AnimatedBone.cpp" />
-    <ClCompile Include="src\engine\model\AnimatedModel.cpp" />
     <ClCompile Include="src\utility\AssimpToGLM.cpp" />
     <ClCompile Include="src\engine\math\Math.cpp" />
     <ClCompile Include="src\engine\camera\Camera.cpp" />
@@ -55,6 +55,8 @@
     <ClCompile Include="src\engine\render_queue\TextRenderQueue.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\engine\model\AnimatedBone.h" />
+    <ClInclude Include="src\engine\model\AnimatedModel.h" />
     <ClInclude Include="src\engine\render_queue\ModelRenderQueue.h" />
     <ClInclude Include="src\engine\polygon\Ray.h" />
     <ClInclude Include="src\level\models\LavaModel.h" />
@@ -71,8 +73,6 @@
     <ClInclude Include="src\engine\render_queue\RenderQueue.h" />
     <ClInclude Include="src\engine\shader\ShaderPipeline.h" />
     <ClInclude Include="src\engine\model\ModelInstance.h" />
-    <ClInclude Include="src\engine\model\AnimatedBone.h" />
-    <ClInclude Include="src\engine\model\AnimatedModel.h" />
     <ClInclude Include="src\utility\AssimpToGLM.h" />
     <ClInclude Include="src\engine\math\Math.h" />
     <ClInclude Include="src\engine\camera\Camera.h" />
@@ -109,13 +109,9 @@
     <None Include="src\shaders\animated_particles\fragment.glsl" />
     <None Include="src\shaders\animated_particles\vertex.glsl" />
     <None Include="src\shaders\animation\vertex.glsl" />
-    <None Include="src\shaders\cube\vertex.glsl" />
-    <None Include="src\shaders\depth_buffer\fragment.glsl" />
-    <None Include="src\shaders\depth_buffer\vertex.glsl" />
     <None Include="src\shaders\depth_cube\fragment.glsl" />
     <None Include="src\shaders\depth_cube\geometry.glsl" />
     <None Include="src\shaders\depth_cube\vertex.glsl" />
-    <None Include="src\shaders\flowmap\fragment.glsl" />
     <None Include="src\shaders\flowmap_3d\fragment.glsl" />
     <None Include="src\shaders\foreground_animation\vertex.glsl" />
     <None Include="src\shaders\game\fragment.glsl" />
@@ -124,14 +120,8 @@
     <None Include="src\shaders\game_instanced\vertex.glsl" />
     <None Include="src\shaders\gaussian_blur\fragment.glsl" />
     <None Include="src\shaders\image\fragment.glsl" />
-    <None Include="src\shaders\line\fragment.glsl" />
-    <None Include="src\shaders\line\vertex.glsl" />
-    <None Include="src\shaders\particles\fragment.glsl" />
-    <None Include="src\shaders\particles\vertex.glsl" />
     <None Include="src\shaders\screen\fragment.glsl" />
     <None Include="src\shaders\screen\vertex.glsl" />
-    <None Include="src\shaders\skybox\fragment.glsl" />
-    <None Include="src\shaders\skybox\vertex.glsl" />
     <None Include="src\shaders\image\vertex.glsl" />
     <None Include="src\shaders\text\fragment.glsl" />
   </ItemGroup>
