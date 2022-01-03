@@ -31,8 +31,6 @@ Game::Game(const char* title, const int width, const int height, const int versi
 	this->mouse_offset_y = 0.0f;
 	this->first_mouse = true;
 
-	this->skybox_texture = nullptr;
-
 	this->show_depth = 0;
 
 	this->init_GLFW();
@@ -198,68 +196,6 @@ void Game::init_framebuffers()
 
 void Game::init_others()
 {
-	// SKYBOX
-	std::vector<std::string> img_names{ "right.jpg", "left.jpg", "top.jpg", "bottom.jpg", "front.jpg", "back.jpg" };
-	this->skybox_texture = new TextureCube(img_names, "res/images/skybox");
-
-	float skybox_vertices[] = {
-		// positions          
-		-100.0f,  100.0f, -100.0f,
-		-100.0f, -100.0f, -100.0f,
-		 100.0f, -100.0f, -100.0f,
-		 100.0f, -100.0f, -100.0f,
-		 100.0f,  100.0f, -100.0f,
-		-100.0f,  100.0f, -100.0f,
-
-		-100.0f, -100.0f,  100.0f,
-		-100.0f, -100.0f, -100.0f,
-		-100.0f,  100.0f, -100.0f,
-		-100.0f,  100.0f, -100.0f,
-		-100.0f,  100.0f,  100.0f,
-		-100.0f, -100.0f,  100.0f,
-
-		 100.0f, -100.0f, -100.0f,
-		 100.0f, -100.0f,  100.0f,
-		 100.0f,  100.0f,  100.0f,
-		 100.0f,  100.0f,  100.0f,
-		 100.0f,  100.0f, -100.0f,
-		 100.0f, -100.0f, -100.0f,
-
-		-100.0f, -100.0f,  100.0f,
-		-100.0f,  100.0f,  100.0f,
-		 100.0f,  100.0f,  100.0f,
-		 100.0f,  100.0f,  100.0f,
-		 100.0f, -100.0f,  100.0f,
-		-100.0f, -100.0f,  100.0f,
-
-		-100.0f,  100.0f, -100.0f,
-		 100.0f,  100.0f, -100.0f,
-		 100.0f,  100.0f,  100.0f,
-		 100.0f,  100.0f,  100.0f,
-		-100.0f,  100.0f,  100.0f,
-		-100.0f,  100.0f, -100.0f,
-
-		-100.0f, -100.0f, -100.0f,
-		-100.0f, -100.0f,  100.0f,
-		 100.0f, -100.0f, -100.0f,
-		 100.0f, -100.0f, -100.0f,
-		-100.0f, -100.0f,  100.0f,
-		 100.0f, -100.0f,  100.0f
-	};
-
-	glGenVertexArrays(1, &this->skybox_VAO);
-	glBindVertexArray(this->skybox_VAO);
-
-	GLuint skybox_VBO;
-	glGenBuffers(1, &skybox_VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, skybox_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_vertices), &skybox_vertices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glBindVertexArray(0);
-
 	// SCREEN VBO
 	glGenVertexArrays(1, &this->screen_VAO);
 	glBindVertexArray(this->screen_VAO);
@@ -320,9 +256,6 @@ void Game::init_shaders()
 
 	GLenum types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
 
-	std::string skybox_srcs[] = { "src/shaders/skybox/vertex.glsl", "src/shaders/skybox/fragment.glsl" };
-	Shader::load("skybox", 2, types, skybox_srcs);
-
 	GLenum depth_cube_types[] = { GL_VERTEX_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER };
 	std::string depth_cube_srcs[] = { "src/shaders/depth_cube/vertex.glsl", "src/shaders/depth_cube/geometry.glsl", "src/shaders/depth_cube/fragment.glsl" };
 	Shader::load("depth_cube", 3, depth_cube_types, depth_cube_srcs);
@@ -382,14 +315,6 @@ void Game::init_models()
 	InstancedModel::load("res/models/container/container.obj");
 	InstancedModel::load("res/models/container_plane/container_plane.obj");
 	InstancedModel::load("res/models/wall_light/wall_light.obj");
-
-	crosshair = new Image(
-		"res/images/crosshair_white.png",
-		this->WINDOW_WIDTH / 2 - 20 / 2,
-		this->WINDOW_HEIGHT / 2 - 20 / 2,
-		20,
-		20
-	);
 }
 
 void Game::init_level()
@@ -437,10 +362,6 @@ void Game::init_uniforms()
 	}
 	depth_cube_shader->set_vec_3f(light_pos, "light_pos");
 	depth_cube_shader->set_1f(far, "far_plane");
-
-	// SKYBOX
-
-	Shader::get("skybox")->set_1i(this->skybox_texture->get_id(), "skybox_texture");
 
 	// AFTER EFFECTS
 
@@ -538,21 +459,6 @@ void Game::update()
 	this->level->update(this->dt);
 
 	this->update_uniforms();
-}
-
-void Game::render_skybox(Shader* shader)
-{
-	// SKYBOX
-	shader->use();
-	glBindVertexArray(this->skybox_VAO);
-	this->skybox_texture->bind();
-	glDepthFunc(GL_LEQUAL);
-
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-
-	this->skybox_texture->unbind();
-	shader->unuse();
-	glDepthFunc(GL_LESS);
 }
 
 void Game::render_shadow_map()

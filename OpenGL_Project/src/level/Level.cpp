@@ -773,7 +773,6 @@ void Level::render_text_bg(Shader* vertex_shader, Shader* fragment_shader)
 	fragment_shader->set_1f(-1.0f, "alpha_override");
 }
 
-
 void Level::calc_light_placement(int iteration, glm::vec3& position, glm::vec3& rotation)
 {
 	int gs = this->GRID_SIZE;

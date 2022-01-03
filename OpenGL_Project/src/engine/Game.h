@@ -44,11 +44,6 @@ private:
 
 	int show_depth;
 
-	// SKYBOX
-
-	TextureCube* skybox_texture;
-	GLuint skybox_VAO;
-
 	// OTHER VAOs and VBOs;
 
 	GLuint screen_VAO;
@@ -96,7 +91,6 @@ private:
 	void update_mouse_input();
 
 	// DRAW
-	void render_skybox(Shader* shader);
 	void render_shadow_map();
 	void render_level();
 	void render_blur();
