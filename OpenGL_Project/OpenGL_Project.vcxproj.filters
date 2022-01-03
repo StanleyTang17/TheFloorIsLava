@@ -60,12 +60,6 @@
     <ClCompile Include="src\utility\AssimpToGLM.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\model\AnimatedModel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\model\AnimatedBone.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\model\ModelInstance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -115,6 +109,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\render_queue\TextRenderQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\model\AnimatedBone.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\model\AnimatedModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -185,12 +185,6 @@
     <ClInclude Include="src\utility\AssimpToGLM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\model\AnimatedModel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\model\AnimatedBone.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\engine\model\ModelInstance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -251,13 +245,17 @@
     <ClInclude Include="src\engine\render_queue\TextRenderQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\engine\model\AnimatedBone.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\model\AnimatedModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="freetype.dll" />
     <None Include="glew32.dll" />
     <None Include="glfw3.dll" />
-    <None Include="src\shaders\depth_buffer\fragment.glsl" />
-    <None Include="src\shaders\depth_buffer\vertex.glsl" />
     <None Include="src\shaders\depth_cube\fragment.glsl" />
     <None Include="src\shaders\depth_cube\geometry.glsl" />
     <None Include="src\shaders\depth_cube\vertex.glsl" />
@@ -266,25 +264,17 @@
     <None Include="src\shaders\game\vertex.glsl" />
     <None Include="src\shaders\screen\fragment.glsl" />
     <None Include="src\shaders\screen\vertex.glsl" />
-    <None Include="src\shaders\skybox\fragment.glsl" />
-    <None Include="src\shaders\skybox\vertex.glsl" />
     <None Include="src\shaders\image\vertex.glsl" />
-    <None Include="src\shaders\animation\vertex.glsl" />
-    <None Include="src\shaders\foreground_animation\vertex.glsl" />
     <None Include="src\shaders\image\fragment.glsl" />
-    <None Include="src\shaders\line\vertex.glsl" />
-    <None Include="src\shaders\line\fragment.glsl" />
-    <None Include="src\shaders\cube\vertex.glsl" />
     <None Include="src\shaders\game_instanced\vertex.glsl" />
-    <None Include="src\shaders\particles\vertex.glsl" />
-    <None Include="src\shaders\particles\fragment.glsl" />
     <None Include="src\shaders\animated_particles\vertex.glsl" />
     <None Include="src\shaders\animated_particles\fragment.glsl" />
-    <None Include="src\shaders\flowmap\fragment.glsl" />
     <None Include="src\shaders\flowmap_3d\fragment.glsl" />
     <None Include="data\level.save" />
     <None Include="src\shaders\gaussian_blur\fragment.glsl" />
     <None Include="src\shaders\text\fragment.glsl" />
-    <None Include="assimp-vc140-mt.dll" />
+    <None Include="assimp-vc142-mt.dll" />
+    <None Include="src\shaders\animation\vertex.glsl" />
+    <None Include="src\shaders\foreground_animation\vertex.glsl" />
   </ItemGroup>
 </Project>

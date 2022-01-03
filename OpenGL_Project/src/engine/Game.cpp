@@ -260,15 +260,6 @@ void Game::init_shaders()
 	std::string depth_cube_srcs[] = { "src/shaders/depth_cube/vertex.glsl", "src/shaders/depth_cube/geometry.glsl", "src/shaders/depth_cube/fragment.glsl" };
 	Shader::load("depth_cube", 3, depth_cube_types, depth_cube_srcs);
 
-	std::string line_srcs[] = { "src/shaders/line/vertex.glsl", "src/shaders/line/fragment.glsl" };
-	Shader::load("line", 2, types, line_srcs);
-
-	std::string cube_srcs[] = { "src/shaders/cube/vertex.glsl", "src/shaders/line/fragment.glsl" };
-	Shader::load("cube", 2, types, cube_srcs);
-
-	std::string particles_srcs[] = { "src/shaders/particles/vertex.glsl", "src/shaders/particles/fragment.glsl" };
-	Shader::load("particles", 2, types, particles_srcs);
-
 	std::string animated_particles_srcs[] = { "src/shaders/animated_particles/vertex.glsl", "src/shaders/animated_particles/fragment.glsl" };
 	Shader::load("animated_particles", 2, types, animated_particles_srcs);
 
@@ -388,8 +379,6 @@ void Game::init_uniforms()
 	glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->uniform_buffer);
-
-	Shader::get("cube")->set_vec_3f(glm::vec3(1.0f, 0.0f, 0.0f), "color");
 
 	Shader::get("gaussian_blur_fragment")->set_1i(0, "image_texture");
 
