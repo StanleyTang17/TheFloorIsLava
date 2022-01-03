@@ -101,9 +101,10 @@
     <ClInclude Include="src\engine\render_queue\TextRenderQueue.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="assimp-vc142-mt.dll" />
+    <None Include="assimp-vc140-mt.dll" />
     <None Include="data\level.save" />
     <None Include="freetype.dll" />
+    <None Include="Game.exe" />
     <None Include="glew32.dll" />
     <None Include="glfw3.dll" />
     <None Include="src\shaders\animated_particles\fragment.glsl" />
@@ -202,6 +203,7 @@
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>TheFloorIsLava</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
