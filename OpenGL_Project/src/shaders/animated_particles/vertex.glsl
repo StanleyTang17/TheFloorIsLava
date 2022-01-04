@@ -11,6 +11,11 @@ layout (binding = 0, std140) uniform Matrices
     mat4 view_matrix_no_translate;
 };
 
+out gl_PerVertex
+{
+    vec4 gl_Position;
+};
+
 out vec2 vs_texcoord;
 out float atlas_index;
 
