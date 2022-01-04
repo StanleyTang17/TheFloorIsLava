@@ -3,6 +3,11 @@ layout (location = 1) in vec2 vertex_texcoord;
 
 out vec2 vs_texcoord;
 
+out gl_PerVertex
+{
+    vec4 gl_Position;
+};
+
 void main()
 {
 	vs_texcoord = vertex_texcoord;

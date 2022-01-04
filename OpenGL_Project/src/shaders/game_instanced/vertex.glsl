@@ -12,6 +12,11 @@ layout (binding = 0, std140) uniform Matrices
     mat4 view_matrix_no_translate;
 };
 
+out gl_PerVertex
+{
+    vec4 gl_Position;
+};
+
 out VS_OUT
 {
     vec3 position;

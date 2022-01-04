@@ -13,6 +13,11 @@ layout (binding = 0, std140) uniform Matrices
     mat4 view_matrix_no_translate;
 };
 
+out gl_PerVertex
+{
+    vec4 gl_Position;
+};
+
 uniform mat4 model_matrix;
 
 const int MAX_BONES = 100;
