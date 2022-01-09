@@ -31,8 +31,6 @@ Game::Game(const char* title, const int width, const int height, const int versi
 	this->mouse_offset_y = 0.0f;
 	this->first_mouse = true;
 
-	this->show_depth = 0;
-
 	this->init_GLFW();
 	std::cout << "Initialized GLFW" << std::endl;
 
@@ -97,13 +95,6 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
 	{
 		game->set_window_should_close(true);
 		return;
-	}
-	else if (key == GLFW_KEY_Y)
-	{
-		if (action == GLFW_PRESS)
-			game->show_depth = 1;
-		else if (action == GLFW_RELEASE)
-			game->show_depth = 0;
 	}
 
 	game->level->handle_key_input(window, key, action);
@@ -354,15 +345,18 @@ void Game::init_uniforms()
 	depth_cube_shader->set_vec_3f(light_pos, "light_pos");
 	depth_cube_shader->set_1f(far, "far_plane");
 
-	// AFTER EFFECTS
+	// SCREEN
 
 	Shader* screen_fragment_shader = Shader::get("screen_fragment");
 	screen_fragment_shader->set_1i(0, "screen_texture");
 	screen_fragment_shader->set_1i(1, "bloom_blur_texture");
 	screen_fragment_shader->set_1i(2, "depth_texture");
-	screen_fragment_shader->set_1i(NONE, "filter_mode");
-	screen_fragment_shader->set_1i(0, "show_depth");
+	screen_fragment_shader->set_1i(Filter::FXAA, "filter_mode");
+	screen_fragment_shader->set_1f(1.5f, "fxaa_max_range");
+	screen_fragment_shader->set_1f(1.0f / 128.0f, "fxaa_reduce_min");
+	screen_fragment_shader->set_1f(1.0f / 8.0f, "fxaa_reduce_multiplier");
 	screen_fragment_shader->set_1f(0.8f, "exposure");
+	screen_fragment_shader->set_vec_2f(glm::vec2(1.0f / this->WINDOW_WIDTH, 1.0f / this->WINDOW_HEIGHT), "inverse_screen_size");
 
 	// MAIN FRAGMENT
 
@@ -406,8 +400,6 @@ void Game::update_uniforms()
 	// LIGHTS
 
 	Light::send_all_to_shader(Shader::get("game_fragment"));
-
-	Shader::get("screen_fragment")->set_1i(this->show_depth, "show_depth");
 }
 
 void Game::update_dt()

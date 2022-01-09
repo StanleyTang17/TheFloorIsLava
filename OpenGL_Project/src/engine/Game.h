@@ -42,8 +42,6 @@ private:
 	glm::mat4 projection_matrix;
 	glm::mat4 light_space_matrix;
 
-	int show_depth;
-
 	// OTHER VAOs and VBOs;
 
 	GLuint screen_VAO;
