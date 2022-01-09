@@ -7,6 +7,7 @@ A 3D infinite climber game built entirely from scratch using OpenGL.
 * Reusable Shaders in Program Pipelines
 * Flowmap Rendering
 * Instanced Rendering
+* Animated Particle Effect
 * Normal Mapping
 * Model Loading and Rendering
 * Text Loading and Rendering (with and without outline)
