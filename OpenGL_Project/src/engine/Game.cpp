@@ -352,9 +352,9 @@ void Game::init_uniforms()
 	screen_fragment_shader->set_1i(1, "bloom_blur_texture");
 	screen_fragment_shader->set_1i(2, "depth_texture");
 	screen_fragment_shader->set_1i(Filter::FXAA, "filter_mode");
-	screen_fragment_shader->set_1f(1.5f, "fxaa_max_range");
-	screen_fragment_shader->set_1f(1.0f / 128.0f, "fxaa_reduce_min");
-	screen_fragment_shader->set_1f(1.0f / 8.0f, "fxaa_reduce_multiplier");
+	screen_fragment_shader->set_1f(2.0f, "fxaa_max_range");
+	screen_fragment_shader->set_1f(1.0f / 256.0f, "fxaa_reduce_min");
+	screen_fragment_shader->set_1f(1.0f / 16.0f, "fxaa_reduce_multiplier");
 	screen_fragment_shader->set_1f(0.8f, "exposure");
 	screen_fragment_shader->set_vec_2f(glm::vec2(1.0f / this->WINDOW_WIDTH, 1.0f / this->WINDOW_HEIGHT), "inverse_screen_size");
 

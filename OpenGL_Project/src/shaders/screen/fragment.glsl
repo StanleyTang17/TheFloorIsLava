@@ -43,8 +43,8 @@ void main()
         float lumaBR = luminosity(ivec2( 1,  1));
 
         vec2 dir = vec2(0.0); // blur direction
-        dir.x = -(lumaTL + lumaTR) - (lumaBL + lumaBR);
-        dir.y = (lumaTL + lumaBL) - (lumaTR + lumaBR);
+        dir.x = (lumaTR + lumaBR) - (lumaTL + lumaBL);
+        dir.y = (lumaBL + lumaBR) - (lumaTL + lumaTR);
 
         float dir_reduce = max((lumaTL + lumaTR + lumaBL + lumaBR) * 0.25 * fxaa_reduce_multiplier, fxaa_reduce_min);
         float scale = 1.0/(min(abs(dir.x), abs(dir.y)) - dir_reduce);
